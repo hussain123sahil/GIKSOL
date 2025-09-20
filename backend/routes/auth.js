@@ -1,6 +1,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Student = require('../models/Student');
+const Mentor = require('../models/Mentor');
 const { auth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -27,6 +29,39 @@ router.post('/register', async (req, res) => {
 
     await user.save();
 
+    // Create role-specific record
+    let roleRecord = null;
+    if (user.role === 'student') {
+      roleRecord = new Student({
+        user: user._id,
+        learningGoals: ['Learn new skills', 'Career development'],
+        currentLevel: 'beginner',
+        interests: ['Technology', 'Programming'],
+        preferredLearningStyle: 'visual',
+        timeCommitment: '1-2 hours/week',
+        budget: { min: 0, max: 100 },
+        bio: `Hi, I'm ${user.firstName} ${user.lastName}. I'm excited to start my learning journey!`
+      });
+      await roleRecord.save();
+    } else if (user.role === 'mentor') {
+      roleRecord = new Mentor({
+        user: user._id,
+        company: 'Your Company',
+        position: 'Your Position',
+        expertise: ['General Mentoring', 'Career Guidance'],
+        hourlyRate: 50,
+        bio: `Hi, I'm ${user.firstName} ${user.lastName}. I'm passionate about helping others grow and succeed!`,
+        linkedinUrl: '',
+        education: [{
+          degree: 'Bachelor\'s Degree',
+          institution: 'University',
+          year: 2020
+        }],
+        certifications: []
+      });
+      await roleRecord.save();
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id },
@@ -43,7 +78,11 @@ router.post('/register', async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role
-      }
+      },
+      roleRecord: roleRecord ? {
+        id: roleRecord._id,
+        type: user.role
+      } : null
     });
   } catch (error) {
     console.error('Registration error:', error);
