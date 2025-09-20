@@ -1,1 +1,195 @@
-<p>mentor-profile works!</p>
+<div class="mentor-profile-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="container">
+      <div class="header-content">
+        <button class="btn btn-secondary" (click)="goBack()">← Back to Mentors</button>
+        <h1>Mentor Profile</h1>
+        <div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading mentor profile...</p>
+  </div>
+
+  <!-- Mentor Profile -->
+  <div *ngIf="!isLoading && mentor" class="profile-content">
+    <div class="container">
+      <div class="profile-layout">
+        <!-- Left Column - Profile Info -->
+        <div class="profile-sidebar">
+          <div class="profile-card">
+            <div class="mentor-avatar">
+              {{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+            </div>
+            <h2>{{ mentor.firstName }} {{ mentor.lastName }}</h2>
+            <p class="position">{{ mentor.position }}</p>
+            <p class="company">{{ mentor.company }}</p>
+            
+            <div class="mentor-stats">
+              <div class="stat">
+                <span class="rating">⭐ {{ mentor.rating }}</span>
+                <small>Rating</small>
+              </div>
+              <div class="stat">
+                <span class="sessions">{{ mentor.totalSessions }}</span>
+                <small>Sessions</small>
+              </div>
+              <div class="stat">
+                <span class="rate">${{ mentor.hourlyRate }}</span>
+                <small>Per Hour</small>
+              </div>
+            </div>
+
+            <div class="availability">
+              <h4>Availability</h4>
+              <p>{{ getAvailabilityText() }}</p>
+            </div>
+
+            <div class="expertise">
+              <h4>Expertise</h4>
+              <div class="expertise-tags">
+                <span class="expertise-tag" *ngFor="let skill of mentor.expertise">
+                  {{ skill }}
+                </span>
+              </div>
+            </div>
+
+            <div class="social-links" *ngIf="mentor.linkedinUrl">
+              <a [href]="mentor.linkedinUrl" target="_blank" class="linkedin-link">
+                LinkedIn Profile
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Detailed Info -->
+        <div class="profile-main">
+          <!-- Bio Section -->
+          <div class="section-card">
+            <h3>About {{ mentor.firstName }}</h3>
+            <p class="bio">{{ mentor.bio }}</p>
+          </div>
+
+          <!-- Education Section -->
+          <div class="section-card" *ngIf="mentor.education.length > 0">
+            <h3>Education</h3>
+            <div class="education-list">
+              <div class="education-item" *ngFor="let edu of mentor.education">
+                <h4>{{ edu.degree }}</h4>
+                <p>{{ edu.institution }} • {{ edu.year }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Certifications Section -->
+          <div class="section-card" *ngIf="mentor.certifications.length > 0">
+            <h3>Certifications</h3>
+            <div class="certifications-list">
+              <div class="certification-item" *ngFor="let cert of mentor.certifications">
+                <h4>{{ cert.name }}</h4>
+                <p>{{ cert.issuer }} • {{ cert.date }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking Section -->
+          <div class="section-card booking-section">
+            <h3>Book a Session</h3>
+            <p>Ready to start your learning journey? Book a session with {{ mentor.firstName }}.</p>
+            
+            <div class="booking-summary">
+              <div class="price-info">
+                <span class="hourly-rate">${{ mentor.hourlyRate }}/hour</span>
+                <span class="session-types">Video calls • Screen sharing • Recording available</span>
+              </div>
+            </div>
+
+            <button 
+              class="btn btn-primary booking-btn" 
+              (click)="toggleBookingForm()"
+              [disabled]="!mentor.isAvailable"
+            >
+              {{ mentor.isAvailable ? 'Book Session' : 'Currently Unavailable' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Form Modal -->
+  <div class="booking-modal" *ngIf="showBookingForm" (click)="toggleBookingForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Book Session with {{ mentor?.firstName }} {{ mentor?.lastName }}</h3>
+        <button class="close-btn" (click)="toggleBookingForm()">×</button>
+      </div>
+
+      <form class="booking-form" (ngSubmit)="submitBookingRequest()">
+        <div class="form-group">
+          <label>Preferred Date</label>
+          <input type="date" [(ngModel)]="bookingForm.preferredDate" name="preferredDate" required>
+        </div>
+
+        <div class="form-group">
+          <label>Preferred Time</label>
+          <select [(ngModel)]="bookingForm.preferredTime" name="preferredTime" required>
+            <option value="">Select time</option>
+            <option *ngFor="let time of availableTimeSlots" [value]="time">{{ time }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Session Duration (minutes)</label>
+          <select [(ngModel)]="bookingForm.sessionDuration" name="sessionDuration">
+            <option value="30">30 minutes</option>
+            <option value="60">60 minutes</option>
+            <option value="90">90 minutes</option>
+            <option value="120">120 minutes</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Session Type</label>
+          <select [(ngModel)]="bookingForm.sessionType" name="sessionType">
+            <option value="video">Video Call</option>
+            <option value="phone">Phone Call</option>
+            <option value="chat">Text Chat</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Notes (Optional)</label>
+          <textarea 
+            [(ngModel)]="bookingForm.notes" 
+            name="notes" 
+            placeholder="What would you like to focus on in this session?"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="booking-total">
+          <div class="total-info">
+            <span>Session Duration: {{ bookingForm.sessionDuration }} minutes</span>
+            <span>Rate: ${{ mentor?.hourlyRate }}/hour</span>
+            <span class="total-price">Total: ${{ getTotalPrice() }}</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="toggleBookingForm()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Send Booking Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

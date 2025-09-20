@@ -1,0 +1,150 @@
+/* Features Grid */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  margin-top: 60px;
+}
+
+.feature-card {
+  background: white;
+  padding: 32px 24px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(21, 101, 192, 0.1);
+  border: 1px solid #e3f2fd;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.feature-card h3 {
+  color: #1565c0;
+  font-size: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.feature-card p {
+  color: #424242;
+  line-height: 1.6;
+}
+
+/* Testimonials */
+.testimonials-section {
+  background: white;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  margin-top: 60px;
+}
+
+.testimonial-card {
+  background: #f8f9fa;
+  padding: 32px 24px;
+  border-radius: 16px;
+  border: 1px solid #e3f2fd;
+  transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-3px);
+}
+
+.testimonial-content p {
+  color: #424242;
+  font-style: italic;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.testimonial-rating {
+  margin-bottom: 20px;
+}
+
+.star {
+  color: #ffc107;
+  margin-right: 2px;
+}
+
+.testimonial-author h4 {
+  color: #1565c0;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.testimonial-author p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* FAQ */
+.faq-section {
+  background: #f8f9fa;
+}
+
+.faq-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-toggle {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1976d2;
+}
+
+/* CTA Section */
+.cta-section {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+  text-align: center;
+}
+
+.cta-content h2 {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+.cta-content p {
+  font-size: 18px;
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .cta-content h2 {
+    font-size: 28px;
+  }
+}

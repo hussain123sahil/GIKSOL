@@ -1,1 +1,193 @@
-<p>booking works!</p>
+<div class="booking-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="container">
+      <div class="header-content">
+        <button class="btn btn-secondary" (click)="goBack()">← Back to Profile</button>
+        <h1>Book Your Session</h1>
+        <div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading booking details...</p>
+  </div>
+
+  <!-- Booking Confirmation -->
+  <div *ngIf="bookingConfirmed" class="confirmation-section">
+    <div class="container">
+      <div class="confirmation-card">
+        <div class="success-icon">✅</div>
+        <h2>Booking Request Sent!</h2>
+        <p>Your session request has been sent to {{ mentor?.firstName }} {{ mentor?.lastName }}. You'll receive a confirmation email once they respond.</p>
+        
+        <div class="booking-summary">
+          <h3>Session Details</h3>
+          <div class="summary-item">
+            <span class="label">Date:</span>
+            <span class="value">{{ formatDate(bookingDetails.preferredDate) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Time:</span>
+            <span class="value">{{ bookingDetails.preferredTime }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Duration:</span>
+            <span class="value">{{ bookingDetails.sessionDuration }} minutes</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Type:</span>
+            <span class="value">{{ getSessionTypeText() }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Total Cost:</span>
+            <span class="value total-cost">${{ getTotalPrice() }}</span>
+          </div>
+        </div>
+
+        <div class="confirmation-actions">
+          <button class="btn btn-primary" (click)="goToDashboard()">Go to Dashboard</button>
+          <button class="btn btn-secondary" (click)="goBack()">Book Another Session</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Form -->
+  <div *ngIf="!isLoading && !bookingConfirmed && mentor" class="booking-content">
+    <div class="container">
+      <div class="booking-layout">
+        <!-- Left Column - Mentor Summary -->
+        <div class="mentor-summary">
+          <div class="summary-card">
+            <h3>Session with {{ mentor.firstName }} {{ mentor.lastName }}</h3>
+            <div class="mentor-info">
+              <div class="mentor-avatar">
+                {{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+              </div>
+              <div class="mentor-details">
+                <h4>{{ mentor.position }}</h4>
+                <p>{{ mentor.company }}</p>
+                <div class="mentor-rating">
+                  <span class="rating">⭐ {{ mentor.rating }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="pricing-info">
+              <div class="hourly-rate">
+                <span class="rate">${{ mentor.hourlyRate }}</span>
+                <span class="rate-label">per hour</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Booking Form -->
+        <div class="booking-form-section">
+          <div class="form-card">
+            <h3>Schedule Your Session</h3>
+            <form (ngSubmit)="submitBooking()" class="booking-form">
+              <div class="form-group">
+                <label for="preferredDate">Preferred Date</label>
+                <input
+                  type="date"
+                  id="preferredDate"
+                  [(ngModel)]="bookingDetails.preferredDate"
+                  name="preferredDate"
+                  required
+                  [min]="minDate"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="preferredTime">Preferred Time</label>
+                <select
+                  id="preferredTime"
+                  [(ngModel)]="bookingDetails.preferredTime"
+                  name="preferredTime"
+                  required
+                >
+                  <option value="">Select time</option>
+                  <option value="09:00">9:00 AM</option>
+                  <option value="10:00">10:00 AM</option>
+                  <option value="11:00">11:00 AM</option>
+                  <option value="12:00">12:00 PM</option>
+                  <option value="13:00">1:00 PM</option>
+                  <option value="14:00">2:00 PM</option>
+                  <option value="15:00">3:00 PM</option>
+                  <option value="16:00">4:00 PM</option>
+                  <option value="17:00">5:00 PM</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="sessionDuration">Session Duration</label>
+                <select
+                  id="sessionDuration"
+                  [(ngModel)]="bookingDetails.sessionDuration"
+                  name="sessionDuration"
+                >
+                  <option value="30">30 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="90">90 minutes</option>
+                  <option value="120">120 minutes</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="sessionType">Session Type</label>
+                <select
+                  id="sessionType"
+                  [(ngModel)]="bookingDetails.sessionType"
+                  name="sessionType"
+                >
+                  <option value="video">Video Call</option>
+                  <option value="phone">Phone Call</option>
+                  <option value="chat">Text Chat</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="notes">Notes (Optional)</label>
+                <textarea
+                  id="notes"
+                  [(ngModel)]="bookingDetails.notes"
+                  name="notes"
+                  placeholder="What would you like to focus on in this session?"
+                  rows="4"
+                ></textarea>
+              </div>
+
+              <!-- Price Summary -->
+              <div class="price-summary">
+                <div class="price-breakdown">
+                  <div class="price-item">
+                    <span>{{ bookingDetails.sessionDuration }} minutes</span>
+                    <span>${{ mentor.hourlyRate }}/hour</span>
+                  </div>
+                  <div class="price-total">
+                    <span>Total</span>
+                    <span class="total-price">${{ getTotalPrice() }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary booking-submit"
+                [disabled]="!bookingDetails.preferredDate || !bookingDetails.preferredTime || isSubmitting"
+              >
+                <span *ngIf="isSubmitting">Sending Request...</span>
+                <span *ngIf="!isSubmitting">Send Booking Request</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

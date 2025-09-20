@@ -1,1 +1,180 @@
-<p>admin works!</p>
+<div class="admin-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="user-info">
+          <h1>Admin Dashboard</h1>
+          <p class="user-role">Manage Platform Approvals</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" (click)="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading admin data...</p>
+  </div>
+
+  <!-- Admin Content -->
+  <div *ngIf="!isLoading" class="admin-content">
+    <div class="container">
+      <!-- Quick Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👨‍🏫</div>
+          <div class="stat-info">
+            <h3>{{ pendingMentors.length }}</h3>
+            <p>Pending Mentors</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👨‍🎓</div>
+          <div class="stat-info">
+            <h3>{{ pendingStudents.length }}</h3>
+            <p>Pending Students</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📄</div>
+          <div class="stat-info">
+            <h3>{{ documentsToReviewCount }}</h3>
+            <p>Documents to Review</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3>{{ approvedTodayCount }}</h3>
+            <p>Approved Today</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="content-grid">
+        <!-- Pending Mentors -->
+        <div class="content-section">
+          <div class="section-header">
+            <h2>Pending Mentor Approvals</h2>
+          </div>
+          
+          <div class="approvals-list" *ngIf="pendingMentors.length > 0">
+            <div class="approval-card" *ngFor="let mentor of pendingMentors">
+              <div class="approval-info">
+                <div class="user-avatar">
+                  {{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+                </div>
+                <div class="user-details">
+                  <h4>{{ mentor.firstName }} {{ mentor.lastName }}</h4>
+                  <p>{{ mentor.email }}</p>
+                  <p class="company">{{ mentor.position }} at {{ mentor.company }}</p>
+                  <div class="user-meta">
+                    <span class="experience">{{ mentor.experience }} years experience</span>
+                    <span class="rate">${{ mentor.hourlyRate }}/hour</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="approval-details">
+                <div class="bio-section">
+                  <h5>Bio</h5>
+                  <p>{{ mentor.bio }}</p>
+                </div>
+                
+                <div class="expertise-section">
+                  <h5>Expertise</h5>
+                  <div class="expertise-tags">
+                    <span class="expertise-tag" *ngFor="let skill of mentor.expertise">
+                      {{ skill }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="document-section" *ngIf="mentor.proofDocument">
+                  <h5>Proof Document</h5>
+                  <button class="btn btn-secondary" (click)="viewDocument(mentor.proofDocument)">
+                    View {{ mentor.proofDocument }}
+                  </button>
+                </div>
+                
+                <div class="submission-info">
+                  <span class="submission-date">Submitted {{ formatDate(mentor.submittedAt) }}</span>
+                  <span class="status-badge" [style.background-color]="getStatusColor(mentor.status)">
+                    {{ mentor.status | titlecase }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="approval-actions" *ngIf="mentor.status === 'pending'">
+                <button class="btn btn-primary" (click)="approveMentor(mentor.id)">Approve</button>
+                <button class="btn btn-secondary" (click)="rejectMentor(mentor.id)">Reject</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="empty-state" *ngIf="pendingMentors.length === 0">
+            <div class="empty-icon">👨‍🏫</div>
+            <h3>No pending mentor approvals</h3>
+            <p>All mentor applications have been reviewed.</p>
+          </div>
+        </div>
+
+        <!-- Pending Students -->
+        <div class="content-section">
+          <div class="section-header">
+            <h2>Pending Student Approvals</h2>
+          </div>
+          
+          <div class="approvals-list" *ngIf="pendingStudents.length > 0">
+            <div class="approval-card" *ngFor="let student of pendingStudents">
+              <div class="approval-info">
+                <div class="user-avatar">
+                  {{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}
+                </div>
+                <div class="user-details">
+                  <h4>{{ student.firstName }} {{ student.lastName }}</h4>
+                  <p>{{ student.email }}</p>
+                  <p class="school">{{ student.grade }} at {{ student.school }}</p>
+                </div>
+              </div>
+              
+              <div class="approval-details">
+                <div class="goals-section">
+                  <h5>Learning Goals</h5>
+                  <div class="goals-tags">
+                    <span class="goal-tag" *ngFor="let goal of student.learningGoals">
+                      {{ goal }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="submission-info">
+                  <span class="submission-date">Submitted {{ formatDate(student.submittedAt) }}</span>
+                  <span class="status-badge" [style.background-color]="getStatusColor(student.status)">
+                    {{ student.status | titlecase }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="approval-actions" *ngIf="student.status === 'pending'">
+                <button class="btn btn-primary" (click)="approveStudent(student.id)">Approve</button>
+                <button class="btn btn-secondary" (click)="rejectStudent(student.id)">Reject</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="empty-state" *ngIf="pendingStudents.length === 0">
+            <div class="empty-icon">👨‍🎓</div>
+            <h3>No pending student approvals</h3>
+            <p>All student applications have been reviewed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

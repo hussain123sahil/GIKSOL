@@ -1,1 +1,257 @@
-<p>register works!</p>
+<div class="register-container">
+  <div class="register-card">
+    <h2>Join MentorConnect</h2>
+    <p class="subtitle">Create your account to get started</p>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input
+              type="text"
+              id="firstName"
+              formControlName="firstName"
+              placeholder="Enter your first name"
+              [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched"
+            />
+            <div *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('firstName')?.errors?.['required']">First name is required</span>
+              <span *ngIf="registerForm.get('firstName')?.errors?.['minlength']">First name must be at least 2 characters</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input
+              type="text"
+              id="lastName"
+              formControlName="lastName"
+              placeholder="Enter your last name"
+              [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched"
+            />
+            <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('lastName')?.errors?.['required']">Last name is required</span>
+              <span *ngIf="registerForm.get('lastName')?.errors?.['minlength']">Last name must be at least 2 characters</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          />
+          <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="error-message">
+            <span *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</span>
+            <span *ngIf="registerForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="role">I am a</label>
+          <select
+            id="role"
+            formControlName="role"
+            [class.error]="registerForm.get('role')?.invalid && registerForm.get('role')?.touched"
+          >
+            <option value="student">Student</option>
+            <option value="mentor">Mentor</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mentor-specific fields -->
+      <div class="form-section" *ngIf="isMentor">
+        <h3>Mentor Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="company">Company</label>
+            <input
+              type="text"
+              id="company"
+              formControlName="company"
+              placeholder="e.g., Google, Microsoft"
+            />
+          </div>
+          <div class="form-group">
+            <label for="position">Position</label>
+            <input
+              type="text"
+              id="position"
+              formControlName="position"
+              placeholder="e.g., Senior Software Engineer"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="experience">Years of Experience</label>
+            <input
+              type="number"
+              id="experience"
+              formControlName="experience"
+              placeholder="e.g., 5"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label for="hourlyRate">Hourly Rate ($)</label>
+            <input
+              type="number"
+              id="hourlyRate"
+              formControlName="hourlyRate"
+              placeholder="e.g., 75"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="expertise">Areas of Expertise</label>
+          <input
+            type="text"
+            id="expertise"
+            formControlName="expertise"
+            placeholder="e.g., JavaScript, React, Node.js (comma-separated)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="proofUpload">Proof of Qualifications (Optional)</label>
+          <div class="file-upload">
+            <input
+              type="file"
+              id="proofUpload"
+              (change)="onFileSelected($event)"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            />
+            <div class="file-preview" *ngIf="selectedFile">
+              <div class="file-info">
+                <span class="file-name">{{ selectedFile.name }}</span>
+                <button type="button" class="remove-file" (click)="removeFile()">×</button>
+              </div>
+              <img *ngIf="filePreview" [src]="filePreview" alt="Preview" class="file-image">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student-specific fields -->
+      <div class="form-section" *ngIf="isStudent">
+        <h3>Student Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="grade">Grade/Level</label>
+            <input
+              type="text"
+              id="grade"
+              formControlName="grade"
+              placeholder="e.g., 12th Grade, College Junior"
+            />
+          </div>
+          <div class="form-group">
+            <label for="school">School/Institution</label>
+            <input
+              type="text"
+              id="school"
+              formControlName="school"
+              placeholder="e.g., Stanford University"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="learningGoals">Learning Goals</label>
+          <input
+            type="text"
+            id="learningGoals"
+            formControlName="learningGoals"
+            placeholder="e.g., Learn React, Prepare for interviews (comma-separated)"
+          />
+        </div>
+      </div>
+
+      <!-- Common fields -->
+      <div class="form-section">
+        <h3>Account Security</h3>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="Create a password"
+            [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          />
+          <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="error-message">
+            <span *ngIf="registerForm.get('password')?.errors?.['required']">Password is required</span>
+            <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="Confirm your password"
+            [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+          />
+          <div *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched" class="error-message">
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Please confirm your password</span>
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']">Passwords do not match</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Additional Information</h3>
+        <div class="form-group">
+          <label for="bio">Bio (Optional)</label>
+          <textarea
+            id="bio"
+            formControlName="bio"
+            placeholder="Tell us about yourself"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="skills">Skills/Interests (Optional)</label>
+          <input
+            type="text"
+            id="skills"
+            formControlName="skills"
+            placeholder="e.g., JavaScript, Mathematics, Science (comma-separated)"
+          />
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message global-error">
+        {{ errorMessage }}
+      </div>
+
+      <button
+        type="submit"
+        class="register-button"
+        [disabled]="registerForm.invalid || isLoading"
+      >
+        <span *ngIf="isLoading">Creating Account...</span>
+        <span *ngIf="!isLoading">Create Account</span>
+      </button>
+    </form>
+
+    <div class="login-link">
+      <p>Already have an account? <a (click)="goToLogin()">Sign in here</a></p>
+    </div>
+  </div>
+</div>

@@ -1,1 +1,142 @@
-<p>mentor-listings works!</p>
+<div class="mentor-listings-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="container">
+      <div class="header-content">
+        <button class="btn btn-secondary" (click)="goBack()">← Back to Home</button>
+        <h1>Find Your Perfect Mentor</h1>
+        <div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search and Filters -->
+  <section class="search-section">
+    <div class="container">
+      <div class="search-filters">
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <input
+            type="text"
+            placeholder="Search mentors by name, company, or skills..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            class="search-input"
+          />
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Expertise</label>
+            <select [(ngModel)]="selectedExpertise" (change)="onFilterChange()">
+              <option value="">All Skills</option>
+              <option *ngFor="let skill of expertiseOptions" [value]="skill">{{ skill }}</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Price Range</label>
+            <div class="price-range">
+              <input
+                type="range"
+                min="0"
+                max="200"
+                [(ngModel)]="priceRange.min"
+                (input)="onFilterChange()"
+                class="price-slider"
+              />
+              <span>${{ priceRange.min }} - ${{ priceRange.max }}</span>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label>Sort By</label>
+            <select [(ngModel)]="sortBy" (change)="onFilterChange()">
+              <option value="rating">Highest Rating</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="sessions">Most Sessions</option>
+            </select>
+          </div>
+
+          <button class="btn btn-secondary" (click)="clearFilters()">Clear Filters</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <main class="results-section">
+    <div class="container">
+      <div class="results-header">
+        <h2>{{ filteredMentors.length }} Mentor{{ filteredMentors.length !== 1 ? 's' : '' }} Found</h2>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading mentors...</p>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!isLoading && filteredMentors.length === 0" class="no-results">
+        <h3>No mentors found</h3>
+        <p>Try adjusting your search criteria or filters.</p>
+        <button class="btn btn-primary" (click)="clearFilters()">Clear All Filters</button>
+      </div>
+
+      <!-- Mentor Cards -->
+      <div *ngIf="!isLoading && filteredMentors.length > 0" class="mentors-grid">
+        <div class="mentor-card" *ngFor="let mentor of filteredMentors">
+          <div class="mentor-header">
+            <div class="mentor-avatar">
+              {{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+            </div>
+            <div class="mentor-info">
+              <h3>{{ mentor.firstName }} {{ mentor.lastName }}</h3>
+              <p class="company">{{ mentor.company }}</p>
+              <div class="mentor-stats">
+                <span class="rating">⭐ {{ mentor.rating }}</span>
+                <span class="sessions">{{ mentor.totalSessions }} sessions</span>
+                <span class="status" [class.available]="mentor.isAvailable" [class.unavailable]="!mentor.isAvailable">
+                  {{ mentor.isAvailable ? 'Available' : 'Busy' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mentor-content">
+            <p class="bio">{{ mentor.bio }}</p>
+            
+            <div class="expertise">
+              <span class="expertise-tag" *ngFor="let skill of mentor.expertise">
+                {{ skill }}
+              </span>
+            </div>
+
+            <div class="pricing">
+              <span class="hourly-rate">${{ mentor.hourlyRate }}/hour</span>
+            </div>
+          </div>
+
+          <div class="mentor-actions">
+            <button 
+              class="btn btn-secondary" 
+              (click)="viewMentorProfile(mentor.id)"
+            >
+              View Profile
+            </button>
+            <button 
+              class="btn btn-primary" 
+              (click)="bookSession(mentor.id)"
+              [disabled]="!mentor.isAvailable"
+            >
+              {{ mentor.isAvailable ? 'Book Session' : 'Not Available' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

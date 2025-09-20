@@ -1,1 +1,203 @@
-<p>mentor-dashboard works!</p>
+<div class="mentor-dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="user-info">
+          <h1>Welcome back, {{ currentUser?.firstName }}!</h1>
+          <p class="user-role">Mentor Dashboard</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" (click)="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading your dashboard...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!isLoading" class="dashboard-content">
+    <div class="container">
+      <!-- Quick Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <h3>{{ mentees.length }}</h3>
+            <p>Active Mentees</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-info">
+            <h3>{{ upcomingSessions.length }}</h3>
+            <p>Upcoming Sessions</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3>{{ completedSessions.length }}</h3>
+            <p>Completed Sessions</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📬</div>
+          <div class="stat-info">
+            <h3>{{ connectionRequests.length }}</h3>
+            <p>Pending Requests</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="content-grid">
+        <!-- Pending Requests -->
+        <div class="content-section" *ngIf="connectionRequests.length > 0">
+          <div class="section-header">
+            <h2>Pending Connection Requests</h2>
+          </div>
+          
+          <div class="requests-list">
+            <div class="request-card" *ngFor="let request of connectionRequests">
+              <div class="request-info">
+                <div class="student-info">
+                  <h4>{{ request.studentName }}</h4>
+                  <p>{{ request.studentEmail }}</p>
+                  <p class="school">{{ request.school }}</p>
+                </div>
+                <div class="request-details">
+                  <p class="request-message">{{ request.requestMessage }}</p>
+                  <span class="request-date">Requested {{ formatDate(request.requestedAt) }}</span>
+                </div>
+              </div>
+              <div class="request-actions">
+                <button class="btn btn-primary" (click)="acceptRequest(request.id)">Accept</button>
+                <button class="btn btn-secondary" (click)="rejectRequest(request.id)">Decline</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Sessions -->
+        <div class="content-section">
+          <div class="section-header">
+            <h2>Upcoming Sessions</h2>
+          </div>
+          
+          <div class="sessions-list" *ngIf="upcomingSessions.length > 0">
+            <div class="session-card" *ngFor="let session of upcomingSessions">
+              <div class="session-info">
+                <div class="student-info">
+                  <h4>{{ session.studentName }}</h4>
+                </div>
+                <div class="session-details">
+                  <div class="session-time">
+                    <span class="date">{{ formatDate(session.date) }}</span>
+                    <span class="time">{{ formatTime(session.time) }}</span>
+                  </div>
+                  <div class="session-meta">
+                    <span class="duration">{{ session.duration }} min</span>
+                    <span class="type">{{ session.sessionType }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="session-actions">
+                <button class="btn btn-primary" (click)="startSession(session.id)">Start Session</button>
+                <button class="btn btn-secondary" (click)="cancelSession(session.id)">Cancel</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="empty-state" *ngIf="upcomingSessions.length === 0">
+            <div class="empty-icon">📅</div>
+            <h3>No upcoming sessions</h3>
+            <p>Your upcoming sessions will appear here.</p>
+          </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        <div class="content-section">
+          <div class="section-header">
+            <h2>Recent Sessions</h2>
+          </div>
+          
+          <div class="sessions-list" *ngIf="completedSessions.length > 0">
+            <div class="session-card completed" *ngFor="let session of completedSessions">
+              <div class="session-info">
+                <div class="student-info">
+                  <h4>{{ session.studentName }}</h4>
+                </div>
+                <div class="session-details">
+                  <div class="session-time">
+                    <span class="date">{{ formatDate(session.date) }}</span>
+                    <span class="time">{{ formatTime(session.time) }}</span>
+                  </div>
+                  <div class="session-meta">
+                    <span class="duration">{{ session.duration }} min</span>
+                    <span class="rating" *ngIf="session.rating">
+                      ⭐ {{ session.rating }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="empty-state" *ngIf="completedSessions.length === 0">
+            <div class="empty-icon">📚</div>
+            <h3>No completed sessions yet</h3>
+            <p>Your completed sessions will appear here.</p>
+          </div>
+        </div>
+
+        <!-- Active Mentees -->
+        <div class="content-section">
+          <div class="section-header">
+            <h2>Active Mentees</h2>
+          </div>
+          
+          <div class="mentees-list" *ngIf="mentees.length > 0">
+            <div class="mentee-card" *ngFor="let mentee of mentees">
+              <div class="mentee-info">
+                <div class="mentee-avatar">
+                  {{ mentee.studentName.charAt(0) }}
+                </div>
+                <div class="mentee-details">
+                  <h4>{{ mentee.studentName }}</h4>
+                  <p>{{ mentee.school }} • {{ mentee.grade }}</p>
+                  <div class="learning-goals">
+                    <span class="goal-tag" *ngFor="let goal of mentee.learningGoals">
+                      {{ goal }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="mentee-stats">
+                <div class="stat">
+                  <span class="stat-number">{{ mentee.totalSessions }}</span>
+                  <span class="stat-label">Sessions</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">{{ formatDate(mentee.joinedDate) }}</span>
+                  <span class="stat-label">Joined</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="empty-state" *ngIf="mentees.length === 0">
+            <div class="empty-icon">👥</div>
+            <h3>No active mentees</h3>
+            <p>Students who connect with you will appear here.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
