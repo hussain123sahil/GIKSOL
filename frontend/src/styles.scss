@@ -11,6 +11,24 @@ body {
   min-height: 100vh;
   color: #1565c0;
   line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure content doesn't hide behind navbar */
+main, .hero, .section {
+  margin-top: 0;
+}
+
+/* Fix navbar positioning */
+.navbar {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .container {
@@ -181,6 +199,7 @@ input.error, select.error, textarea.error {
   background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
   padding: 120px 0 80px;
   text-align: center;
+  margin-top: 70px; /* Account for fixed navbar */
 }
 
 .hero h1 {
