@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  googleId: {
+    type: String,
+    default: null,
+    sparse: true // Allows multiple null values
+  },
   isActive: {
     type: Boolean,
     default: true

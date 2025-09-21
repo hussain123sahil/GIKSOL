@@ -52,6 +52,7 @@
               placeholder="Email/Username"
               class="form-input"
               [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              (input)="clearError()"
             />
           </div>
           <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error-message">
@@ -77,6 +78,7 @@
               placeholder="Password"
               class="form-input"
               [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              (input)="clearError()"
             />
             <div class="password-toggle" (click)="togglePassword()">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -99,7 +101,17 @@
             <span class="checkmark"></span>
             <span class="checkbox-label">Remember Me</span>
           </label>
-          <a href="#" class="forgot-password">Forgot Password?</a>
+          <a href="javascript:void(0)" class="forgot-password" (click)="forgotPassword($event)">Forgot Password?</a>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="error-message global-error">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          {{ errorMessage }}
         </div>
 
         <!-- Login Button -->

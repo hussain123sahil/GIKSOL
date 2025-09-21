@@ -33,6 +33,10 @@ export class LoginComponent {
     this.showPassword = !this.showPassword;
   }
 
+  clearError(): void {
+    this.errorMessage = '';
+  }
+
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.isLoading = true;
@@ -52,7 +56,18 @@ export class LoginComponent {
         },
         error: (error) => {
           this.isLoading = false;
-          this.errorMessage = error.error?.message || 'Login failed. Please try again.';
+          console.error('Login error:', error);
+          
+          // Handle different types of errors
+          if (error.status === 401) {
+            this.errorMessage = 'Invalid credentials. Please check your email and password.';
+          } else if (error.status === 400) {
+            this.errorMessage = error.error?.message || 'Invalid credentials. Please check your email and password.';
+          } else if (error.status === 0) {
+            this.errorMessage = 'Unable to connect to server. Please check your internet connection.';
+          } else {
+            this.errorMessage = error.error?.message || 'Login failed. Please try again.';
+          }
         }
       });
     }
@@ -63,7 +78,69 @@ export class LoginComponent {
   }
 
   loginWithGoogle(): void {
-    // TODO: Implement Google OAuth login
-    console.log('Google login clicked');
+    // For now, simulate Google login with demo data
+    // In a real application, you would integrate with Google OAuth
+    const googleData = {
+      googleId: 'demo-google-id-' + Date.now(),
+      email: 'demo@google.com',
+      firstName: 'Google',
+      lastName: 'User',
+      profilePicture: 'https://via.placeholder.com/150/667eea/ffffff?text=G'
+    };
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.googleLogin(googleData).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        // Navigate based on user role
+        if (response.user.role === 'student') {
+          this.router.navigate(['/student-dashboard']);
+        } else {
+          this.router.navigate(['/mentor-dashboard']);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.error?.message || 'Google login failed. Please try again.';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 4000);
+      }
+    });
+  }
+
+  forgotPassword(event: Event): void {
+    event.preventDefault();
+    
+    // Get email from form
+    const email = this.loginForm.get('email')?.value;
+    
+    if (!email) {
+      this.errorMessage = 'Please enter your email address first.';
+      setTimeout(() => {
+        this.errorMessage = '';
+      }, 3000);
+      return;
+    }
+
+    // Call forgot password API
+    this.authService.forgotPassword(email).subscribe({
+      next: (response) => {
+        this.errorMessage = '';
+        // Show success message
+        this.errorMessage = `Password reset instructions sent to ${email}. Check your email for further instructions.`;
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+      },
+      error: (error) => {
+        this.errorMessage = error.error?.message || 'Failed to send reset instructions. Please try again.';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 4000);
+      }
+    });
   }
 }

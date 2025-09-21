@@ -27,8 +27,10 @@ const config = {
 
   // CORS configuration
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
-    credentials: true
+    origin: true, // Allow all origins in development
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept']
   },
 
   // Email configuration (for future use)
