@@ -1,5 +1,6 @@
 .navbar {
-  background-color: #f8f9fa;
+  // background-color: #f8f9fa;
+  background-color: #D4F1FF;
   border-bottom: 1px solid #e9ecef;
   padding: 0;
   width: 100%;
@@ -9,13 +10,13 @@
 }
 
 .navbar-container {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  height: 70px;
+  height: 80px;
 }
 
 /* Left Side - Branding */
@@ -31,38 +32,12 @@
   justify-content: center;
 }
 
-.logo-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1e3a8a 0%, #10b981 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.logo-g {
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  font-family: 'Arial', sans-serif;
-  position: relative;
-  z-index: 2;
-}
-
-.logo-icon::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid #10b981;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
+.logo-image {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: transparent;
 }
 
 .brand-name {
@@ -192,5 +167,18 @@
 
   .nav-link {
     font-size: 12px;
+  }
+}
+
+/* Animations */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
