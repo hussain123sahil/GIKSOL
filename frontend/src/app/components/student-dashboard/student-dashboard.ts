@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth';
+import { SidebarComponent } from '../sidebar/sidebar';
 
 interface Session {
   id: string;
@@ -30,7 +31,7 @@ interface Connection {
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SidebarComponent],
   templateUrl: './student-dashboard.html',
   styleUrls: ['./student-dashboard.scss']
 })
@@ -42,130 +43,46 @@ export class StudentDashboardComponent implements OnInit {
   isLoading = true;
 
   constructor(
-    private authService: AuthService,
-    private router: Router
+    public router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-    
     if (!this.currentUser) {
       this.router.navigate(['/login']);
       return;
     }
-
     this.loadDashboardData();
   }
 
   loadDashboardData(): void {
-    // Mock data - replace with actual API calls
     setTimeout(() => {
       this.upcomingSessions = [
-        {
-          id: '1',
-          mentorId: '1',
-          mentorName: 'John Smith',
-          mentorCompany: 'Google',
-          date: '2024-01-25',
-          time: '14:00',
-          duration: 60,
-          status: 'upcoming',
-          sessionType: 'Video Call',
-          notes: 'Focus on React best practices'
-        },
-        {
-          id: '2',
-          mentorId: '2',
-          mentorName: 'Sarah Johnson',
-          mentorCompany: 'Microsoft',
-          date: '2024-01-28',
-          time: '10:00',
-          duration: 90,
-          status: 'upcoming',
-          sessionType: 'Video Call',
-          notes: 'Data science project review'
-        }
+        { id: '1', mentorId: '1', mentorName: 'John Smith', mentorCompany: 'Google', date: '2024-01-25', time: '14:00', duration: 60, status: 'upcoming', sessionType: 'Video Call', notes: 'Focus on React best practices' },
+        { id: '2', mentorId: '2', mentorName: 'Sarah Johnson', mentorCompany: 'Microsoft', date: '2024-01-28', time: '10:00', duration: 90, status: 'upcoming', sessionType: 'Video Call', notes: 'Data science project review' }
       ];
-
       this.completedSessions = [
-        {
-          id: '3',
-          mentorId: '1',
-          mentorName: 'John Smith',
-          mentorCompany: 'Google',
-          date: '2024-01-15',
-          time: '15:00',
-          duration: 60,
-          status: 'completed',
-          sessionType: 'Video Call',
-          notes: 'JavaScript fundamentals',
-          rating: 5
-        }
+        { id: '3', mentorId: '1', mentorName: 'John Smith', mentorCompany: 'Google', date: '2024-01-15', time: '15:00', duration: 60, status: 'completed', sessionType: 'Video Call', notes: 'JavaScript fundamentals', rating: 5 }
       ];
-
       this.connections = [
-        {
-          id: '1',
-          mentorId: '1',
-          mentorName: 'John Smith',
-          mentorCompany: 'Google',
-          status: 'accepted',
-          requestedAt: '2024-01-10',
-          respondedAt: '2024-01-11'
-        },
-        {
-          id: '2',
-          mentorId: '2',
-          mentorName: 'Sarah Johnson',
-          mentorCompany: 'Microsoft',
-          status: 'accepted',
-          requestedAt: '2024-01-12',
-          respondedAt: '2024-01-13'
-        },
-        {
-          id: '3',
-          mentorId: '3',
-          mentorName: 'Mike Chen',
-          mentorCompany: 'Amazon',
-          status: 'pending',
-          requestedAt: '2024-01-20'
-        }
+        { id: '1', mentorId: '1', mentorName: 'John Smith', mentorCompany: 'Google', status: 'accepted', requestedAt: '2024-01-10', respondedAt: '2024-01-11' },
+        { id: '2', mentorId: '2', mentorName: 'Sarah Johnson', mentorCompany: 'Microsoft', status: 'accepted', requestedAt: '2024-01-12', respondedAt: '2024-01-13' },
+        { id: '3', mentorId: '3', mentorName: 'Mike Chen', mentorCompany: 'Amazon', status: 'pending', requestedAt: '2024-01-20' }
       ];
-
       this.isLoading = false;
-    }, 1000);
+    }, 500);
   }
 
-  browseMentors(): void {
-    this.router.navigate(['/mentors']);
-  }
-
-  viewSession(sessionId: string): void {
-    // Navigate to session details or join session
-    console.log('View session:', sessionId);
-  }
-
-  cancelSession(sessionId: string): void {
-    // Implement session cancellation
-    console.log('Cancel session:', sessionId);
-  }
-
-  rateSession(sessionId: string): void {
-    // Implement session rating
-    console.log('Rate session:', sessionId);
-  }
-
-  logout(): void {
-    this.authService.logout();
-  }
+  browseMentors(): void { this.router.navigate(['/mentors']); }
+  viewSession(sessionId: string): void { console.log('View session:', sessionId); }
+  cancelSession(sessionId: string): void { console.log('Cancel session:', sessionId); }
+  rateSession(sessionId: string): void { console.log('Rate session:', sessionId); }
+  logout(): void { this.authService.logout(); }
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }
 
   formatTime(timeString: string): string {

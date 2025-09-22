@@ -7,7 +7,7 @@ import { NavbarComponent } from './components/navbar/navbar';
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     RouterOutlet,
     NavbarComponent
   ],
@@ -18,6 +18,12 @@ export class AppComponent {
   title = 'MentorConnect - Student-Mentor Platform';
 
   constructor(private router: Router) {}
+
+  get showNavbar(): boolean {
+    const url = this.router.url || '';
+    // Hide navbar on student dashboard pages
+    return !url.startsWith('/student-dashboard');
+  }
 
   onLoginClick(): void {
     this.router.navigate(['/login']);
