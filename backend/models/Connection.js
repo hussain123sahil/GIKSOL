@@ -45,3 +45,4 @@ const connectionSchema = new mongoose.Schema({
 connectionSchema.index({ student: 1, mentor: 1, isActive: 1 }, { unique: true });
 
 module.exports = mongoose.model('Connection', connectionSchema);
+
