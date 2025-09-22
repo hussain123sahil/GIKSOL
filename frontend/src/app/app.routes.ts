@@ -10,7 +10,7 @@ import { MentorDashboardComponent } from './components/mentor-dashboard/mentor-d
 import { AdminComponent } from './components/admin/admin';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
+  { path: '', component: StudentDashboardComponent },
   { path: 'home', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
