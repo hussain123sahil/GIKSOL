@@ -5,6 +5,23 @@
 			<div class="container">
 				<h1 class="page-title">Welcome back, {{ currentUser?.firstName || 'Alex' }}!</h1>
 
+				<!-- Loading State -->
+				<div *ngIf="isLoading" class="loading-state">
+					<div class="loading-spinner"></div>
+					<p>Loading dashboard data...</p>
+				</div>
+
+				<!-- Error State -->
+				<div *ngIf="error && !isLoading" class="error-state">
+					<div class="error-icon">⚠️</div>
+					<h3>Error loading dashboard</h3>
+					<p>{{ error }}</p>
+					<button class="btn btn-primary" (click)="loadDashboardData()">Retry</button>
+				</div>
+
+				<!-- Dashboard Content -->
+				<div *ngIf="!isLoading && !error">
+
 				<!-- Quick Stats Section -->
 				<div class="quick-stats-section">
 					<h2 class="section-title">Quick Stats</h2>
@@ -13,21 +30,28 @@
 							<div class="stat-icon">📅</div>
 							<div class="stat-content">
 								<div class="stat-title">Upcoming Sessions</div>
-								<div class="stat-value">{{ upcomingSessions.length }}</div>
+								<div class="stat-value">{{ quickStats.upcomingSessions }}</div>
 							</div>
 						</div>
 						<div class="quick-stat-card">
 							<div class="stat-icon">✅</div>
 							<div class="stat-content">
 								<div class="stat-title">Completed Sessions</div>
-								<div class="stat-value">{{ completedSessions.length }}</div>
+								<div class="stat-value">{{ quickStats.completedSessions }}</div>
 							</div>
 						</div>
 						<div class="quick-stat-card">
 							<div class="stat-icon">❤️</div>
 							<div class="stat-content">
-								<div class="stat-title">Favorite Mentors</div>
-								<div class="stat-value">{{ connections.length }}</div>
+								<div class="stat-title">Total Connections</div>
+								<div class="stat-value">{{ quickStats.totalConnections }}</div>
+							</div>
+						</div>
+						<div class="quick-stat-card">
+							<div class="stat-icon">⭐</div>
+							<div class="stat-content">
+								<div class="stat-title">Average Rating</div>
+								<div class="stat-value">{{ quickStats.averageRating | number:'1.1-1' }}</div>
 							</div>
 						</div>
 					</div>
@@ -35,61 +59,132 @@
 
 				<!-- Upcoming Sessions Section -->
 				<div class="upcoming-sessions-section">
-					<h2 class="section-title">Upcoming Sessions</h2>
-					<div class="upcoming-sessions-container" *ngIf="upcomingSessions.length > 0">
-						<div class="calendar-widget">
-							<div class="calendar-header">March</div>
-							<div class="calendar-day highlighted">15</div>
-						</div>
-						<div class="upcoming-sessions-list">
-							<div class="upcoming-session-card" *ngFor="let session of upcomingSessions">
+					<div class="section-header">
+						<h2 class="section-title">Upcoming Sessions</h2>
+						<button class="btn btn-outline" (click)="browseMentors()">
+							<span class="btn-icon">➕</span>
+							Book New Session
+						</button>
+					</div>
+					
+					<div class="upcoming-sessions-grid" *ngIf="upcomingSessions.length > 0">
+						<div class="session-card" *ngFor="let session of upcomingSessions">
+							<div class="session-card-header">
 								<div class="mentor-avatar">
 									<img [src]="getMentorAvatar(session.mentorName)" [alt]="session.mentorName" class="avatar-image">
 								</div>
+								<div class="session-status-badge">
+									<span class="status-dot"></span>
+									{{ session.status | titlecase }}
+								</div>
+							</div>
+							
+							<div class="session-card-body">
+								<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
+								<p class="mentor-name">{{ session.mentorName }}</p>
+								<p class="mentor-company">{{ session.mentorCompany }}</p>
+								
 								<div class="session-details">
-									<div class="mentor-name">{{ session.mentorName }}</div>
-									<div class="session-date">{{ formatDate(session.date) }} at {{ formatTime(session.time) }}</div>
-									<div class="session-type" *ngIf="session.sessionType">Session Type: {{ session.sessionType }}</div>
+									<div class="detail-item">
+										<span class="detail-icon">📅</span>
+										<span class="detail-text">{{ formatDate(session.date) }}</span>
+									</div>
+									<div class="detail-item">
+										<span class="detail-icon">🕐</span>
+										<span class="detail-text">{{ formatTime(session.time) }}</span>
+									</div>
+									<div class="detail-item">
+										<span class="detail-icon">⏱️</span>
+										<span class="detail-text">{{ session.duration }} min</span>
+									</div>
+									<div class="detail-item">
+										<span class="detail-icon">💻</span>
+										<span class="detail-text">{{ session.sessionType }}</span>
+									</div>
 								</div>
-								<div class="session-actions">
-									<button class="btn-join" *ngIf="session.sessionType" (click)="viewSession(session.id)">Join</button>
-									<button class="btn-reschedule" (click)="cancelSession(session.id)">Reschedule</button>
+								
+								<div class="session-notes" *ngIf="session.notes">
+									<p class="notes-text">{{ session.notes }}</p>
 								</div>
+							</div>
+							
+							<div class="session-card-footer">
+								<button class="btn btn-primary btn-sm" (click)="viewSession(session.id)" *ngIf="session.meetingLink">
+									<span class="btn-icon">🎥</span>
+									Join Session
+								</button>
+								<button class="btn btn-outline btn-sm" (click)="cancelSession(session.id)">
+									<span class="btn-icon">🔄</span>
+									Reschedule
+								</button>
 							</div>
 						</div>
 					</div>
+					
 					<div class="empty-state" *ngIf="upcomingSessions.length === 0">
 						<div class="empty-icon">📅</div>
 						<h3>No upcoming sessions</h3>
-						<button class="btn btn-primary" (click)="browseMentors()">Book New Session</button>
+						<p>You don't have any sessions scheduled yet. Book a session with a mentor to get started!</p>
+						<button class="btn btn-primary" (click)="browseMentors()">
+							<span class="btn-icon">➕</span>
+							Book New Session
+						</button>
 					</div>
 				</div>
 
 				<!-- Past Sessions Section -->
 				<div class="past-sessions-section">
-					<h2 class="section-title">Past Sessions</h2>
-					<div class="past-sessions-grid">
+					<div class="section-header">
+						<h2 class="section-title">Recent Sessions</h2>
+						<button class="btn btn-outline btn-sm" (click)="viewAllSessions()">
+							<span class="btn-icon">📋</span>
+							View All
+						</button>
+					</div>
+					
+					<div class="past-sessions-grid" *ngIf="completedSessions.length > 0">
 						<div class="past-session-card" *ngFor="let session of completedSessions; let i = index">
-							<div class="past-avatar">
-								<img [src]="getMentorAvatar(session.mentorName)" [alt]="session.mentorName" class="past-avatar-image">
+							<div class="past-session-header">
+								<div class="past-avatar">
+									<img [src]="getMentorAvatar(session.mentorName)" [alt]="session.mentorName" class="past-avatar-image">
+								</div>
+								<div class="session-rating" *ngIf="session.rating">
+									<div class="stars">
+										<span *ngFor="let star of getStars(session.rating)" class="star">{{ star }}</span>
+									</div>
+									<span class="rating-text">{{ session.rating }}/5</span>
+								</div>
 							</div>
-							<div class="past-session-info">
-								<div class="past-mentor-name">{{ session.mentorName }}</div>
+							
+							<div class="past-session-body">
+								<h4 class="past-session-title">{{ session.title || 'Mentoring Session' }}</h4>
+								<p class="past-mentor-name">{{ session.mentorName }}</p>
+								<p class="past-mentor-company">{{ session.mentorCompany }}</p>
 								<div class="past-session-date">{{ formatDate(session.date) }}</div>
+								<div class="past-session-type">{{ session.sessionType }}</div>
 							</div>
-						</div>
-						<!-- Placeholder cards for empty slots -->
-						<div class="past-session-card placeholder" *ngFor="let placeholder of getPlaceholderCards()">
-							<div class="past-avatar">
-								<div class="placeholder-avatar">Photo</div>
-							</div>
-							<div class="past-session-info">
-								<div class="past-mentor-name">name</div>
-								<div class="past-session-date">Date</div>
+							
+							<div class="past-session-footer">
+								<button class="btn btn-outline btn-sm" (click)="rateSession(session.id)" *ngIf="!session.rating">
+									<span class="btn-icon">⭐</span>
+									Rate Session
+								</button>
+								<button class="btn btn-outline btn-sm" (click)="viewSessionDetails(session.id)">
+									<span class="btn-icon">👁️</span>
+									View Details
+								</button>
 							</div>
 						</div>
 					</div>
+					
+					<div class="empty-state" *ngIf="completedSessions.length === 0">
+						<div class="empty-icon">📚</div>
+						<h3>No completed sessions yet</h3>
+						<p>Your completed sessions will appear here after you finish your first mentoring session.</p>
+					</div>
 				</div>
+
+				</div> <!-- End Dashboard Content -->
 			</div>
 		</div>
 	</div>
