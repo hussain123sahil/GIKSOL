@@ -1,14 +1,16 @@
-<div class="mentor-listings-container">
-  <!-- Header -->
-  <header class="page-header">
-    <div class="container">
-      <div class="header-content">
-        <button class="btn btn-secondary" (click)="goBack()">← Back to Home</button>
-        <h1>Find Your Perfect Mentor</h1>
-        <div></div>
+<div class="mentor-listings-shell">
+  <app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
+  <div class="mentor-listings-container main-pane">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="container">
+        <div class="header-content">
+          <button class="btn btn-secondary" (click)="goBack()">← Back to Dashboard</button>
+          <h1>Find Your Perfect Mentor</h1>
+          <div></div>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
   <!-- Search and Filters -->
   <section class="search-section">
@@ -139,4 +141,5 @@
       </div>
     </div>
   </main>
+  </div>
 </div>

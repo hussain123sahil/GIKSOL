@@ -58,10 +58,6 @@ export class HomeComponent {
     }
   ];
 
-  goToMentors(): void {
-    this.router.navigate(['/mentors']);
-  }
-
   goToRegister(): void {
     this.router.navigate(['/register']);
   }

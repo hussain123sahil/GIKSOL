@@ -1,3 +1,19 @@
+.mentor-listings-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.sidebar-pane { 
+  grid-column: 1 / 2; 
+}
+
+.main-pane { 
+  grid-column: 2 / 3; 
+  background-color: #f8f9fa;
+}
+
 .mentor-listings-container {
   min-height: 100vh;
   background: #f8f9fa;

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { SidebarComponent } from '../sidebar/sidebar';
 
 interface Mentor {
   id: string;
@@ -20,7 +21,7 @@ interface Mentor {
 @Component({
   selector: 'app-mentor-listings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SidebarComponent],
   templateUrl: './mentor-listings.html',
   styleUrls: ['./mentor-listings.scss']
 })
@@ -41,7 +42,7 @@ export class MentorListingsComponent implements OnInit {
     'UI/UX Design', 'Product Management', 'Marketing', 'Business Strategy'
   ];
 
-  constructor(private router: Router) {}
+  constructor(public router: Router) {}
 
   ngOnInit(): void {
     this.loadMentors();
@@ -182,7 +183,7 @@ export class MentorListingsComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/student-dashboard']);
   }
 
   clearFilters(): void {

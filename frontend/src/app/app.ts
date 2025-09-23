@@ -21,8 +21,11 @@ export class AppComponent {
 
   get showNavbar(): boolean {
     const url = this.router.url || '';
-    // Hide navbar on student dashboard pages
-    return !url.startsWith('/student-dashboard');
+    // Hide navbar on dashboard pages and mentor listings (logged in users have sidebar)
+    return !url.startsWith('/student-dashboard') && 
+           !url.startsWith('/mentor-dashboard') && 
+           !url.startsWith('/mentors') && 
+           !url.startsWith('/booking');
   }
 
   onLoginClick(): void {
