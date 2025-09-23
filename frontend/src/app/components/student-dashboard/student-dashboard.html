@@ -1,75 +1,92 @@
 <div class="student-dashboard-shell">
 	<app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
 	<div class="student-dashboard-container main-pane">
-		<div class="dashboard-content simple">
+		<div class="dashboard-content">
 			<div class="container">
 				<h1 class="page-title">Welcome back, {{ currentUser?.firstName || 'Alex' }}!</h1>
 
-				<!-- Quick Stats -->
-				<div class="quick-stats-row">
-					<div class="quick-stat">
-						<div class="qs-icon">📅</div>
-						<div class="qs-text">
-							<div class="qs-title">Upcoming Sessions:</div>
-							<div class="qs-value">{{ upcomingSessions.length }}</div>
+				<!-- Quick Stats Section -->
+				<div class="quick-stats-section">
+					<h2 class="section-title">Quick Stats</h2>
+					<div class="quick-stats-cards">
+						<div class="quick-stat-card">
+							<div class="stat-icon">📅</div>
+							<div class="stat-content">
+								<div class="stat-title">Upcoming Sessions</div>
+								<div class="stat-value">{{ upcomingSessions.length }}</div>
+							</div>
 						</div>
-					</div>
-					<div class="quick-stat">
-						<div class="qs-icon">✅</div>
-						<div class="qs-text">
-							<div class="qs-title">Completed Sessions:</div>
-							<div class="qs-value">{{ completedSessions.length }}</div>
+						<div class="quick-stat-card">
+							<div class="stat-icon">✅</div>
+							<div class="stat-content">
+								<div class="stat-title">Completed Sessions</div>
+								<div class="stat-value">{{ completedSessions.length }}</div>
+							</div>
 						</div>
-					</div>
-					<div class="quick-stat">
-						<div class="qs-icon">❤️</div>
-						<div class="qs-text">
-							<div class="qs-title">Favorite Mentors:</div>
-							<div class="qs-value">{{ connections.length }}</div>
+						<div class="quick-stat-card">
+							<div class="stat-icon">❤️</div>
+							<div class="stat-content">
+								<div class="stat-title">Favorite Mentors</div>
+								<div class="stat-value">{{ connections.length }}</div>
+							</div>
 						</div>
 					</div>
 				</div>
 
-				<!-- Upcoming Sessions (simple cards) -->
-				<h2 class="section-title">Upcoming Sessions</h2>
-				<div class="sessions-row" *ngIf="upcomingSessions.length > 0">
-					<div class="upcoming-card" *ngFor="let session of upcomingSessions">
-						<div class="calendar-box">Calendar</div>
-						<div class="upcoming-info">
-							<div class="mentor-line">
-								<span class="avatar">🙂</span>
-								<div>
+				<!-- Upcoming Sessions Section -->
+				<div class="upcoming-sessions-section">
+					<h2 class="section-title">Upcoming Sessions</h2>
+					<div class="upcoming-sessions-container" *ngIf="upcomingSessions.length > 0">
+						<div class="calendar-widget">
+							<div class="calendar-header">March</div>
+							<div class="calendar-day highlighted">15</div>
+						</div>
+						<div class="upcoming-sessions-list">
+							<div class="upcoming-session-card" *ngFor="let session of upcomingSessions">
+								<div class="mentor-avatar">
+									<img [src]="getMentorAvatar(session.mentorName)" [alt]="session.mentorName" class="avatar-image">
+								</div>
+								<div class="session-details">
 									<div class="mentor-name">{{ session.mentorName }}</div>
-									<div class="mentor-sub">{{ formatDate(session.date) }} at {{ formatTime(session.time) }}</div>
+									<div class="session-date">{{ formatDate(session.date) }} at {{ formatTime(session.time) }}</div>
+									<div class="session-type" *ngIf="session.sessionType">Session Type: {{ session.sessionType }}</div>
+								</div>
+								<div class="session-actions">
+									<button class="btn-join" *ngIf="session.sessionType" (click)="viewSession(session.id)">Join</button>
+									<button class="btn-reschedule" (click)="cancelSession(session.id)">Reschedule</button>
 								</div>
 							</div>
-							<div class="upcoming-actions">
-								<button class="btn btn-primary" (click)="viewSession(session.id)">Join</button>
-								<button class="btn btn-secondary" (click)="cancelSession(session.id)">Reschedule</button>
-							</div>
 						</div>
 					</div>
-				<div class="empty-state" *ngIf="upcomingSessions.length === 0">
-					<div class="empty-icon">📅</div>
-					<h3>No upcoming sessions</h3>
-					<button class="btn btn-primary" (click)="browseMentors()">Book New Session</button>
+					<div class="empty-state" *ngIf="upcomingSessions.length === 0">
+						<div class="empty-icon">📅</div>
+						<h3>No upcoming sessions</h3>
+						<button class="btn btn-primary" (click)="browseMentors()">Book New Session</button>
+					</div>
 				</div>
 
-				<!-- Past Sessions (simple grid) -->
-				<h2 class="section-title">Past Sessions</h2>
-				<div class="past-grid">
-					<div class="past-card" *ngFor="let session of completedSessions; let i = index">
-						<div class="photo">Photo</div>
-						<div class="meta">
-							<div class="name">{{ session.mentorName }}</div>
-							<div class="date">{{ formatDate(session.date) }}</div>
+				<!-- Past Sessions Section -->
+				<div class="past-sessions-section">
+					<h2 class="section-title">Past Sessions</h2>
+					<div class="past-sessions-grid">
+						<div class="past-session-card" *ngFor="let session of completedSessions; let i = index">
+							<div class="past-avatar">
+								<img [src]="getMentorAvatar(session.mentorName)" [alt]="session.mentorName" class="past-avatar-image">
+							</div>
+							<div class="past-session-info">
+								<div class="past-mentor-name">{{ session.mentorName }}</div>
+								<div class="past-session-date">{{ formatDate(session.date) }}</div>
+							</div>
 						</div>
-					</div>
-					<div class="past-card" *ngIf="completedSessions.length === 0">
-						<div class="photo">Photo</div>
-						<div class="meta">
-							<div class="name">name</div>
-							<div class="date">Date</div>
+						<!-- Placeholder cards for empty slots -->
+						<div class="past-session-card placeholder" *ngFor="let placeholder of getPlaceholderCards()">
+							<div class="past-avatar">
+								<div class="placeholder-avatar">Photo</div>
+							</div>
+							<div class="past-session-info">
+								<div class="past-mentor-name">name</div>
+								<div class="past-session-date">Date</div>
+							</div>
 						</div>
 					</div>
 				</div>
