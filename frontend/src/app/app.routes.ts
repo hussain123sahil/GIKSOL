@@ -1,5 +1,8 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './components/home/home';
+import { AboutComponent } from './components/about/about';
+import { FeaturesComponent } from './components/features/features';
+import { HelpCenterComponent } from './components/help-center/help-center';
 import { LoginComponent } from './components/login/login';
 import { RegisterComponent } from './components/register/register';
 import { MentorListingsComponent } from './components/mentor-listings/mentor-listings';
@@ -12,6 +15,9 @@ import { AdminComponent } from './components/admin/admin';
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
+  { path: 'about', component: AboutComponent },
+  { path: 'features', component: FeaturesComponent },
+  { path: 'help-center', component: HelpCenterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'mentors', component: MentorListingsComponent },
