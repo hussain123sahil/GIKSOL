@@ -25,7 +25,9 @@ export class AppComponent {
     return !url.startsWith('/student-dashboard') && 
            !url.startsWith('/mentor-dashboard') && 
            !url.startsWith('/mentors') && 
-           !url.startsWith('/booking');
+           !url.startsWith('/booking') &&
+           !url.startsWith('/book-session') &&
+           !url.startsWith('/my-sessions');
   }
 
   onLoginClick(): void {

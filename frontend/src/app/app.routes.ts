@@ -8,11 +8,14 @@ import { RegisterComponent } from './components/register/register';
 import { MentorListingsComponent } from './components/mentor-listings/mentor-listings';
 import { MentorProfileComponent } from './components/mentor-profile/mentor-profile';
 import { BookingComponent } from './components/booking/booking';
+import { BookSessionComponent } from './components/book-session/book-session';
 import { StudentDashboardComponent } from './components/student-dashboard/student-dashboard';
+import { MySessionsComponent } from './components/my-sessions/my-sessions';
 import { MentorDashboardComponent } from './components/mentor-dashboard/mentor-dashboard';
 import { AdminComponent } from './components/admin/admin';
 
 export const routes: Routes = [
+  { path: 'book-session', component: BookSessionComponent },
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'about', component: AboutComponent },
@@ -24,6 +27,7 @@ export const routes: Routes = [
   { path: 'mentor-profile/:id', component: MentorProfileComponent },
   { path: 'booking/:mentorId', component: BookingComponent },
   { path: 'student-dashboard', component: StudentDashboardComponent },
+  { path: 'my-sessions', component: MySessionsComponent },
   { path: 'mentor-dashboard', component: MentorDashboardComponent },
   { path: 'admin', component: AdminComponent },
   { path: '**', redirectTo: '' }
