@@ -145,6 +145,50 @@ router.get('/search/expertise', async (req, res) => {
   }
 });
 
+// Filter mentors by availability (date and time)
+router.get('/available', async (req, res) => {
+  try {
+    const { date, time, duration = 60 } = req.query;
+    
+    if (!date || !time) {
+      return res.status(400).json({ message: 'Date and time are required' });
+    }
+
+    // Parse the date to get day of week
+    const requestedDate = new Date(date);
+    const dayOfWeek = requestedDate.toLocaleLowerCase('en-US', { weekday: 'long' });
+    
+    // Parse time to get start and end times
+    const [hours, minutes] = time.split(':').map(Number);
+    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    // Calculate end time based on duration
+    const endMinutes = hours * 60 + minutes + parseInt(duration);
+    const endHours = Math.floor(endMinutes / 60);
+    const endMins = endMinutes % 60;
+    const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+
+    // Find mentors available on the requested day and time
+    const mentors = await Mentor.find({
+      isAvailable: true,
+      [`availability.${dayOfWeek}.available`]: true,
+      $expr: {
+        $and: [
+          { $gte: [startTime, `$availability.${dayOfWeek}.start`] },
+          { $lte: [endTime, `$availability.${dayOfWeek}.end`] }
+        ]
+      }
+    })
+    .populate('user', 'firstName lastName email profilePicture')
+    .sort({ rating: -1, totalSessions: -1 });
+
+    res.json(mentors);
+  } catch (error) {
+    console.error('Filter mentors by availability error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
 
 

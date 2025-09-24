@@ -1,0 +1,168 @@
+<div class="my-sessions-shell">
+	<app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
+	<div class="my-sessions-container main-pane">
+		<div class="sessions-content">
+			<div class="container">
+				<div class="page-header">
+					<h1 class="page-title">My Sessions</h1>
+					<p class="page-subtitle">Manage your upcoming mentoring sessions</p>
+				</div>
+
+				<!-- Loading State -->
+				<div *ngIf="isLoading" class="loading-state">
+					<div class="loading-spinner"></div>
+					<p>Loading your sessions...</p>
+				</div>
+
+				<!-- Error State -->
+				<div *ngIf="error && !isLoading" class="error-state">
+					<div class="error-icon">⚠️</div>
+					<h3>Error loading sessions</h3>
+					<p>{{ error }}</p>
+					<button class="btn btn-primary" (click)="loadSessionsData()">Retry</button>
+				</div>
+
+				<!-- Sessions Content -->
+				<div *ngIf="!isLoading && !error">
+					<!-- Quick Actions -->
+					<div class="quick-actions-section">
+						<div class="quick-actions">
+							<button class="btn btn-primary" (click)="browseMentors()">
+								<span class="btn-icon">➕</span>
+								Book New Session
+							</button>
+							<button class="btn btn-outline" (click)="viewAllSessions()">
+								<span class="btn-icon">📋</span>
+								View All Sessions
+							</button>
+						</div>
+					</div>
+
+					<!-- Upcoming Sessions Section -->
+					<div class="upcoming-sessions-section">
+						<div class="section-header">
+							<h2 class="section-title">Upcoming Sessions</h2>
+							<div class="session-count">{{ upcomingSessions.length }} session{{ upcomingSessions.length !== 1 ? 's' : '' }}</div>
+						</div>
+						
+						<div class="upcoming-sessions-grid" *ngIf="upcomingSessions.length > 0">
+							<div class="session-card" *ngFor="let session of upcomingSessions">
+								<div class="session-card-header">
+									<div class="mentor-info">
+										<div class="mentor-avatar">
+											<img [src]="getMentorAvatar(session.mentorName)" [alt]="session.mentorName" class="avatar-image">
+										</div>
+										<div class="mentor-details">
+											<h3 class="mentor-name">{{ session.mentorName }}</h3>
+											<p class="mentor-company">{{ session.mentorCompany }}</p>
+										</div>
+									</div>
+									<div class="session-status-badge" [style.background-color]="getStatusColor(session.status)">
+										<span class="status-dot"></span>
+										{{ session.status | titlecase }}
+									</div>
+								</div>
+								
+								<div class="session-card-body">
+									<h4 class="session-title">{{ session.title || 'Mentoring Session' }}</h4>
+									
+									<div class="session-details">
+										<div class="detail-item">
+											<span class="detail-icon">📅</span>
+											<span class="detail-text">{{ formatDate(session.date) }}</span>
+										</div>
+										<div class="detail-item">
+											<span class="detail-icon">🕐</span>
+											<span class="detail-text">{{ formatTime(session.time) }}</span>
+										</div>
+										<div class="detail-item">
+											<span class="detail-icon">⏱️</span>
+											<span class="detail-text">{{ session.duration }} minutes</span>
+										</div>
+										<div class="detail-item">
+											<span class="detail-icon">💻</span>
+											<span class="detail-text">{{ session.sessionType }}</span>
+										</div>
+									</div>
+									
+									<div class="session-notes" *ngIf="session.notes">
+										<h5 class="notes-title">Session Notes:</h5>
+										<p class="notes-text">{{ session.notes }}</p>
+									</div>
+
+									<div class="session-meeting-info" *ngIf="session.meetingLink">
+										<h5 class="meeting-title">Meeting Link:</h5>
+										<a [href]="session.meetingLink" target="_blank" class="meeting-link">
+											<span class="meeting-icon">🔗</span>
+											Join Meeting
+										</a>
+									</div>
+								</div>
+								
+								<div class="session-card-footer">
+									<button class="btn btn-primary btn-sm" (click)="joinSession(session)" *ngIf="session.meetingLink">
+										<span class="btn-icon">🎥</span>
+										Join Session
+									</button>
+									<button class="btn btn-outline btn-sm" (click)="rescheduleSession(session.id)">
+										<span class="btn-icon">🔄</span>
+										Reschedule
+									</button>
+									<button class="btn btn-danger btn-sm" (click)="cancelSession(session.id)">
+										<span class="btn-icon">❌</span>
+										Cancel
+									</button>
+								</div>
+							</div>
+						</div>
+						
+						<div class="empty-state" *ngIf="upcomingSessions.length === 0">
+							<div class="empty-icon">📅</div>
+							<h3>No upcoming sessions</h3>
+							<p>You don't have any sessions scheduled yet. Book a session with a mentor to get started on your learning journey!</p>
+							<button class="btn btn-primary" (click)="browseMentors()">
+								<span class="btn-icon">➕</span>
+								Book Your First Session
+							</button>
+						</div>
+					</div>
+
+					<!-- Session Statistics -->
+					<div class="session-stats-section" *ngIf="upcomingSessions.length > 0">
+						<h3 class="stats-title">Session Overview</h3>
+						<div class="stats-grid">
+							<div class="stat-card">
+								<div class="stat-icon">📅</div>
+								<div class="stat-content">
+									<div class="stat-value">{{ upcomingSessions.length }}</div>
+									<div class="stat-label">Upcoming Sessions</div>
+								</div>
+							</div>
+							<div class="stat-card">
+								<div class="stat-icon">⏱️</div>
+								<div class="stat-content">
+									<div class="stat-value">{{ getTotalSessionTime() }}</div>
+									<div class="stat-label">Total Hours</div>
+								</div>
+							</div>
+							<div class="stat-card">
+								<div class="stat-icon">👥</div>
+								<div class="stat-content">
+									<div class="stat-value">{{ getUniqueMentors() }}</div>
+									<div class="stat-label">Different Mentors</div>
+								</div>
+							</div>
+							<div class="stat-card">
+								<div class="stat-icon">🎯</div>
+								<div class="stat-content">
+									<div class="stat-value">{{ getNextSessionDate() }}</div>
+									<div class="stat-label">Next Session</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
