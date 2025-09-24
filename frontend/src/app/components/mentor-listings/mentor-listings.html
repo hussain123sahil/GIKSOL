@@ -1,33 +1,50 @@
 <div class="mentor-listings-shell">
   <app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
   <div class="mentor-listings-container main-pane">
-    <!-- Header -->
-    <header class="page-header">
+    <!-- Hero Search Section -->
+    <section class="hero-search-section">
       <div class="container">
-        <div class="header-content">
-          <button class="btn btn-secondary" (click)="goBack()">← Back to Dashboard</button>
-          <h1>Find Your Perfect Mentor</h1>
-          <div></div>
+        <div class="hero-content">
+          <!-- Left Side - Search and Filters -->
+          <div class="search-side">
+            <h1 class="section-title">Find Your Perfect Mentor</h1>
+            <div class="search-container">
+              <div class="search-bar">
+                <input
+                  type="text"
+                  placeholder="Search by name, expertise, or company"
+                  [(ngModel)]="searchTerm"
+                  (input)="onSearchChange()"
+                  class="search-input"
+                />
+              </div>
+              
+              <div class="company-filters">
+                <button class="company-filter-btn" 
+                        *ngFor="let company of companyFilters" 
+                        [class.active]="selectedCompany === company"
+                        (click)="selectCompany(company)">
+                  {{ company }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side - Mentor Previews -->
+          <div class="mentor-previews">
+            <div class="mentor-preview-card" *ngFor="let mentor of previewMentors">
+              <div class="mentor-image">
+                <img [src]="mentor.image" [alt]="mentor.name" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </header>
+    </section>
 
-  <!-- Search and Filters -->
-  <section class="search-section">
-    <div class="container">
-      <div class="search-filters">
-        <!-- Search Bar -->
-        <div class="search-bar">
-          <input
-            type="text"
-            placeholder="Search mentors by name, company, or skills..."
-            [(ngModel)]="searchTerm"
-            (input)="onSearchChange()"
-            class="search-input"
-          />
-        </div>
-
-        <!-- Filters -->
+    <!-- Advanced Filters Section -->
+    <section class="advanced-filters-section">
+      <div class="container">
         <div class="filters-row">
           <div class="filter-group">
             <label>Expertise</label>
@@ -38,7 +55,7 @@
           </div>
 
           <div class="filter-group">
-            <label>Price Range</label>
+            <label>Price Range (${{ priceRange.min }} - ${{ priceRange.max }})</label>
             <div class="price-range">
               <input
                 type="range"
@@ -48,7 +65,6 @@
                 (input)="onFilterChange()"
                 class="price-slider"
               />
-              <span>${{ priceRange.min }} - ${{ priceRange.max }}</span>
             </div>
           </div>
 
@@ -62,18 +78,14 @@
             </select>
           </div>
 
-          <button class="btn btn-secondary" (click)="clearFilters()">Clear Filters</button>
+          <button class="clear-filters-btn" (click)="clearFilters()">Clear Filters</button>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
   <!-- Results -->
   <main class="results-section">
     <div class="container">
-      <div class="results-header">
-        <h2>{{ filteredMentors.length }} Mentor{{ filteredMentors.length !== 1 ? 's' : '' }} Found</h2>
-      </div>
 
       <!-- Loading State -->
       <div *ngIf="isLoading" class="loading-state">
@@ -89,55 +101,54 @@
       </div>
 
       <!-- Mentor Cards -->
-      <div *ngIf="!isLoading && filteredMentors.length > 0" class="mentors-grid">
-        <div class="mentor-card" *ngFor="let mentor of filteredMentors">
-          <div class="mentor-header">
-            <div class="mentor-avatar">
-              {{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+      <div *ngIf="!isLoading && paginatedMentors.length > 0" class="mentors-grid">
+        <div class="mentor-card" *ngFor="let mentor of paginatedMentors">
+          <div class="mentor-image">
+            <img [src]="mentor.profilePicture" [alt]="mentor.firstName + ' ' + mentor.lastName">
+          </div>
+          <div class="mentor-info">
+            <h3>{{ mentor.firstName }} {{ mentor.lastName }}</h3>
+            <p class="mentor-title">{{ mentor.title }} at {{ mentor.company }}</p>
+          </div>
+          <div class="company-section">
+            <div class="company-logo">
+              <img [src]="getCompanyLogo(mentor.company)" [alt]="mentor.company + ' logo'">
             </div>
-            <div class="mentor-info">
-              <h3>{{ mentor.firstName }} {{ mentor.lastName }}</h3>
-              <p class="company">{{ mentor.company }}</p>
-              <div class="mentor-stats">
-                <span class="rating">⭐ {{ mentor.rating }}</span>
-                <span class="sessions">{{ mentor.totalSessions }} sessions</span>
-                <span class="status" [class.available]="mentor.isAvailable" [class.unavailable]="!mentor.isAvailable">
-                  {{ mentor.isAvailable ? 'Available' : 'Busy' }}
-                </span>
+            <span class="company-name">{{ mentor.company }}</span>
+          </div>
+          <div class="rating-rate-row">
+            <div class="rating">
+              <span class="rating-number">{{ mentor.rating }}</span>
+              <div class="stars">
+                <span class="star" *ngFor="let star of getStars(mentor.rating)" [class.filled]="star.filled" [class.half]="star.half">★</span>
               </div>
             </div>
-          </div>
-
-          <div class="mentor-content">
-            <p class="bio">{{ mentor.bio }}</p>
-            
-            <div class="expertise">
-              <span class="expertise-tag" *ngFor="let skill of mentor.expertise">
-                {{ skill }}
-              </span>
-            </div>
-
-            <div class="pricing">
-              <span class="hourly-rate">${{ mentor.hourlyRate }}/hour</span>
+            <div class="hourly-rate">
+              <span class="rate-text">${{ mentor.hourlyRate }}/hour</span>
             </div>
           </div>
-
           <div class="mentor-actions">
-            <button 
-              class="btn btn-secondary" 
-              (click)="viewMentorProfile(mentor.id)"
-            >
-              View Profile
-            </button>
-            <button 
-              class="btn btn-primary" 
-              (click)="bookSession(mentor.id)"
-              [disabled]="!mentor.isAvailable"
-            >
-              {{ mentor.isAvailable ? 'Book Session' : 'Not Available' }}
-            </button>
+            <button class="btn btn-outline" (click)="viewMentorProfile(mentor.id)">View Profile</button>
+            <button class="btn btn-primary" (click)="bookSession(mentor.id)">Book Session</button>
           </div>
         </div>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!isLoading && filteredMentors.length > 0" class="pagination">
+        <button class="pagination-btn" (click)="previousPage()" [disabled]="currentPage === 1">Previous</button>
+        <div class="pagination-numbers">
+          <button 
+            *ngFor="let page of getVisiblePages()" 
+            class="pagination-number" 
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+            [disabled]="page === '...'"
+          >
+            {{ page }}
+          </button>
+        </div>
+        <button class="pagination-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
       </div>
     </div>
   </main>
