@@ -96,6 +96,62 @@ const createUsers = async () => {
       password: 'password123',
       role: 'mentor',
       profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'Sarah',
+      lastName: 'Davis',
+      email: 'sarah.davis@example.com',
+      password: 'password123',
+      role: 'mentor',
+      profilePicture: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'Emily',
+      lastName: 'White',
+      email: 'emily.white@example.com',
+      password: 'password123',
+      role: 'mentor',
+      profilePicture: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'David',
+      lastName: 'Rodriguez',
+      email: 'david.rodriguez@example.com',
+      password: 'password123',
+      role: 'mentor',
+      profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'Raj',
+      lastName: 'Patel',
+      email: 'raj.patel@example.com',
+      password: 'password123',
+      role: 'mentor',
+      profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'Lisa',
+      lastName: 'Johnson',
+      email: 'lisa.johnson@example.com',
+      password: 'password123',
+      role: 'mentor',
+      profilePicture: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'Alex',
+      lastName: 'Thompson',
+      email: 'alex.thompson@example.com',
+      password: 'password123',
+      role: 'mentor',
+      profilePicture: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'Maria',
+      lastName: 'Garcia',
+      email: 'maria.garcia@example.com',
+      password: 'password123',
+      role: 'mentor',
+      profilePicture: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face'
     }
   ];
 
@@ -213,6 +269,125 @@ const createMentorProfiles = async (users) => {
       certifications: [
         { name: 'Kubernetes Administrator', issuer: 'Cloud Native Computing Foundation', date: '2023-09-05' },
         { name: 'Docker Certified', issuer: 'Docker Inc.', date: '2023-02-14' }
+      ]
+    },
+    {
+      company: 'JP Morgan',
+      position: 'Financial Adviser',
+      expertise: ['Finance', 'Investment', 'Wealth Management', 'Financial Planning'],
+      hourlyRate: 90,
+      bio: 'Certified financial adviser helping clients achieve their financial goals. Expert in investment strategies and wealth management.',
+      linkedinUrl: 'https://linkedin.com/in/sarahdavis',
+      education: [{
+        degree: 'MBA in Finance',
+        institution: 'Wharton School',
+        year: 2018
+      }],
+      certifications: [
+        { name: 'CFA Charterholder', issuer: 'CFA Institute', date: '2022-08-15' },
+        { name: 'CFP Professional', issuer: 'CFP Board', date: '2021-12-10' }
+      ]
+    },
+    {
+      company: 'Harvard',
+      position: 'Leadership Coach',
+      expertise: ['Leadership', 'Coaching', 'Management', 'Executive Development'],
+      hourlyRate: 150,
+      bio: 'Executive coach and leadership development expert with Harvard background. Helping leaders unlock their potential and drive organizational success.',
+      linkedinUrl: 'https://linkedin.com/in/emilywhite',
+      education: [{
+        degree: 'PhD in Organizational Psychology',
+        institution: 'Harvard University',
+        year: 2010
+      }],
+      certifications: [
+        { name: 'ICF Master Certified Coach', issuer: 'International Coaching Federation', date: '2023-01-20' },
+        { name: 'Harvard Executive Education', issuer: 'Harvard Business School', date: '2022-06-30' }
+      ]
+    },
+    {
+      company: 'Nike',
+      position: 'Marketing Lead',
+      expertise: ['Marketing', 'Brand Strategy', 'Digital Marketing', 'Consumer Insights'],
+      hourlyRate: 85,
+      bio: 'Creative marketing professional with expertise in brand building and digital campaigns. Passionate about connecting brands with consumers.',
+      linkedinUrl: 'https://linkedin.com/in/davidrodriguez',
+      education: [{
+        degree: 'Marketing & Communications',
+        institution: 'Northwestern University',
+        year: 2017
+      }],
+      certifications: [
+        { name: 'Google Analytics Certified', issuer: 'Google', date: '2023-05-15' },
+        { name: 'HubSpot Marketing', issuer: 'HubSpot', date: '2023-03-22' }
+      ]
+    },
+    {
+      company: 'Apple',
+      position: 'Full Stack Developer',
+      expertise: ['Full Stack', 'React', 'Node.js', 'iOS Development'],
+      hourlyRate: 95,
+      bio: 'Full stack developer with expertise in modern web technologies and mobile development. Love creating seamless user experiences.',
+      linkedinUrl: 'https://linkedin.com/in/rajpatel',
+      education: [{
+        degree: 'Computer Science',
+        institution: 'UC San Diego',
+        year: 2019
+      }],
+      certifications: [
+        { name: 'Apple Developer', issuer: 'Apple Inc.', date: '2023-07-10' },
+        { name: 'React Developer', issuer: 'Meta', date: '2023-04-05' }
+      ]
+    },
+    {
+      company: 'Spotify',
+      position: 'UX Designer',
+      expertise: ['UX Design', 'UI Design', 'User Research', 'Product Design'],
+      hourlyRate: 80,
+      bio: 'User experience designer focused on creating intuitive and beautiful interfaces. Passionate about user-centered design and accessibility.',
+      linkedinUrl: 'https://linkedin.com/in/lisajohnson',
+      education: [{
+        degree: 'Design & Human-Computer Interaction',
+        institution: 'Carnegie Mellon',
+        year: 2020
+      }],
+      certifications: [
+        { name: 'Google UX Design', issuer: 'Google', date: '2023-06-18' },
+        { name: 'Adobe Certified Expert', issuer: 'Adobe', date: '2023-02-28' }
+      ]
+    },
+    {
+      company: 'Tesla',
+      position: 'Data Scientist',
+      expertise: ['Data Science', 'Machine Learning', 'Python', 'Analytics'],
+      hourlyRate: 110,
+      bio: 'Data scientist specializing in machine learning and predictive analytics. Working on cutting-edge AI solutions for sustainable transportation.',
+      linkedinUrl: 'https://linkedin.com/in/alexthompson',
+      education: [{
+        degree: 'PhD in Data Science',
+        institution: 'Stanford University',
+        year: 2019
+      }],
+      certifications: [
+        { name: 'TensorFlow Developer', issuer: 'Google', date: '2023-08-12' },
+        { name: 'AWS Machine Learning', issuer: 'Amazon Web Services', date: '2023-05-25' }
+      ]
+    },
+    {
+      company: 'Netflix',
+      position: 'DevOps Engineer',
+      expertise: ['DevOps', 'AWS', 'Kubernetes', 'Infrastructure'],
+      hourlyRate: 105,
+      bio: 'DevOps engineer with expertise in cloud infrastructure and automation. Passionate about building scalable and reliable systems.',
+      linkedinUrl: 'https://linkedin.com/in/mariagarcia',
+      education: [{
+        degree: 'Computer Engineering',
+        institution: 'Georgia Tech',
+        year: 2018
+      }],
+      certifications: [
+        { name: 'AWS DevOps Engineer', issuer: 'Amazon Web Services', date: '2023-09-08' },
+        { name: 'Kubernetes Administrator', issuer: 'Cloud Native Computing Foundation', date: '2023-06-20' }
       ]
     }
   ];
