@@ -1,37 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
+import { DashboardService, Session, Connection, DashboardData } from '../../services/dashboard.service';
 import { SidebarComponent } from '../sidebar/sidebar';
-
-interface Session {
-  id: string;
-  mentorId: string;
-  mentorName: string;
-  mentorCompany: string;
-  date: string;
-  time: string;
-  duration: number;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  sessionType: string;
-  notes?: string;
-  rating?: number;
-}
-
-interface Connection {
-  id: string;
-  mentorId: string;
-  mentorName: string;
-  mentorCompany: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  requestedAt: string;
-  respondedAt?: string;
-}
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, HttpClientModule, SidebarComponent],
   templateUrl: './student-dashboard.html',
   styleUrls: ['./student-dashboard.scss']
 })
@@ -40,11 +18,20 @@ export class StudentDashboardComponent implements OnInit {
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
   connections: Connection[] = [];
+  quickStats = {
+    upcomingSessions: 0,
+    completedSessions: 0,
+    totalConnections: 0,
+    totalSessions: 0,
+    averageRating: 0
+  };
   isLoading = true;
+  error: string | null = null;
 
   constructor(
     public router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private dashboardService: DashboardService
   ) {}
 
   ngOnInit(): void {
@@ -57,30 +44,66 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   loadDashboardData(): void {
-    setTimeout(() => {
-      this.upcomingSessions = [
-        { id: '1', mentorId: '1', mentorName: 'Jane Doe', mentorCompany: 'Google', date: '2024-03-15', time: '10:00', duration: 60, status: 'upcoming', sessionType: 'Career Guidance', notes: 'Focus on career development' },
-        { id: '2', mentorId: '2', mentorName: 'John Smith', mentorCompany: 'Microsoft', date: '2024-03-15', time: '14:00', duration: 90, status: 'upcoming', sessionType: 'Technical Review', notes: 'Code review session' }
-      ];
-      this.completedSessions = [
-        { id: '3', mentorId: '3', mentorName: 'Sarah Wilson', mentorCompany: 'Amazon', date: '2024-03-10', time: '15:00', duration: 60, status: 'completed', sessionType: 'Video Call', notes: 'JavaScript fundamentals', rating: 5 },
-        { id: '4', mentorId: '4', mentorName: 'Mike Chen', mentorCompany: 'Meta', date: '2024-03-08', time: '11:00', duration: 45, status: 'completed', sessionType: 'Video Call', notes: 'React best practices', rating: 4 }
-      ];
-      this.connections = [
-        { id: '1', mentorId: '1', mentorName: 'Jane Doe', mentorCompany: 'Google', status: 'accepted', requestedAt: '2024-01-10', respondedAt: '2024-01-11' },
-        { id: '2', mentorId: '2', mentorName: 'John Smith', mentorCompany: 'Microsoft', status: 'accepted', requestedAt: '2024-01-12', respondedAt: '2024-01-13' },
-        { id: '3', mentorId: '3', mentorName: 'Sarah Wilson', mentorCompany: 'Amazon', status: 'accepted', requestedAt: '2024-01-15', respondedAt: '2024-01-16' },
-        { id: '4', mentorId: '4', mentorName: 'Mike Chen', mentorCompany: 'Meta', status: 'accepted', requestedAt: '2024-01-18', respondedAt: '2024-01-19' },
-        { id: '5', mentorId: '5', mentorName: 'Alex Johnson', mentorCompany: 'Netflix', status: 'pending', requestedAt: '2024-01-20' }
-      ];
+    // For testing, use the seeded student ID
+    const studentId = this.currentUser?.id || '68d2c326ac49758f6e269b4e';
+    
+    if (!studentId) {
+      this.error = 'User not found';
       this.isLoading = false;
-    }, 500);
+      return;
+    }
+
+    this.dashboardService.getDashboardData(studentId).subscribe({
+      next: (data: DashboardData) => {
+        this.upcomingSessions = data.upcomingSessions;
+        this.completedSessions = data.completedSessions;
+        this.connections = data.connections;
+        this.quickStats = data.quickStats;
+        this.isLoading = false;
+        this.error = null;
+      },
+      error: (error) => {
+        console.error('Error loading dashboard data:', error);
+        this.error = 'Failed to load dashboard data';
+        this.isLoading = false;
+        
+        // Fallback to mock data for development
+        this.loadMockData();
+      }
+    });
+  }
+
+  private loadMockData(): void {
+    this.upcomingSessions = [
+      { id: '1', mentorId: '1', mentorName: 'Jane Doe', mentorCompany: 'Google', date: '2024-03-15', time: '10:00', duration: 60, status: 'upcoming', sessionType: 'Career Guidance', notes: 'Focus on career development' },
+      { id: '2', mentorId: '2', mentorName: 'John Smith', mentorCompany: 'Microsoft', date: '2024-03-15', time: '14:00', duration: 90, status: 'upcoming', sessionType: 'Technical Review', notes: 'Code review session' }
+    ];
+    this.completedSessions = [
+      { id: '3', mentorId: '3', mentorName: 'Sarah Wilson', mentorCompany: 'Amazon', date: '2024-03-10', time: '15:00', duration: 60, status: 'completed', sessionType: 'Video Call', notes: 'JavaScript fundamentals', rating: 5 },
+      { id: '4', mentorId: '4', mentorName: 'Mike Chen', mentorCompany: 'Meta', date: '2024-03-08', time: '11:00', duration: 45, status: 'completed', sessionType: 'Video Call', notes: 'React best practices', rating: 4 }
+    ];
+    this.connections = [
+      { id: '1', mentorId: '1', mentorName: 'Jane Doe', mentorCompany: 'Google', status: 'accepted', requestedAt: '2024-01-10', respondedAt: '2024-01-11' },
+      { id: '2', mentorId: '2', mentorName: 'John Smith', mentorCompany: 'Microsoft', status: 'accepted', requestedAt: '2024-01-12', respondedAt: '2024-01-13' },
+      { id: '3', mentorId: '3', mentorName: 'Sarah Wilson', mentorCompany: 'Amazon', status: 'accepted', requestedAt: '2024-01-15', respondedAt: '2024-01-16' },
+      { id: '4', mentorId: '4', mentorName: 'Mike Chen', mentorCompany: 'Meta', status: 'accepted', requestedAt: '2024-01-18', respondedAt: '2024-01-19' },
+      { id: '5', mentorId: '5', mentorName: 'Alex Johnson', mentorCompany: 'Netflix', status: 'pending', requestedAt: '2024-01-20' }
+    ];
+    this.quickStats = {
+      upcomingSessions: this.upcomingSessions.length,
+      completedSessions: this.completedSessions.length,
+      totalConnections: this.connections.length,
+      totalSessions: this.upcomingSessions.length + this.completedSessions.length,
+      averageRating: 4.5
+    };
   }
 
   browseMentors(): void { this.router.navigate(['/mentors']); }
   viewSession(sessionId: string): void { console.log('View session:', sessionId); }
   cancelSession(sessionId: string): void { console.log('Cancel session:', sessionId); }
   rateSession(sessionId: string): void { console.log('Rate session:', sessionId); }
+  viewAllSessions(): void { console.log('View all sessions'); }
+  viewSessionDetails(sessionId: string): void { console.log('View session details:', sessionId); }
   logout(): void { this.authService.logout(); }
 
   formatDate(dateString: string): string {
@@ -126,5 +149,21 @@ export class StudentDashboardComponent implements OnInit {
     const usedSlots = this.completedSessions.length;
     const emptySlots = Math.max(0, totalSlots - usedSlots);
     return Array(emptySlots).fill({});
+  }
+
+  getStars(rating: number): string[] {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    
+    for (let i = 0; i < fullStars; i++) {
+      stars.push('★');
+    }
+    
+    if (hasHalfStar) {
+      stars.push('☆');
+    }
+    
+    return stars;
   }
 }

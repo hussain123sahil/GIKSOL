@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Dashboard API</title>
+</head>
+<body>
+    <h1>Dashboard API Test</h1>
+    <button onclick="testAPI()">Test Dashboard API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/sessions/dashboard/68d2c326ac49758f6e269b4e');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h2>✅ API Working!</h2>
+                        <h3>Quick Stats:</h3>
+                        <ul>
+                            <li>Upcoming Sessions: ${data.quickStats.upcomingSessions}</li>
+                            <li>Completed Sessions: ${data.quickStats.completedSessions}</li>
+                            <li>Total Connections: ${data.quickStats.totalConnections}</li>
+                            <li>Average Rating: ${data.quickStats.averageRating}</li>
+                        </ul>
+                        <h3>Upcoming Sessions:</h3>
+                        <ul>
+                            ${data.upcomingSessions.map(session => `
+                                <li>${session.mentorName} - ${session.title} (${session.date} at ${session.time})</li>
+                            `).join('')}
+                        </ul>
+                        <h3>Completed Sessions:</h3>
+                        <ul>
+                            ${data.completedSessions.map(session => `
+                                <li>${session.mentorName} - ${session.title} (${session.date}) - Rating: ${session.rating || 'N/A'}</li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<h2>❌ API Error: ${data.message}</h2>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<h2>❌ Network Error: ${error.message}</h2>`;
+            }
+        }
+    </script>
+</body>
+</html>
