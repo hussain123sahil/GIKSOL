@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { MentorService, Mentor } from '../../services/mentor';
 
-interface Mentor {
+interface MentorDisplay {
   id: string;
   firstName: string;
   lastName: string;
@@ -27,9 +28,9 @@ interface Mentor {
   styleUrls: ['./mentor-listings.scss']
 })
 export class MentorListingsComponent implements OnInit {
-  mentors: Mentor[] = [];
-  filteredMentors: Mentor[] = [];
-  paginatedMentors: Mentor[] = [];
+  mentors: MentorDisplay[] = [];
+  filteredMentors: MentorDisplay[] = [];
+  paginatedMentors: MentorDisplay[] = [];
   isLoading = true;
   
   // Pagination properties
@@ -69,148 +70,87 @@ export class MentorListingsComponent implements OnInit {
     'UI/UX Design', 'Product Management', 'Marketing', 'Business Strategy'
   ];
 
-  constructor(public router: Router) {}
+  constructor(public router: Router, private mentorService: MentorService) {}
 
   ngOnInit(): void {
     this.loadMentors();
   }
 
   loadMentors(): void {
-    // Mock data - replace with actual API call
-    setTimeout(() => {
-      this.mentors = [
-        {
-          id: '1',
-          firstName: 'Dr. Anya',
-          lastName: 'Sharna',
-          title: 'AI Ethics Researcher',
-          company: 'Google',
-          expertise: ['AI Ethics', 'Machine Learning', 'Research'],
-          hourlyRate: 120,
-          rating: 4.5,
-          totalSessions: 85,
-          bio: 'Leading AI ethics researcher with expertise in responsible AI development.',
-          profilePicture: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '2',
-          firstName: 'Mark',
-          lastName: 'Chen',
-          title: 'Senior Product Manager',
-          company: 'Microsoft',
-          expertise: ['Product Management', 'Strategy', 'Leadership'],
-          hourlyRate: 100,
-          rating: 4.5,
-          totalSessions: 120,
-          bio: 'Experienced product manager with a track record of successful product launches.',
-          profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '3',
-          firstName: 'Sarah',
-          lastName: 'Davis',
-          title: 'Financial Adviser',
-          company: 'JP Morgan',
-          expertise: ['Finance', 'Investment', 'Wealth Management'],
-          hourlyRate: 90,
-          rating: 4.5,
-          totalSessions: 95,
-          bio: 'Certified financial adviser helping clients achieve their financial goals.',
-          profilePicture: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '4',
-          firstName: 'David',
-          lastName: 'Rodriguez',
-          title: 'Marketing Lead',
-          company: 'Nike',
-          expertise: ['Marketing', 'Brand Strategy', 'Digital Marketing'],
-          hourlyRate: 85,
-          rating: 4.5,
-          totalSessions: 110,
-          bio: 'Creative marketing professional with expertise in brand building and digital campaigns.',
-          profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '5',
-          firstName: 'Prof. Emily',
-          lastName: 'White',
-          title: 'Leadership Coach',
-          company: 'Harvard',
-          expertise: ['Leadership', 'Coaching', 'Management'],
-          hourlyRate: 150,
-          rating: 4.5,
-          totalSessions: 75,
-          bio: 'Executive coach and leadership development expert with Harvard background.',
-          profilePicture: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '6',
-          firstName: 'Raj',
-          lastName: 'Patel',
-          title: 'Full Stack Developer',
-          company: 'Apple',
-          expertise: ['Full Stack', 'React', 'Node.js'],
-          hourlyRate: 95,
-          rating: 4.5,
-          totalSessions: 130,
-          bio: 'Full stack developer with expertise in modern web technologies.',
-          profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '7',
-          firstName: 'Lisa',
-          lastName: 'Johnson',
-          title: 'UX Designer',
-          company: 'Spotify',
-          expertise: ['UX Design', 'UI Design', 'User Research'],
-          hourlyRate: 80,
-          rating: 4.5,
-          totalSessions: 90,
-          bio: 'User experience designer focused on creating intuitive and beautiful interfaces.',
-          profilePicture: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '8',
-          firstName: 'Alex',
-          lastName: 'Thompson',
-          title: 'Data Scientist',
-          company: 'Tesla',
-          expertise: ['Data Science', 'Machine Learning', 'Python'],
-          hourlyRate: 110,
-          rating: 4.5,
-          totalSessions: 105,
-          bio: 'Data scientist specializing in machine learning and predictive analytics.',
-          profilePicture: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        },
-        {
-          id: '9',
-          firstName: 'Maria',
-          lastName: 'Garcia',
-          title: 'DevOps Engineer',
-          company: 'Netflix',
-          expertise: ['DevOps', 'AWS', 'Kubernetes'],
-          hourlyRate: 105,
-          rating: 4.5,
-          totalSessions: 115,
-          bio: 'DevOps engineer with expertise in cloud infrastructure and automation.',
-          profilePicture: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=200&h=200&fit=crop&crop=face',
-          isAvailable: true
-        }
-      ];
-      
-      this.filteredMentors = [...this.mentors];
-      this.updatePagination();
-      this.isLoading = false;
-    }, 1000);
+    this.isLoading = true;
+    
+    this.mentorService.getAllMentors().subscribe({
+      next: (mentors: Mentor[]) => {
+        // Transform backend mentor data to display format
+        this.mentors = mentors.map(mentor => ({
+          id: mentor._id,
+          firstName: mentor.user.firstName,
+          lastName: mentor.user.lastName,
+          title: mentor.position,
+          company: mentor.company,
+          expertise: mentor.expertise,
+          hourlyRate: mentor.hourlyRate,
+          rating: Math.round(mentor.rating * 10) / 10, // Round to 1 decimal place
+          totalSessions: mentor.totalSessions,
+          bio: mentor.bio,
+          profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName),
+          isAvailable: mentor.isAvailable
+        }));
+        
+        this.filteredMentors = [...this.mentors];
+        this.updatePagination();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading mentors:', error);
+        this.isLoading = false;
+        // Fallback to mock data if API fails
+        this.loadMockMentors();
+      }
+    });
+  }
+
+  private loadMockMentors(): void {
+    // Fallback mock data
+    this.mentors = [
+      {
+        id: '1',
+        firstName: 'Dr. Anya',
+        lastName: 'Sharna',
+        title: 'AI Ethics Researcher',
+        company: 'Google',
+        expertise: ['AI Ethics', 'Machine Learning', 'Research'],
+        hourlyRate: 120,
+        rating: 4.5,
+        totalSessions: 85,
+        bio: 'Leading AI ethics researcher with expertise in responsible AI development.',
+        profilePicture: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face',
+        isAvailable: true
+      },
+      {
+        id: '2',
+        firstName: 'Mark',
+        lastName: 'Chen',
+        title: 'Senior Product Manager',
+        company: 'Microsoft',
+        expertise: ['Product Management', 'Strategy', 'Leadership'],
+        hourlyRate: 100,
+        rating: 4.5,
+        totalSessions: 120,
+        bio: 'Experienced product manager with a track record of successful product launches.',
+        profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
+        isAvailable: true
+      }
+    ];
+    
+    this.filteredMentors = [...this.mentors];
+    this.updatePagination();
+  }
+
+  private getDefaultProfilePicture(firstName: string, lastName: string): string {
+    // Generate a default profile picture based on name initials
+    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    return `https://via.placeholder.com/200x200/4f46e5/ffffff?text=${initials}`;
   }
 
   onSearchChange(): void {
