@@ -58,6 +58,58 @@
   max-width: 1200px;
   margin: 0 auto;
   background: #f8f9fa;
+  position: relative;
+  min-height: 200px !important; // Ensure minimum height
+}
+
+// Back Button - Above Profile Picture
+.linkedin-profile .back-button-container {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  z-index: 10;
+}
+
+.linkedin-profile .back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: #1976d2;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(25, 118, 210, 0.3);
+    color: #1565c0;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  svg {
+    transition: transform 0.3s ease;
+    stroke: currentColor;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover svg {
+    transform: translateX(-3px);
+  }
 }
 
 // Profile Header (Cover Photo + Profile Info)
@@ -66,7 +118,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 

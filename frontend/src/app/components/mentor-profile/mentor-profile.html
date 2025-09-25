@@ -16,7 +16,8 @@
 				<div *ngIf="!isLoading && mentor" class="linkedin-profile">
 					<!-- Profile Header -->
 					<div class="profile-header">
-						<div class="cover-photo"></div>
+						<div class="cover-photo">
+						</div>
 						<div class="profile-info">
 							<div class="profile-avatar">
 								<img [src]="mentor.profilePicture" [alt]="mentor.firstName + ' ' + mentor.lastName" *ngIf="mentor.profilePicture">
@@ -158,6 +159,14 @@
       <div *ngIf="!isLoading && mentor" class="linkedin-profile">
         <!-- Profile Header -->
         <div class="profile-header">
+          <div class="back-button-container">
+						<button class="back-button" (click)="goBack()">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M19 12H5M12 19l-7-7 7-7"/>
+							</svg>
+							Back To Mentors
+						</button>
+					</div>
           <div class="cover-photo"></div>
           <div class="profile-info">
             <div class="profile-avatar">
