@@ -3,6 +3,7 @@ const Session = require('../models/Session');
 const User = require('../models/User');
 const Mentor = require('../models/Mentor');
 const Student = require('../models/Student');
+const Connection = require('../models/Connection');
 
 const router = express.Router();
 
@@ -286,6 +287,149 @@ router.get('/mentor/:mentorId', async (req, res) => {
 
   } catch (error) {
     console.error('Get mentor sessions error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get mentor dashboard data
+router.get('/mentor-dashboard/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Get mentor info
+    const mentor = await Mentor.findOne({ user: userId })
+      .populate('user', 'firstName lastName email profilePicture');
+    
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    // Get upcoming sessions
+    const upcomingSessions = await Session.find({
+      mentor: userId,
+      status: { $in: ['scheduled', 'upcoming'] },
+      scheduledDate: { $gte: new Date() },
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture')
+    .sort({ scheduledDate: 1 });
+
+    // Get completed sessions
+    const completedSessions = await Session.find({
+      mentor: userId,
+      status: 'completed',
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture')
+    .sort({ scheduledDate: -1 })
+    .limit(10);
+
+    // Get connection requests
+    const connectionRequests = await Connection.find({
+      mentor: userId,
+      status: 'pending',
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture')
+    .sort({ requestedAt: -1 });
+
+    // Get active mentees (students with accepted connections)
+    const activeConnections = await Connection.find({
+      mentor: userId,
+      status: 'accepted',
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture');
+
+    // Calculate quick stats
+    const totalSessions = await Session.countDocuments({ mentor: userId, isActive: true });
+    const avgRatingResult = await Session.aggregate([
+      { $match: { mentor: userId, status: 'completed', rating: { $exists: true } } },
+      { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+    ]);
+
+    const quickStats = {
+      activeMentees: activeConnections.length,
+      upcomingSessions: upcomingSessions.length,
+      completedSessions: completedSessions.length,
+      pendingRequests: connectionRequests.length,
+      totalSessions: totalSessions,
+      averageRating: avgRatingResult[0]?.avgRating || 0
+    };
+
+    // Format sessions for frontend
+    const formatSessions = (sessions) => {
+      return sessions.map(session => ({
+        id: session._id,
+        studentId: session.student._id,
+        studentName: `${session.student.firstName} ${session.student.lastName}`,
+        studentEmail: session.student.email,
+        title: session.title,
+        date: session.formattedDate,
+        time: session.formattedTime,
+        duration: session.duration,
+        status: session.status,
+        sessionType: session.sessionType,
+        notes: session.notes,
+        rating: session.rating,
+        meetingLink: session.meetingLink
+      }));
+    };
+
+    // Format mentees for frontend
+    const formatMentees = (connections) => {
+      return connections.map(connection => ({
+        id: connection._id,
+        studentId: connection.student._id,
+        studentName: `${connection.student.firstName} ${connection.student.lastName}`,
+        studentEmail: connection.student.email,
+        school: 'University', // We'll get this from Student model later
+        grade: 'Undergraduate', // We'll get this from Student model later
+        learningGoals: ['Programming', 'Career Guidance'], // We'll get this from Student model later
+        joinedDate: connection.createdAt,
+        totalSessions: 0, // We'll calculate this
+        lastSessionDate: null
+      }));
+    };
+
+    // Format connection requests for frontend
+    const formatConnectionRequests = (requests) => {
+      return requests.map(request => ({
+        id: request._id,
+        studentId: request.student._id,
+        studentName: `${request.student.firstName} ${request.student.lastName}`,
+        studentEmail: request.student.email,
+        school: 'University', // We'll get this from Student model later
+        requestMessage: request.message,
+        requestedAt: request.requestedAt,
+        status: request.status
+      }));
+    };
+
+    const response = {
+      mentor: {
+        id: mentor.user._id,
+        firstName: mentor.user.firstName,
+        lastName: mentor.user.lastName,
+        email: mentor.user.email,
+        profilePicture: mentor.user.profilePicture,
+        company: mentor.company,
+        position: mentor.position,
+        expertise: mentor.expertise,
+        rating: mentor.rating,
+        totalSessions: mentor.totalSessions
+      },
+      quickStats,
+      upcomingSessions: formatSessions(upcomingSessions),
+      completedSessions: formatSessions(completedSessions),
+      mentees: formatMentees(activeConnections),
+      connectionRequests: formatConnectionRequests(connectionRequests)
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Get mentor dashboard data error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

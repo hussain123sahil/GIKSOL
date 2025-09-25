@@ -24,6 +24,8 @@ export class AppComponent {
     // Hide navbar on dashboard pages and mentor listings (logged in users have sidebar)
     return !url.startsWith('/student-dashboard') && 
            !url.startsWith('/mentor-dashboard') && 
+           !url.startsWith('/mentor-sessions') &&
+           !url.startsWith('/mentor-profile') &&
            !url.startsWith('/mentors') && 
            !url.startsWith('/booking') &&
            !url.startsWith('/book-session') &&
