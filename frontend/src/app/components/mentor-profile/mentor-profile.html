@@ -12,97 +12,128 @@
 					<p>Loading your profile...</p>
 				</div>
 
-				<!-- Mentor Profile -->
-				<div *ngIf="!isLoading && mentor" class="profile-layout">
-					<!-- Left Column - Profile Info -->
-					<div class="profile-sidebar">
-						<div class="profile-card">
-							<div class="mentor-avatar">
+				<!-- LinkedIn-style Mentor Profile -->
+				<div *ngIf="!isLoading && mentor" class="linkedin-profile">
+					<!-- Profile Header -->
+					<div class="profile-header">
+						<div class="cover-photo"></div>
+						<div class="profile-info">
+							<div class="profile-avatar">
 								<img [src]="mentor.profilePicture" [alt]="mentor.firstName + ' ' + mentor.lastName" *ngIf="mentor.profilePicture">
 								<span *ngIf="!mentor.profilePicture">{{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}</span>
 							</div>
-							<h2>{{ mentor.firstName }} {{ mentor.lastName }}</h2>
-							<p class="position">{{ mentor.position }}</p>
-							<p class="company">{{ mentor.company }}</p>
-							
-							<div class="mentor-stats">
-								<div class="stat">
-									<span class="rating">⭐ {{ mentor.rating }}</span>
-									<small>Rating</small>
+							<div class="profile-details">
+								<h1 class="profile-name">{{ mentor.firstName }} {{ mentor.lastName }}</h1>
+								<p class="profile-title">{{ mentor.position }} at {{ mentor.company }}</p>
+								<div class="profile-stats">
+									<div class="stat">
+										<span class="stat-value">⭐ {{ mentor.rating }}</span>
+										<span class="stat-label">Rating</span>
+									</div>
+									<div class="stat">
+										<span class="stat-value">{{ mentor.totalSessions }}</span>
+										<span class="stat-label">Sessions</span>
+									</div>
+									<div class="stat">
+										<span class="stat-value">${{ mentor.hourlyRate }}/hr</span>
+										<span class="stat-label">Rate</span>
+									</div>
 								</div>
-								<div class="stat">
-									<span class="sessions">{{ mentor.totalSessions }}</span>
-									<small>Sessions</small>
+								<div class="profile-actions">
+									<button class="btn-primary">Book Session</button>
+									<button class="btn-secondary">Message</button>
 								</div>
-								<div class="stat">
-									<span class="rate">${{ mentor.hourlyRate }}</span>
-									<small>Per Hour</small>
+							</div>
+						</div>
+					</div>
+
+					<!-- Main Content Grid -->
+					<div class="profile-content-grid">
+						<!-- Left Column -->
+						<div class="profile-left">
+							<!-- About Section -->
+							<div class="profile-card">
+								<h2>About</h2>
+								<p>{{ mentor.bio }}</p>
+							</div>
+
+							<!-- Experience Section -->
+							<div class="profile-card">
+								<h2>Experience</h2>
+								<div class="experience-item">
+									<div class="experience-header">
+										<h3>{{ mentor.position }}</h3>
+										<p class="company">{{ mentor.company }}</p>
+										<p class="duration">Current</p>
+									</div>
 								</div>
 							</div>
 
-							<div class="availability">
-								<h4>Availability</h4>
-								<p>{{ getAvailabilityText() }}</p>
+							<!-- Education Section -->
+							<div class="profile-card" *ngIf="mentor.education && mentor.education.length > 0">
+								<h2>Education</h2>
+								<div class="education-list">
+									<div class="education-item" *ngFor="let edu of mentor.education">
+										<h3>{{ edu.degree }}</h3>
+										<p class="institution">{{ edu.institution }}</p>
+										<p class="year">{{ edu.year }}</p>
+									</div>
+								</div>
 							</div>
 
-							<div class="expertise">
-								<h4>Expertise</h4>
-								<div class="expertise-tags">
-									<span class="expertise-tag" *ngFor="let skill of mentor.expertise">
+							<!-- Certifications Section -->
+							<div class="profile-card" *ngIf="mentor.certifications && mentor.certifications.length > 0">
+								<h2>Licenses & Certifications</h2>
+								<div class="certifications-list">
+									<div class="certification-item" *ngFor="let cert of mentor.certifications">
+										<h3>{{ cert.name }}</h3>
+										<p class="issuer">{{ cert.issuer }}</p>
+										<p class="date">{{ cert.date }}</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Right Column -->
+						<div class="profile-right">
+							<!-- Skills Section -->
+							<div class="profile-card">
+								<h2>Skills</h2>
+								<div class="skills-list">
+									<span class="skill-tag" *ngFor="let skill of mentor.expertise">
 										{{ skill }}
 									</span>
 								</div>
 							</div>
 
-							<div class="social-links" *ngIf="mentor.linkedinUrl">
-								<a [href]="mentor.linkedinUrl" target="_blank" class="linkedin-link">
-									LinkedIn Profile
-								</a>
-							</div>
-						</div>
-					</div>
-
-					<!-- Right Column - Detailed Info -->
-					<div class="profile-main">
-						<!-- Bio Section -->
-						<div class="profile-section">
-							<h3>About Me</h3>
-							<p>{{ mentor.bio }}</p>
-						</div>
-
-						<!-- Education Section -->
-						<div class="profile-section" *ngIf="mentor.education && mentor.education.length > 0">
-							<h3>Education</h3>
-							<div class="education-list">
-								<div class="education-item" *ngFor="let edu of mentor.education">
-									<h4>{{ edu.degree }}</h4>
-									<p class="institution">{{ edu.institution }}</p>
-									<span class="year">{{ edu.year }}</span>
+							<!-- Availability Section -->
+							<div class="profile-card">
+								<h2>Availability</h2>
+								<div class="availability-info">
+									<p class="availability-status" [class.available]="mentor.isAvailable">
+										{{ mentor.isAvailable ? 'Available for sessions' : 'Currently unavailable' }}
+									</p>
+									<div class="availability-calendar">
+										<div class="day" *ngFor="let day of getAvailabilityDays()">
+											<span class="day-name">{{ day.name }}</span>
+											<span class="day-time" [class.available]="day.available">
+												{{ day.available ? day.start + ' - ' + day.end : 'Not Available' }}
+											</span>
+										</div>
+									</div>
 								</div>
 							</div>
-						</div>
 
-						<!-- Certifications Section -->
-						<div class="profile-section" *ngIf="mentor.certifications && mentor.certifications.length > 0">
-							<h3>Certifications</h3>
-							<div class="certifications-list">
-								<div class="certification-item" *ngFor="let cert of mentor.certifications">
-									<h4>{{ cert.name }}</h4>
-									<p class="issuer">{{ cert.issuer }}</p>
-									<span class="date">{{ cert.date }}</span>
-								</div>
-							</div>
-						</div>
-
-						<!-- Availability Details -->
-						<div class="profile-section">
-							<h3>Weekly Availability</h3>
-							<div class="availability-grid">
-								<div class="day-availability" *ngFor="let day of getAvailabilityDays()">
-									<span class="day">{{ day.name }}</span>
-									<span class="time" [class.unavailable]="!day.available">
-										{{ day.available ? day.start + ' - ' + day.end : 'Not Available' }}
-									</span>
+							<!-- Contact Section -->
+							<div class="profile-card" *ngIf="mentor.linkedinUrl">
+								<h2>Contact</h2>
+								<div class="contact-info">
+									<a [href]="mentor.linkedinUrl" target="_blank" class="linkedin-link">
+										<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+											<path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+										</svg>
+										View LinkedIn Profile
+									</a>
 								</div>
 							</div>
 						</div>
@@ -113,218 +144,188 @@
 	</div>
 </div>
 
-<!-- Other Mentor's Profile without Sidebar -->
+<!-- Public Profile (Viewing Other Mentors) -->
 <div class="mentor-profile-container" *ngIf="!isOwnProfile">
-  <!-- Header -->
-  <header class="page-header">
+  <div class="profile-content">
     <div class="container">
-      <div class="header-content">
-        <button class="btn btn-secondary" (click)="goBack()">← Back to Mentors</button>
-        <h1>Mentor Profile</h1>
-        <div></div>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading mentor profile...</p>
       </div>
-    </div>
-  </header>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading mentor profile...</p>
-  </div>
-
-  <!-- Mentor Profile -->
-  <div *ngIf="!isLoading && mentor" class="profile-content">
-    <div class="container">
-      <div class="profile-layout">
-        <!-- Left Column - Profile Info -->
-        <div class="profile-sidebar">
-          <div class="profile-card">
-            <div class="mentor-avatar">
+      <!-- LinkedIn-style Mentor Profile -->
+      <div *ngIf="!isLoading && mentor" class="linkedin-profile">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div class="cover-photo"></div>
+          <div class="profile-info">
+            <div class="profile-avatar">
               <img [src]="mentor.profilePicture" [alt]="mentor.firstName + ' ' + mentor.lastName" *ngIf="mentor.profilePicture">
               <span *ngIf="!mentor.profilePicture">{{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}</span>
             </div>
-            <h2>{{ mentor.firstName }} {{ mentor.lastName }}</h2>
-            <p class="position">{{ mentor.position }}</p>
-            <p class="company">{{ mentor.company }}</p>
-            
-            <div class="mentor-stats">
-              <div class="stat">
-                <span class="rating">⭐ {{ mentor.rating }}</span>
-                <small>Rating</small>
+            <div class="profile-details">
+              <h1 class="profile-name">{{ mentor.firstName }} {{ mentor.lastName }}</h1>
+              <p class="profile-title">{{ mentor.position }} at {{ mentor.company }}</p>
+              <div class="profile-stats">
+                <div class="stat">
+                  <span class="stat-value">⭐ {{ mentor.rating }}</span>
+                  <span class="stat-label">Rating</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">{{ mentor.totalSessions }}</span>
+                  <span class="stat-label">Sessions</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${{ mentor.hourlyRate }}/hr</span>
+                  <span class="stat-label">Rate</span>
+                </div>
               </div>
-              <div class="stat">
-                <span class="sessions">{{ mentor.totalSessions }}</span>
-                <small>Sessions</small>
+              <div class="profile-actions">
+                <button class="btn-primary" (click)="toggleBookingForm()">Book Session</button>
+                <button class="btn-secondary">Message</button>
               </div>
-              <div class="stat">
-                <span class="rate">${{ mentor.hourlyRate }}</span>
-                <small>Per Hour</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="profile-content-grid">
+          <!-- Left Column -->
+          <div class="profile-left">
+            <!-- About Section -->
+            <div class="profile-card">
+              <h2>About</h2>
+              <p>{{ mentor.bio }}</p>
+            </div>
+
+            <!-- Experience Section -->
+            <div class="profile-card">
+              <h2>Experience</h2>
+              <div class="experience-item">
+                <div class="experience-header">
+                  <h3>{{ mentor.position }}</h3>
+                  <p class="company">{{ mentor.company }}</p>
+                  <p class="duration">Current</p>
+                </div>
               </div>
             </div>
 
-            <div class="availability">
-              <h4>Availability</h4>
-              <p>{{ getAvailabilityText() }}</p>
+            <!-- Education Section -->
+            <div class="profile-card" *ngIf="mentor.education && mentor.education.length > 0">
+              <h2>Education</h2>
+              <div class="education-list">
+                <div class="education-item" *ngFor="let edu of mentor.education">
+                  <h3>{{ edu.degree }}</h3>
+                  <p class="institution">{{ edu.institution }}</p>
+                  <p class="year">{{ edu.year }}</p>
+                </div>
+              </div>
             </div>
 
-            <div class="expertise">
-              <h4>Expertise</h4>
-              <div class="expertise-tags">
-                <span class="expertise-tag" *ngFor="let skill of mentor.expertise">
+            <!-- Certifications Section -->
+            <div class="profile-card" *ngIf="mentor.certifications && mentor.certifications.length > 0">
+              <h2>Licenses & Certifications</h2>
+              <div class="certifications-list">
+                <div class="certification-item" *ngFor="let cert of mentor.certifications">
+                  <h3>{{ cert.name }}</h3>
+                  <p class="issuer">{{ cert.issuer }}</p>
+                  <p class="date">{{ cert.date }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="profile-right">
+            <!-- Skills Section -->
+            <div class="profile-card">
+              <h2>Skills</h2>
+              <div class="skills-list">
+                <span class="skill-tag" *ngFor="let skill of mentor.expertise">
                   {{ skill }}
                 </span>
               </div>
             </div>
 
-            <div class="social-links" *ngIf="mentor.linkedinUrl">
-              <a [href]="mentor.linkedinUrl" target="_blank" class="linkedin-link">
-                LinkedIn Profile
-              </a>
+            <!-- Availability Section -->
+            <div class="profile-card">
+              <h2>Availability</h2>
+              <div class="availability-info">
+                <p class="availability-status" [class.available]="mentor.isAvailable">
+                  {{ mentor.isAvailable ? 'Available for sessions' : 'Currently unavailable' }}
+                </p>
+                <div class="availability-calendar">
+                  <div class="day" *ngFor="let day of getAvailabilityDays()">
+                    <span class="day-name">{{ day.name }}</span>
+                    <span class="day-time" [class.available]="day.available">
+                      {{ day.available ? day.start + ' - ' + day.end : 'Not Available' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Booking Button -->
-            <button class="btn btn-primary btn-large" (click)="toggleBookingForm()" *ngIf="mentor.isAvailable">
-              Book a Session
-            </button>
-            <p class="unavailable-text" *ngIf="!mentor.isAvailable">
-              Currently not available for new sessions
-            </p>
+            <!-- Contact Section -->
+            <div class="profile-card" *ngIf="mentor.linkedinUrl">
+              <h2>Contact</h2>
+              <div class="contact-info">
+                <a [href]="mentor.linkedinUrl" target="_blank" class="linkedin-link">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                  View LinkedIn Profile
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Right Column - Detailed Info -->
-        <div class="profile-main">
-          <!-- Bio Section -->
-          <div class="profile-section">
-            <h3>About Me</h3>
-            <p>{{ mentor.bio }}</p>
-          </div>
-
-          <!-- Education Section -->
-          <div class="profile-section" *ngIf="mentor.education && mentor.education.length > 0">
-            <h3>Education</h3>
-            <div class="education-list">
-              <div class="education-item" *ngFor="let edu of mentor.education">
-                <h4>{{ edu.degree }}</h4>
-                <p class="institution">{{ edu.institution }}</p>
-                <span class="year">{{ edu.year }}</span>
+        <!-- Booking Form Modal -->
+        <div class="booking-modal" *ngIf="showBookingForm" (click)="toggleBookingForm()">
+          <div class="booking-content" (click)="$event.stopPropagation()">
+            <h2>Book a Session with {{ mentor.firstName }} {{ mentor.lastName }}</h2>
+            <form (ngSubmit)="submitBooking()">
+              <div class="form-group">
+                <label>Preferred Date</label>
+                <input type="date" [(ngModel)]="bookingForm.preferredDate" name="preferredDate" required>
               </div>
-            </div>
-          </div>
-
-          <!-- Certifications Section -->
-          <div class="profile-section" *ngIf="mentor.certifications && mentor.certifications.length > 0">
-            <h3>Certifications</h3>
-            <div class="certifications-list">
-              <div class="certification-item" *ngFor="let cert of mentor.certifications">
-                <h4>{{ cert.name }}</h4>
-                <p class="issuer">{{ cert.issuer }}</p>
-                <span class="date">{{ cert.date }}</span>
+              <div class="form-group">
+                <label>Preferred Time</label>
+                <select [(ngModel)]="bookingForm.preferredTime" name="preferredTime" required>
+                  <option value="">Select time</option>
+                  <option *ngFor="let time of availableTimeSlots" [value]="time">{{ time }}</option>
+                </select>
               </div>
-            </div>
-          </div>
-
-          <!-- Availability Details -->
-          <div class="profile-section">
-            <h3>Weekly Availability</h3>
-            <div class="availability-grid">
-              <div class="day-availability" *ngFor="let day of getAvailabilityDays()">
-                <span class="day">{{ day.name }}</span>
-                <span class="time" [class.unavailable]="!day.available">
-                  {{ day.available ? day.start + ' - ' + day.end : 'Not Available' }}
-                </span>
+              <div class="form-group">
+                <label>Session Duration (minutes)</label>
+                <select [(ngModel)]="bookingForm.sessionDuration" name="sessionDuration">
+                  <option value="30">30 minutes</option>
+                  <option value="60">1 hour</option>
+                  <option value="90">1.5 hours</option>
+                  <option value="120">2 hours</option>
+                </select>
               </div>
-            </div>
+              <div class="form-group">
+                <label>Session Type</label>
+                <select [(ngModel)]="bookingForm.sessionType" name="sessionType">
+                  <option value="video">Video Call</option>
+                  <option value="phone">Phone Call</option>
+                  <option value="in-person">In-Person</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Notes (Optional)</label>
+                <textarea [(ngModel)]="bookingForm.notes" name="notes" rows="3" placeholder="Any specific topics or questions you'd like to discuss..."></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" (click)="toggleBookingForm()">Cancel</button>
+                <button type="submit" class="btn-primary">Book Session</button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Booking Form Modal -->
-  <div class="booking-modal" *ngIf="showBookingForm" (click)="closeBookingModal($event)">
-    <div class="booking-modal-content" (click)="$event.stopPropagation()">
-      <div class="booking-modal-header">
-        <h3>Book a Session with {{ mentor?.firstName }} {{ mentor?.lastName }}</h3>
-        <button class="close-btn" (click)="toggleBookingForm()">&times;</button>
-      </div>
-      
-      <form (ngSubmit)="submitBookingRequest()" class="booking-form">
-        <div class="form-group">
-          <label for="preferredDate">Preferred Date</label>
-          <input 
-            type="date" 
-            id="preferredDate" 
-            [(ngModel)]="bookingForm.preferredDate" 
-            name="preferredDate"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="preferredTime">Preferred Time</label>
-          <select 
-            id="preferredTime" 
-            [(ngModel)]="bookingForm.preferredTime" 
-            name="preferredTime"
-            required
-          >
-            <option value="">Select a time</option>
-            <option *ngFor="let time of availableTimeSlots" [value]="time">
-              {{ time }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="sessionDuration">Session Duration</label>
-          <select 
-            id="sessionDuration" 
-            [(ngModel)]="bookingForm.sessionDuration" 
-            name="sessionDuration"
-            required
-          >
-            <option value="30">30 minutes</option>
-            <option value="60">1 hour</option>
-            <option value="90">1.5 hours</option>
-            <option value="120">2 hours</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="sessionType">Session Type</label>
-          <select 
-            id="sessionType" 
-            [(ngModel)]="bookingForm.sessionType" 
-            name="sessionType"
-            required
-          >
-            <option value="video">Video Call</option>
-            <option value="phone">Phone Call</option>
-            <option value="in-person">In-Person</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="notes">Additional Notes (Optional)</label>
-          <textarea 
-            id="notes" 
-            [(ngModel)]="bookingForm.notes" 
-            name="notes"
-            rows="4"
-            placeholder="Tell the mentor what you'd like to discuss..."
-          ></textarea>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="toggleBookingForm()">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary">
-            Send Booking Request
-          </button>
-        </div>
-      </form>
     </div>
   </div>
 </div>

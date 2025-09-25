@@ -241,7 +241,7 @@ export class MentorProfileComponent implements OnInit {
     this.showBookingForm = !this.showBookingForm;
   }
 
-  submitBookingRequest(): void {
+  submitBooking(): void {
     if (this.mentor) {
       // In a real app, this would send the booking request to the backend
       console.log('Booking request:', {
@@ -254,6 +254,10 @@ export class MentorProfileComponent implements OnInit {
         queryParams: this.bookingForm
       });
     }
+  }
+
+  submitBookingRequest(): void {
+    this.submitBooking();
   }
 
   goBack(): void {
