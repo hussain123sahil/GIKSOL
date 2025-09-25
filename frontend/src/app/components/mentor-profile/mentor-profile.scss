@@ -1,3 +1,28 @@
+// Shell layout for own profile
+.mentor-profile-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.sidebar-pane {
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.main-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-title {
+  color: #1565c0;
+  font-size: 28px;
+  margin: 20px 0;
+  font-weight: 600;
+}
+
 .mentor-profile-container {
   min-height: 100vh;
   background: #f8f9fa;

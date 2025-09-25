@@ -1,0 +1,55 @@
+<aside class="mentor-sidebar">
+	<div class="brand">
+		<img class="brand-logo" src="/logo_giksol2.png" alt="GikSol" />
+		<span class="brand-name">GikSol</span>
+	</div>
+
+	<nav class="nav">
+		<div class="nav-group">
+			<div class="nav-group-title">Mentor Dashboard</div>
+			<button class="nav-item" (click)="onNavigate('/mentor-dashboard')">
+				<span class="nav-icon">🏠</span>
+				<span class="nav-label">Dashboard</span>
+			</button>
+			<button class="nav-item" (click)="onNavigate('/mentor-sessions')">
+				<span class="nav-icon">📅</span>
+				<span class="nav-label">My Sessions</span>
+			</button>
+			<button class="nav-item" (click)="onNavigate('/mentor-profile')">
+				<span class="nav-icon">👤</span>
+				<span class="nav-label">My Profile</span>
+			</button>
+		</div>
+
+		<div class="nav-group">
+			<div class="nav-group-title">Mentoring</div>
+			<button class="nav-item" (click)="onNavigate('/connections')">
+				<span class="nav-icon">🤝</span>
+				<span class="nav-label">Connections</span>
+			</button>
+			<button class="nav-item" (click)="onNavigate('/availability')">
+				<span class="nav-icon">⏰</span>
+				<span class="nav-label">Availability</span>
+			</button>
+			<button class="nav-item" (click)="onNavigate('/mentor-settings')">
+				<span class="nav-icon">⚙️</span>
+				<span class="nav-label">Settings</span>
+			</button>
+		</div>
+
+		<div class="nav-group bottom">
+			<button class="nav-item" (click)="onNavigate('/help-center')">
+				<span class="nav-icon">❓</span>
+				<span class="nav-label">Help & Support</span>
+			</button>
+			<button class="nav-item" (click)="onNavigate('/account')">
+				<span class="nav-icon">👤</span>
+				<span class="nav-label">Account</span>
+			</button>
+			<button class="nav-item danger" (click)="onNavigate('/logout')">
+				<span class="nav-icon">🚪</span>
+				<span class="nav-label">Logout</span>
+			</button>
+		</div>
+	</nav>
+</aside>

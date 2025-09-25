@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
+import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 
 interface Mentee {
   id: string;
@@ -27,6 +29,8 @@ interface Session {
   sessionType: string;
   notes?: string;
   rating?: number;
+  meetingLink?: string;
+  title?: string;
 }
 
 interface ConnectionRequest {
@@ -40,24 +44,57 @@ interface ConnectionRequest {
   status: 'pending' | 'accepted' | 'rejected';
 }
 
+interface QuickStats {
+  activeMentees: number;
+  upcomingSessions: number;
+  completedSessions: number;
+  pendingRequests: number;
+  totalSessions: number;
+  averageRating: number;
+}
+
+interface MentorInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePicture?: string;
+  company: string;
+  position: string;
+  expertise: string[];
+  rating: number;
+  totalSessions: number;
+}
+
 @Component({
   selector: 'app-mentor-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MentorSidebarComponent],
   templateUrl: './mentor-dashboard.html',
   styleUrls: ['./mentor-dashboard.scss']
 })
 export class MentorDashboardComponent implements OnInit {
   currentUser: User | null = null;
+  mentorInfo: MentorInfo | null = null;
   mentees: Mentee[] = [];
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
   connectionRequests: ConnectionRequest[] = [];
+  quickStats: QuickStats = {
+    activeMentees: 0,
+    upcomingSessions: 0,
+    completedSessions: 0,
+    pendingRequests: 0,
+    totalSessions: 0,
+    averageRating: 0
+  };
   isLoading = true;
+  error: string | null = null;
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    public router: Router,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -72,110 +109,90 @@ export class MentorDashboardComponent implements OnInit {
   }
 
   loadDashboardData(): void {
-    // Mock data - replace with actual API calls
-    setTimeout(() => {
-      this.mentees = [
-        {
-          id: '1',
-          studentId: '1',
-          studentName: 'Alice Johnson',
-          studentEmail: 'alice@email.com',
-          school: 'Stanford University',
-          grade: 'Sophomore',
-          learningGoals: ['React', 'JavaScript', 'Web Development'],
-          joinedDate: '2024-01-10',
-          totalSessions: 5,
-          lastSessionDate: '2024-01-20'
-        },
-        {
-          id: '2',
-          studentId: '2',
-          studentName: 'Bob Smith',
-          studentEmail: 'bob@email.com',
-          school: 'UC Berkeley',
-          grade: 'Junior',
-          learningGoals: ['Data Science', 'Python', 'Machine Learning'],
-          joinedDate: '2024-01-15',
-          totalSessions: 3,
-          lastSessionDate: '2024-01-22'
-        }
-      ];
+    this.isLoading = true;
+    this.error = null;
 
-      this.upcomingSessions = [
-        {
-          id: '1',
-          studentId: '1',
-          studentName: 'Alice Johnson',
-          date: '2024-01-25',
-          time: '14:00',
-          duration: 60,
-          status: 'upcoming',
-          sessionType: 'Video Call',
-          notes: 'React hooks and state management'
-        },
-        {
-          id: '2',
-          studentId: '2',
-          studentName: 'Bob Smith',
-          date: '2024-01-28',
-          time: '10:00',
-          duration: 90,
-          status: 'upcoming',
-          sessionType: 'Video Call',
-          notes: 'Data visualization with Python'
-        }
-      ];
+    const apiUrl = 'http://localhost:5000/api/sessions/mentor-dashboard';
+    const mentorId = this.currentUser?.id;
 
-      this.completedSessions = [
-        {
-          id: '3',
-          studentId: '1',
-          studentName: 'Alice Johnson',
-          date: '2024-01-20',
-          time: '15:00',
-          duration: 60,
-          status: 'completed',
-          sessionType: 'Video Call',
-          notes: 'JavaScript fundamentals',
-          rating: 5
-        }
-      ];
-
-      this.connectionRequests = [
-        {
-          id: '1',
-          studentId: '3',
-          studentName: 'Charlie Brown',
-          studentEmail: 'charlie@email.com',
-          school: 'MIT',
-          requestMessage: 'I would love to learn about React and modern web development practices.',
-          requestedAt: '2024-01-23',
-          status: 'pending'
-        }
-      ];
-
+    if (!mentorId) {
+      this.error = 'Mentor ID not found';
       this.isLoading = false;
-    }, 1000);
+      return;
+    }
+
+    this.http.get(`${apiUrl}/${mentorId}`).subscribe({
+      next: (response: any) => {
+        this.mentorInfo = response.mentor;
+        this.quickStats = response.quickStats;
+        this.upcomingSessions = response.upcomingSessions;
+        this.completedSessions = response.completedSessions;
+        this.mentees = response.mentees;
+        this.connectionRequests = response.connectionRequests;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading mentor dashboard:', error);
+        this.error = error.error?.message || 'Failed to load dashboard data';
+        this.isLoading = false;
+      }
+    });
   }
 
   acceptRequest(requestId: string): void {
-    // Implement accept request logic
-    console.log('Accept request:', requestId);
+    this.http.put(`http://localhost:5000/api/connections/${requestId}/respond`, {
+      status: 'accepted'
+    }, {
+      headers: this.authService.getAuthHeaders()
+    }).subscribe({
+      next: (response) => {
+        console.log('Request accepted:', response);
+        this.loadDashboardData(); // Refresh data
+      },
+      error: (error) => {
+        console.error('Error accepting request:', error);
+      }
+    });
   }
 
   rejectRequest(requestId: string): void {
-    // Implement reject request logic
-    console.log('Reject request:', requestId);
+    this.http.put(`http://localhost:5000/api/connections/${requestId}/respond`, {
+      status: 'rejected'
+    }, {
+      headers: this.authService.getAuthHeaders()
+    }).subscribe({
+      next: (response) => {
+        console.log('Request rejected:', response);
+        this.loadDashboardData(); // Refresh data
+      },
+      error: (error) => {
+        console.error('Error rejecting request:', error);
+      }
+    });
   }
 
   startSession(sessionId: string): void {
     // Implement start session logic
     console.log('Start session:', sessionId);
+    // Navigate to session or open meeting link
   }
 
   cancelSession(sessionId: string): void {
     // Implement cancel session logic
     console.log('Cancel session:', sessionId);
+  }
+
+  viewSessionDetails(sessionId: string): void {
+    // Implement view session details logic
+    console.log('View session details:', sessionId);
+  }
+
+  getStars(rating: number): string[] {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(i <= rating ? '★' : '☆');
+    }
+    return stars;
   }
 
   logout(): void {

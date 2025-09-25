@@ -12,6 +12,7 @@ import { BookSessionComponent } from './components/book-session/book-session';
 import { StudentDashboardComponent } from './components/student-dashboard/student-dashboard';
 import { MySessionsComponent } from './components/my-sessions/my-sessions';
 import { MentorDashboardComponent } from './components/mentor-dashboard/mentor-dashboard';
+import { MentorSessionsComponent } from './components/mentor-sessions/mentor-sessions';
 import { AdminComponent } from './components/admin/admin';
 
 export const routes: Routes = [
@@ -25,10 +26,12 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'mentors', component: MentorListingsComponent },
   { path: 'mentor-profile/:id', component: MentorProfileComponent },
+  { path: 'mentor-profile', component: MentorProfileComponent },
   { path: 'booking/:mentorId', component: BookingComponent },
   { path: 'student-dashboard', component: StudentDashboardComponent },
   { path: 'my-sessions', component: MySessionsComponent },
   { path: 'mentor-dashboard', component: MentorDashboardComponent },
+  { path: 'mentor-sessions', component: MentorSessionsComponent },
   { path: 'admin', component: AdminComponent },
   { path: '**', redirectTo: '' }
 ];
