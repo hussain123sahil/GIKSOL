@@ -18,7 +18,8 @@
 					<div class="profile-sidebar">
 						<div class="profile-card">
 							<div class="mentor-avatar">
-								{{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+								<img [src]="mentor.profilePicture" [alt]="mentor.firstName + ' ' + mentor.lastName" *ngIf="mentor.profilePicture">
+								<span *ngIf="!mentor.profilePicture">{{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}</span>
 							</div>
 							<h2>{{ mentor.firstName }} {{ mentor.lastName }}</h2>
 							<p class="position">{{ mentor.position }}</p>
@@ -139,7 +140,8 @@
         <div class="profile-sidebar">
           <div class="profile-card">
             <div class="mentor-avatar">
-              {{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+              <img [src]="mentor.profilePicture" [alt]="mentor.firstName + ' ' + mentor.lastName" *ngIf="mentor.profilePicture">
+              <span *ngIf="!mentor.profilePicture">{{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}</span>
             </div>
             <h2>{{ mentor.firstName }} {{ mentor.lastName }}</h2>
             <p class="position">{{ mentor.position }}</p>

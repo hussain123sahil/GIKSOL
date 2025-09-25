@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
+import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 
 interface Mentor {
@@ -72,7 +73,8 @@ export class MentorProfileComponent implements OnInit {
     private route: ActivatedRoute,
     public router: Router,
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private mentorService: MentorService
   ) {}
 
   ngOnInit(): void {
@@ -150,42 +152,89 @@ export class MentorProfileComponent implements OnInit {
   }
 
   loadMentorProfile(mentorId: string): void {
-    // Mock data - replace with actual API call
-    setTimeout(() => {
-      this.mentor = {
-        id: mentorId,
-        firstName: 'John',
-        lastName: 'Smith',
-        company: 'Google',
-        position: 'Senior Software Engineer',
-        expertise: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'AWS'],
-        hourlyRate: 75,
-        rating: 4.9,
-        totalSessions: 150,
-        bio: 'I am a Senior Software Engineer at Google with over 8 years of experience in full-stack development. I specialize in JavaScript, React, and Node.js, and have helped hundreds of developers advance their careers. I\'m passionate about teaching and mentoring, and I believe in hands-on learning with real-world projects.',
-        linkedinUrl: 'https://linkedin.com/in/johnsmith',
-        isAvailable: true,
-        availability: {
-          monday: { start: '09:00', end: '17:00', available: true },
-          tuesday: { start: '09:00', end: '17:00', available: true },
-          wednesday: { start: '09:00', end: '17:00', available: true },
-          thursday: { start: '09:00', end: '17:00', available: true },
-          friday: { start: '09:00', end: '15:00', available: true },
-          saturday: { start: '10:00', end: '14:00', available: true },
-          sunday: { start: '', end: '', available: false }
-        },
-        education: [
-          { degree: 'Master of Science in Computer Science', institution: 'Stanford University', year: 2016 },
-          { degree: 'Bachelor of Science in Software Engineering', institution: 'UC Berkeley', year: 2014 }
-        ],
-        certifications: [
-          { name: 'AWS Solutions Architect', issuer: 'Amazon Web Services', date: '2023' },
-          { name: 'Google Cloud Professional Developer', issuer: 'Google Cloud', date: '2022' },
-          { name: 'React Developer Certification', issuer: 'Meta', date: '2021' }
-        ]
-      };
-      this.isLoading = false;
-    }, 1000);
+    this.isLoading = true;
+    
+    this.mentorService.getMentorById(mentorId).subscribe({
+      next: (mentor: BackendMentor) => {
+        // Transform backend mentor data to display format
+        this.mentor = {
+          id: mentor._id,
+          firstName: mentor.user.firstName,
+          lastName: mentor.user.lastName,
+          company: mentor.company,
+          position: mentor.position,
+          expertise: mentor.expertise,
+          hourlyRate: mentor.hourlyRate,
+          rating: Math.round(mentor.rating * 10) / 10, // Round to 1 decimal place
+          totalSessions: mentor.totalSessions,
+          bio: mentor.bio,
+          linkedinUrl: mentor.linkedinUrl,
+          profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName),
+          isAvailable: mentor.isAvailable,
+          availability: mentor.availability || {
+            monday: { start: '09:00', end: '17:00', available: true },
+            tuesday: { start: '09:00', end: '17:00', available: true },
+            wednesday: { start: '09:00', end: '17:00', available: true },
+            thursday: { start: '09:00', end: '17:00', available: true },
+            friday: { start: '09:00', end: '15:00', available: true },
+            saturday: { start: '10:00', end: '14:00', available: false },
+            sunday: { start: '', end: '', available: false }
+          },
+          education: mentor.education || [],
+          certifications: mentor.certifications || []
+        };
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading mentor profile:', error);
+        this.isLoading = false;
+        // Fallback to mock data if API fails
+        this.loadMockMentorProfile(mentorId);
+      }
+    });
+  }
+
+  private loadMockMentorProfile(mentorId: string): void {
+    // Fallback mock data
+    this.mentor = {
+      id: mentorId,
+      firstName: 'John',
+      lastName: 'Smith',
+      company: 'Google',
+      position: 'Senior Software Engineer',
+      expertise: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'AWS'],
+      hourlyRate: 75,
+      rating: 4.9,
+      totalSessions: 150,
+      bio: 'I am a Senior Software Engineer at Google with over 8 years of experience in full-stack development. I specialize in JavaScript, React, and Node.js, and have helped hundreds of developers advance their careers. I\'m passionate about teaching and mentoring, and I believe in hands-on learning with real-world projects.',
+      linkedinUrl: 'https://linkedin.com/in/johnsmith',
+      profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
+      isAvailable: true,
+      availability: {
+        monday: { start: '09:00', end: '17:00', available: true },
+        tuesday: { start: '09:00', end: '17:00', available: true },
+        wednesday: { start: '09:00', end: '17:00', available: true },
+        thursday: { start: '09:00', end: '17:00', available: true },
+        friday: { start: '09:00', end: '15:00', available: true },
+        saturday: { start: '10:00', end: '14:00', available: true },
+        sunday: { start: '', end: '', available: false }
+      },
+      education: [
+        { degree: 'Master of Science in Computer Science', institution: 'Stanford University', year: 2016 },
+        { degree: 'Bachelor of Science in Software Engineering', institution: 'UC Berkeley', year: 2014 }
+      ],
+      certifications: [
+        { name: 'AWS Solutions Architect', issuer: 'Amazon Web Services', date: '2023' },
+        { name: 'Google Cloud Professional Developer', issuer: 'Google Cloud', date: '2022' },
+        { name: 'React Developer Certification', issuer: 'Meta', date: '2021' }
+      ]
+    };
+  }
+
+  private getDefaultProfilePicture(firstName: string, lastName: string): string {
+    // Generate a default profile picture based on name initials
+    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    return `https://via.placeholder.com/300x300/4f46e5/ffffff?text=${initials}`;
   }
 
   toggleBookingForm(): void {
