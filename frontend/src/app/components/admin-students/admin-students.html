@@ -1,0 +1,268 @@
+<div class="admin-container admin-students-container">
+  <!-- Admin Sidebar -->
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Student Management</h1>
+          <p class="header-subtitle">Manage all students and their profiles</p>
+        </div>
+        <div class="header-right">
+          <div class="user-info">
+            <span>Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+            <button class="btn btn-secondary" (click)="logout()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading students...</p>
+    </div>
+
+    <!-- Students Content -->
+    <div *ngIf="!isLoading" class="students-content">
+      <div class="content-header">
+        <div class="search-filters">
+          <div class="search-box">
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm" 
+              placeholder="Search students by name or email..."
+              (keyup.enter)="search()"
+            >
+            <button class="btn btn-primary" (click)="search()">Search</button>
+          </div>
+          <div class="stats-info">
+            <span class="total-count">Total Students: {{ totalItems }}</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" (click)="openStudentModal()" type="button">
+          <span>+</span> Add New Student
+        </button>
+      </div>
+
+      <!-- Students Table -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Email</th>
+              <th>Level</th>
+              <th>Learning Goals</th>
+              <th>Interests</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of students">
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">{{ getInitials(student.firstName, student.lastName) }}</div>
+                  <div class="user-details">
+                    <span class="user-name">{{ student.firstName }} {{ student.lastName }}</span>
+                    <span class="user-email">{{ student.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>{{ student.email }}</td>
+              <td>
+                <span class="level-badge" [class]="'level-' + student.profile.currentLevel">
+                  {{ student.profile.currentLevel | titlecase }}
+                </span>
+              </td>
+              <td>
+                <div class="goals-tags">
+                  <span class="goal-tag" *ngFor="let goal of student.profile.learningGoals.slice(0, 2)">
+                    {{ goal }}
+                  </span>
+                  <span class="more-tag" *ngIf="student.profile.learningGoals.length > 2">
+                    +{{ student.profile.learningGoals.length - 2 }} more
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="interests-tags">
+                  <span class="interest-tag" *ngFor="let interest of student.profile.interests.slice(0, 2)">
+                    {{ interest }}
+                  </span>
+                  <span class="more-tag" *ngIf="student.profile.interests.length > 2">
+                    +{{ student.profile.interests.length - 2 }} more
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge" [style.background-color]="getStatusColor(student.isActive ? 'active' : 'inactive')">
+                  {{ student.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>{{ formatDate(student.createdAt) }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-secondary" (click)="openStudentModal(student)" title="Edit Student">
+                    ✏️
+                  </button>
+                  <button class="btn btn-sm" [class.btn-success]="!student.isActive" [class.btn-warning]="student.isActive" (click)="toggleStudentStatus(student)" [title]="student.isActive ? 'Deactivate' : 'Activate'">
+                    {{ student.isActive ? '⏸️' : '▶️' }}
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="openDeleteModal(student)" title="Delete Student">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="btn btn-secondary" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">Previous</button>
+        <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button class="btn btn-secondary" [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">Next</button>
+      </div>
+
+      <!-- Student Modal -->
+      <div class="modal-overlay" *ngIf="showStudentModal" (click)="closeStudentModal()">
+        <div class="modal large-modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ isEditing ? 'Edit Student' : 'Add New Student' }}</h3>
+            <button class="close-btn" (click)="closeStudentModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form (ngSubmit)="saveStudent()">
+              <div class="form-section">
+                <h4>Basic Information</h4>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" [(ngModel)]="studentForm.firstName" name="firstName" required placeholder="Enter first name">
+                  </div>
+                  <div class="form-group">
+                    <label>Last Name *</label>
+                    <input type="text" [(ngModel)]="studentForm.lastName" name="lastName" required placeholder="Enter last name">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input type="email" [(ngModel)]="studentForm.email" name="email" required placeholder="Enter email address">
+                </div>
+                <div class="form-group">
+                  <label>Password {{ isEditing ? '(leave blank to keep current)' : '*' }}</label>
+                  <input type="password" [(ngModel)]="studentForm.password" name="password" [required]="!isEditing" placeholder="Enter password">
+                </div>
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="studentForm.isActive" name="isActive">
+                    Active Student
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Student Profile</h4>
+                <div class="form-group">
+                  <label>Current Level</label>
+                  <select [(ngModel)]="studentForm.currentLevel" name="currentLevel">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Preferred Learning Style</label>
+                  <select [(ngModel)]="studentForm.preferredLearningStyle" name="preferredLearningStyle">
+                    <option value="visual">Visual</option>
+                    <option value="auditory">Auditory</option>
+                    <option value="kinesthetic">Kinesthetic</option>
+                    <option value="reading">Reading/Writing</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Time Commitment</label>
+                  <select [(ngModel)]="studentForm.timeCommitment" name="timeCommitment">
+                    <option value="1-2 hours/week">1-2 hours/week</option>
+                    <option value="3-5 hours/week">3-5 hours/week</option>
+                    <option value="6-10 hours/week">6-10 hours/week</option>
+                    <option value="10+ hours/week">10+ hours/week</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Budget Min ($)</label>
+                    <input type="number" [(ngModel)]="studentForm.budget.min" name="budgetMin" min="0">
+                  </div>
+                  <div class="form-group">
+                    <label>Budget Max ($)</label>
+                    <input type="number" [(ngModel)]="studentForm.budget.max" name="budgetMax" min="0">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Learning Goals</h4>
+                <div class="dynamic-list">
+                  <div class="list-item" *ngFor="let goal of studentForm.learningGoals; let i = index">
+                    <input type="text" [(ngModel)]="studentForm.learningGoals[i]" [name]="'goal' + i" placeholder="Enter learning goal">
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeLearningGoal(i)">Remove</button>
+                  </div>
+                  <button type="button" class="btn btn-secondary" (click)="addLearningGoal()">+ Add Goal</button>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Interests</h4>
+                <div class="dynamic-list">
+                  <div class="list-item" *ngFor="let interest of studentForm.interests; let i = index">
+                    <input type="text" [(ngModel)]="studentForm.interests[i]" [name]="'interest' + i" placeholder="Enter interest">
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeInterest(i)">Remove</button>
+                  </div>
+                  <button type="button" class="btn btn-secondary" (click)="addInterest()">+ Add Interest</button>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Bio</h4>
+                <div class="form-group">
+                  <textarea [(ngModel)]="studentForm.bio" name="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
+                </div>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeStudentModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Student</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Confirm Delete</h3>
+            <button class="close-btn" (click)="closeDeleteModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete <strong>{{ selectedStudent?.firstName }} {{ selectedStudent?.lastName }}</strong>?</p>
+            <p class="warning-text">This action cannot be undone and will delete all associated data including sessions and connections.</p>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+              <button type="button" class="btn btn-danger" (click)="deleteStudent()">Delete Student</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,167 +1,363 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth';
-
-interface PendingMentor {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  company: string;
-  position: string;
-  experience: number;
-  expertise: string[];
-  hourlyRate: number;
-  bio: string;
-  proofDocument?: string;
-  submittedAt: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
-
-interface PendingStudent {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  school: string;
-  grade: string;
-  learningGoals: string[];
-  submittedAt: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
+import { AdminService, DashboardStats, User as AdminUser, StudentProfile, MentorProfile, Session, Connection } from '../../services/admin.service';
+import { AdminSidebarComponent } from '../admin-sidebar/admin-sidebar';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, AdminSidebarComponent],
   templateUrl: './admin.html',
   styleUrls: ['./admin.scss']
 })
 export class AdminComponent implements OnInit {
   currentUser: User | null = null;
-  pendingMentors: PendingMentor[] = [];
-  pendingStudents: PendingStudent[] = [];
   isLoading = true;
+  activeTab = 'dashboard';
+  
+  // Dashboard data
+  dashboardStats: DashboardStats | null = null;
+  
+  // Users data
+  users: AdminUser[] = [];
+  students: (AdminUser & { profile: StudentProfile })[] = [];
+  mentors: (AdminUser & { profile: MentorProfile })[] = [];
+  sessions: Session[] = [];
+  connections: Connection[] = [];
+  
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+  totalItems = 0;
+  
+  // Search and filters
+  searchTerm = '';
+  selectedRole = '';
+  selectedStatus = '';
+  
+  // Modal states
+  showUserModal = false;
+  showDeleteModal = false;
+  selectedUser: AdminUser | null = null;
+  isEditing = false;
+  
+  // Form data
+  userForm = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    role: 'student' as 'student' | 'mentor' | 'admin',
+    isActive: true
+  };
 
   constructor(
     private authService: AuthService,
+    private adminService: AdminService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
     
-    if (!this.currentUser) {
+    if (!this.currentUser || this.currentUser.role !== 'admin') {
       this.router.navigate(['/login']);
       return;
     }
 
-    // In a real app, check if user is admin
-    this.loadAdminData();
+    this.loadDashboardData();
   }
 
-  loadAdminData(): void {
-    // Mock data - replace with actual API calls
-    setTimeout(() => {
-      this.pendingMentors = [
-        {
-          id: '1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@email.com',
-          company: 'Tech Corp',
-          position: 'Senior Developer',
-          experience: 8,
-          expertise: ['JavaScript', 'React', 'Node.js'],
-          hourlyRate: 80,
-          bio: 'Experienced full-stack developer with expertise in modern web technologies.',
-          proofDocument: 'certificate.pdf',
-          submittedAt: '2024-01-20',
-          status: 'pending'
-        },
-        {
-          id: '2',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          email: 'jane.smith@email.com',
-          company: 'Data Solutions',
-          position: 'Data Scientist',
-          experience: 6,
-          expertise: ['Python', 'Machine Learning', 'Data Analysis'],
-          hourlyRate: 90,
-          bio: 'Data scientist with extensive experience in machine learning and analytics.',
-          proofDocument: 'degree.pdf',
-          submittedAt: '2024-01-22',
-          status: 'pending'
-        }
-      ];
+  loadDashboardData(): void {
+    this.isLoading = true;
+    this.adminService.getDashboardStats().subscribe({
+      next: (stats) => {
+        this.dashboardStats = stats;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading dashboard stats:', error);
+        this.isLoading = false;
+      }
+    });
+  }
 
-      this.pendingStudents = [
-        {
-          id: '1',
-          firstName: 'Alice',
-          lastName: 'Johnson',
-          email: 'alice.johnson@email.com',
-          school: 'Stanford University',
-          grade: 'Sophomore',
-          learningGoals: ['Web Development', 'React', 'JavaScript'],
-          submittedAt: '2024-01-21',
-          status: 'pending'
-        }
-      ];
+  loadUsers(): void {
+    this.isLoading = true;
+    this.adminService.getUsers(this.currentPage, this.pageSize, this.selectedRole, this.searchTerm).subscribe({
+      next: (response) => {
+        this.users = response.users;
+        this.totalPages = response.pagination.totalPages;
+        this.totalItems = response.pagination.totalUsers || 0;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.isLoading = false;
+      }
+    });
+  }
 
+  loadStudents(): void {
+    this.isLoading = true;
+    this.adminService.getStudents(this.currentPage, this.pageSize, this.searchTerm).subscribe({
+      next: (response) => {
+        this.students = response.students;
+        this.totalPages = response.pagination.totalPages;
+        this.totalItems = response.pagination.totalStudents || 0;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading students:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadMentors(): void {
+    this.isLoading = true;
+    this.adminService.getMentors(this.currentPage, this.pageSize, this.searchTerm).subscribe({
+      next: (response) => {
+        this.mentors = response.mentors;
+        this.totalPages = response.pagination.totalPages;
+        this.totalItems = response.pagination.totalMentors || 0;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading mentors:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadSessions(): void {
+    this.isLoading = true;
+    this.adminService.getSessions(this.currentPage, this.pageSize, this.selectedStatus).subscribe({
+      next: (response) => {
+        this.sessions = response.sessions;
+        this.totalPages = response.pagination.totalPages;
+        this.totalItems = response.pagination.totalSessions || 0;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading sessions:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadConnections(): void {
+    this.isLoading = true;
+    this.adminService.getConnections(this.currentPage, this.pageSize, this.selectedStatus).subscribe({
+      next: (response) => {
+        this.connections = response.connections;
+        this.totalPages = response.pagination.totalPages;
+        this.totalItems = response.pagination.totalConnections || 0;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading connections:', error);
       this.isLoading = false;
-    }, 1000);
+      }
+    });
   }
 
-  approveMentor(mentorId: string): void {
-    // Implement approve mentor logic
-    console.log('Approve mentor:', mentorId);
-    // Update status in UI
-    const mentor = this.pendingMentors.find(m => m.id === mentorId);
-    if (mentor) {
-      mentor.status = 'approved';
+  switchTab(tab: string): void {
+    this.activeTab = tab;
+    this.currentPage = 1;
+    this.searchTerm = '';
+    this.selectedRole = '';
+    this.selectedStatus = '';
+    
+    switch (tab) {
+      case 'users':
+        this.loadUsers();
+        break;
+      case 'students':
+        this.loadStudents();
+        break;
+      case 'mentors':
+        this.loadMentors();
+        break;
+      case 'sessions':
+        this.loadSessions();
+        break;
+      case 'connections':
+        this.loadConnections();
+        break;
+      case 'dashboard':
+        this.loadDashboardData();
+        break;
     }
   }
 
-  rejectMentor(mentorId: string): void {
-    // Implement reject mentor logic
-    console.log('Reject mentor:', mentorId);
-    // Update status in UI
-    const mentor = this.pendingMentors.find(m => m.id === mentorId);
-    if (mentor) {
-      mentor.status = 'rejected';
+  search(): void {
+    this.currentPage = 1;
+    switch (this.activeTab) {
+      case 'users':
+        this.loadUsers();
+        break;
+      case 'students':
+        this.loadStudents();
+        break;
+      case 'mentors':
+        this.loadMentors();
+        break;
+      case 'sessions':
+        this.loadSessions();
+        break;
+      case 'connections':
+        this.loadConnections();
+        break;
     }
   }
 
-  approveStudent(studentId: string): void {
-    // Implement approve student logic
-    console.log('Approve student:', studentId);
-    // Update status in UI
-    const student = this.pendingStudents.find(s => s.id === studentId);
-    if (student) {
-      student.status = 'approved';
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    switch (this.activeTab) {
+      case 'users':
+        this.loadUsers();
+        break;
+      case 'students':
+        this.loadStudents();
+        break;
+      case 'mentors':
+        this.loadMentors();
+        break;
+      case 'sessions':
+        this.loadSessions();
+        break;
+      case 'connections':
+        this.loadConnections();
+        break;
     }
   }
 
-  rejectStudent(studentId: string): void {
-    // Implement reject student logic
-    console.log('Reject student:', studentId);
-    // Update status in UI
-    const student = this.pendingStudents.find(s => s.id === studentId);
-    if (student) {
-      student.status = 'rejected';
+  openUserModal(user?: AdminUser): void {
+    this.isEditing = !!user;
+    this.selectedUser = user || null;
+    
+    if (user) {
+      this.userForm = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        password: '',
+        role: user.role,
+        isActive: user.isActive
+      };
+    } else {
+      this.userForm = {
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        role: 'student',
+        isActive: true
+      };
+    }
+    
+    this.showUserModal = true;
+  }
+
+  closeUserModal(): void {
+    this.showUserModal = false;
+    this.selectedUser = null;
+    this.isEditing = false;
+    this.userForm = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      role: 'student',
+      isActive: true
+    };
+  }
+
+  saveUser(): void {
+    if (!this.userForm.firstName || !this.userForm.lastName || !this.userForm.email) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    if (!this.isEditing && !this.userForm.password) {
+      alert('Password is required for new users');
+      return;
+    }
+
+    const userData: any = { ...this.userForm };
+    if (this.isEditing && !userData.password) {
+      delete userData.password;
+    }
+
+    if (this.isEditing && this.selectedUser) {
+      this.adminService.updateUser(this.selectedUser.id, userData).subscribe({
+        next: (response) => {
+          console.log('User updated:', response);
+          this.closeUserModal();
+          this.loadUsers();
+        },
+        error: (error) => {
+          console.error('Error updating user:', error);
+          alert('Error updating user');
+        }
+      });
+    } else {
+      this.adminService.createUser(userData).subscribe({
+        next: (response) => {
+          console.log('User created:', response);
+          this.closeUserModal();
+          this.loadUsers();
+        },
+        error: (error) => {
+          console.error('Error creating user:', error);
+          alert('Error creating user');
+        }
+      });
     }
   }
 
-  viewDocument(documentName: string): void {
-    // Implement document viewing logic
-    console.log('View document:', documentName);
+  openDeleteModal(user: AdminUser): void {
+    this.selectedUser = user;
+    this.showDeleteModal = true;
   }
 
-  logout(): void {
-    this.authService.logout();
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.selectedUser = null;
+  }
+
+  deleteUser(): void {
+    if (!this.selectedUser) return;
+
+    this.adminService.deleteUser(this.selectedUser.id).subscribe({
+      next: (response) => {
+        console.log('User deleted:', response);
+        this.closeDeleteModal();
+        this.loadUsers();
+      },
+      error: (error) => {
+        console.error('Error deleting user:', error);
+        alert('Error deleting user');
+      }
+    });
+  }
+
+  toggleUserStatus(user: AdminUser): void {
+    this.adminService.updateUser(user.id, { isActive: !user.isActive }).subscribe({
+      next: (response) => {
+        console.log('User status updated:', response);
+        this.loadUsers();
+      },
+      error: (error) => {
+        console.error('Error updating user status:', error);
+        alert('Error updating user status');
+      }
+    });
   }
 
   formatDate(dateString: string): string {
@@ -169,25 +365,48 @@ export class AdminComponent implements OnInit {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'pending': return '#f39c12';
-      case 'approved': return '#2e7d32';
-      case 'rejected': return '#d32f2f';
-      default: return '#666';
+      case 'active':
+      case 'scheduled':
+      case 'accepted':
+      case 'completed':
+        return '#2e7d32';
+      case 'inactive':
+      case 'cancelled':
+      case 'rejected':
+        return '#d32f2f';
+      case 'pending':
+        return '#f39c12';
+      default:
+        return '#666';
     }
   }
 
-  get documentsToReviewCount(): number {
-    return this.pendingMentors.filter(m => m.proofDocument).length;
+  getRoleColor(role: string): string {
+    switch (role) {
+      case 'admin':
+        return '#9c27b0';
+      case 'mentor':
+        return '#2196f3';
+      case 'student':
+        return '#4caf50';
+      default:
+        return '#666';
+    }
   }
 
-  get approvedTodayCount(): number {
-    return this.pendingMentors.filter(m => m.status === 'approved').length + 
-           this.pendingStudents.filter(s => s.status === 'approved').length;
+  getInitials(firstName: string, lastName: string): string {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

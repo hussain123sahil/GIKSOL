@@ -1,0 +1,246 @@
+<div class="admin-container admin-sessions-container">
+  <!-- Admin Sidebar -->
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Session Management</h1>
+          <p class="header-subtitle">Manage all mentoring sessions across the platform</p>
+        </div>
+        <div class="header-right">
+          <div class="user-info">
+            <span>Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+            <button class="btn btn-secondary" (click)="logout()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading sessions...</p>
+    </div>
+
+    <!-- Sessions Content -->
+    <div *ngIf="!isLoading" class="sessions-content">
+      <div class="content-header">
+        <div class="search-filters">
+          <div class="search-box">
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm" 
+              placeholder="Search sessions by title or participants..."
+              (keyup.enter)="search()"
+            >
+            <button class="btn btn-primary" (click)="search()">Search</button>
+          </div>
+          <div class="filter-group">
+            <select [(ngModel)]="statusFilter" (change)="onStatusFilterChange()" class="filter-select">
+              <option value="all">All Status</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <select [(ngModel)]="dateFilter" (change)="onDateFilterChange()" class="filter-select">
+              <option value="all">All Dates</option>
+              <option value="today">Today</option>
+              <option value="this-week">This Week</option>
+              <option value="this-month">This Month</option>
+            </select>
+          </div>
+          <div class="stats-info">
+            <span class="total-count">Total Sessions: {{ totalItems }}</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" (click)="openSessionModal()" type="button">
+          <span>+</span> Add New Session
+        </button>
+      </div>
+
+      <!-- Sessions Table -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>Mentor</th>
+              <th>Student</th>
+              <th>Scheduled Date</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let session of sessions">
+              <td>
+                <div class="session-cell">
+                  <div class="session-title">{{ session.title }}</div>
+                  <div class="session-description">{{ session.description }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="participant-cell">
+                  <div class="participant-avatar mentor-avatar">👨‍🏫</div>
+                  <div class="participant-name">{{ getMentorName(session.mentor) }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="participant-cell">
+                  <div class="participant-avatar student-avatar">👨‍🎓</div>
+                  <div class="participant-name">{{ getStudentName(session.student) }}</div>
+                </div>
+              </td>
+              <td>
+                <div class="date-cell">
+                  <div class="date-time">{{ formatDate(session.scheduledDate) }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="duration-badge">{{ formatDuration(session.duration) }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [style.background-color]="getStatusColor(session.status)">
+                  <span class="status-icon">{{ getStatusIcon(session.status) }}</span>
+                  {{ session.status | titlecase }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-secondary" (click)="openSessionModal(session)" title="Edit Session">
+                    ✏️
+                  </button>
+                  <div class="status-dropdown">
+                    <select (change)="updateSessionStatus(session, $any($event.target).value)" class="status-select">
+                      <option [value]="session.status" selected>{{ session.status | titlecase }}</option>
+                      <option value="scheduled" [disabled]="session.status === 'scheduled'">Scheduled</option>
+                      <option value="completed" [disabled]="session.status === 'completed'">Completed</option>
+                      <option value="cancelled" [disabled]="session.status === 'cancelled'">Cancelled</option>
+                    </select>
+                  </div>
+                  <button class="btn btn-sm btn-danger" (click)="openDeleteModal(session)" title="Delete Session">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="btn btn-secondary" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">Previous</button>
+        <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button class="btn btn-secondary" [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">Next</button>
+      </div>
+
+      <!-- Session Modal -->
+      <div class="modal-overlay" *ngIf="showSessionModal" (click)="closeSessionModal()">
+        <div class="modal large-modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ isEditing ? 'Edit Session' : 'Add New Session' }}</h3>
+            <button class="close-btn" (click)="closeSessionModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form (ngSubmit)="saveSession()">
+              <div class="form-section">
+                <h4>Session Information</h4>
+                <div class="form-group">
+                  <label>Title *</label>
+                  <input type="text" [(ngModel)]="sessionForm.title" name="title" required placeholder="Enter session title">
+                </div>
+                <div class="form-group">
+                  <label>Description</label>
+                  <textarea [(ngModel)]="sessionForm.description" name="description" rows="3" placeholder="Enter session description"></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Scheduled Date & Time *</label>
+                    <input type="datetime-local" [(ngModel)]="sessionForm.scheduledDate" name="scheduledDate" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Duration (minutes) *</label>
+                    <input type="number" [(ngModel)]="sessionForm.duration" name="duration" required min="15" max="480" placeholder="60">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Status *</label>
+                  <select [(ngModel)]="sessionForm.status" name="status" required>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Participants</h4>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Mentor *</label>
+                    <select [(ngModel)]="sessionForm.mentorId" name="mentorId" required>
+                      <option value="">Select a mentor</option>
+                      <option *ngFor="let mentor of mentors" [value]="mentor.id">
+                        {{ mentor.firstName }} {{ mentor.lastName }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Student *</label>
+                    <select [(ngModel)]="sessionForm.studentId" name="studentId" required>
+                      <option value="">Select a student</option>
+                      <option *ngFor="let student of students" [value]="student.id">
+                        {{ student.firstName }} {{ student.lastName }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Meeting Details</h4>
+                <div class="form-group">
+                  <label>Meeting Link</label>
+                  <input type="url" [(ngModel)]="sessionForm.meetingLink" name="meetingLink" placeholder="https://meet.google.com/...">
+                </div>
+                <div class="form-group">
+                  <label>Notes</label>
+                  <textarea [(ngModel)]="sessionForm.notes" name="notes" rows="3" placeholder="Additional notes about the session"></textarea>
+                </div>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeSessionModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Session</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Confirm Delete</h3>
+            <button class="close-btn" (click)="closeDeleteModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete the session <strong>"{{ selectedSession?.title }}"</strong>?</p>
+            <p class="warning-text">This action cannot be undone and will remove all session data including notes and meeting information.</p>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+              <button type="button" class="btn btn-danger" (click)="deleteSession()">Delete Session</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

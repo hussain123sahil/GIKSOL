@@ -29,7 +29,8 @@ export class AppComponent {
            !url.startsWith('/mentors') && 
            !url.startsWith('/booking') &&
            !url.startsWith('/book-session') &&
-           !url.startsWith('/my-sessions');
+           !url.startsWith('/my-sessions') &&
+           !url.startsWith('/admin');
   }
 
   onLoginClick(): void {
