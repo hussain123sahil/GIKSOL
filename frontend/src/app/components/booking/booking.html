@@ -176,9 +176,10 @@
               </div>
 
               <button
-                type="submit"
+                type="button"
                 class="btn btn-primary booking-submit"
-                [disabled]="!bookingDetails.preferredDate || !bookingDetails.preferredTime || isSubmitting"
+                [disabled]="!isFormValid() || isSubmitting"
+                (click)="submitBooking()"
               >
                 <span *ngIf="isSubmitting">Sending Request...</span>
                 <span *ngIf="!isSubmitting">Send Booking Request</span>
