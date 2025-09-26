@@ -40,7 +40,6 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Get user from localStorage like the booking component does
     this.currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    console.log('Current user from localStorage:', this.currentUser);
     
     if (!this.currentUser || !this.currentUser.id) {
       console.log('No user found, using mock user for development');
@@ -79,7 +78,6 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   loadDashboardData(): void {
     // Use the actual logged-in user's ID
     const studentId = this.currentUser?.id;
-    console.log('Loading dashboard data for student ID:', studentId);
     
     if (!studentId) {
       this.error = 'User not found';
@@ -87,13 +85,8 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('Calling dashboard service with student ID:', studentId);
-    console.log('Student ID type:', typeof studentId);
-    console.log('Student ID value:', studentId);
     this.dashboardService.getDashboardData(studentId).subscribe({
       next: (data: DashboardData) => {
-        console.log('Dashboard data received:', data);
-        console.log('Upcoming sessions:', data.upcomingSessions);
         this.upcomingSessions = data.upcomingSessions;
         this.completedSessions = data.completedSessions;
         this.connections = data.connections;
@@ -103,8 +96,6 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading dashboard data:', error);
-        console.error('Error details:', error.error);
-        console.error('Error status:', error.status);
         console.log('Falling back to mock data for development');
         
         // Fallback to mock data for development

@@ -93,7 +93,6 @@ export class BookingComponent implements OnInit {
         
         // Update mentorId to use User ID instead of Mentor record ID
         this.bookingDetails.mentorId = mentor.user._id;
-        console.log('Updated mentorId to User ID:', this.bookingDetails.mentorId);
         
         this.isLoading = false;
       },
@@ -145,7 +144,6 @@ export class BookingComponent implements OnInit {
       
       // Get current user (student)
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      console.log('Current user for session creation:', currentUser);
       
       if (!currentUser.id) {
         console.error('No current user found');
@@ -164,15 +162,10 @@ export class BookingComponent implements OnInit {
         duration: this.bookingDetails.sessionDuration,
         notes: this.bookingDetails.notes
       };
-      
-      console.log('Creating session with data:', sessionData);
-      console.log('Student ID type:', typeof sessionData.studentId);
-      console.log('Student ID value:', sessionData.studentId);
 
       // Send booking request to backend
       this.http.post('http://localhost:5000/api/sessions', sessionData).subscribe({
         next: (response: any) => {
-          console.log('Session created successfully:', response);
           this.isSubmitting = false;
           this.bookingConfirmed = true;
           
