@@ -123,6 +123,7 @@ export class MentorProfileComponent implements OnInit {
             totalSessions: response.mentor.totalSessions,
             bio: 'I am passionate about mentoring and helping others grow in their careers. I believe in hands-on learning with real-world projects.',
             linkedinUrl: 'https://linkedin.com/in/mentor',
+            profilePicture: response.mentor.profilePicture || this.getDefaultProfilePicture(response.mentor.firstName, response.mentor.lastName),
             isAvailable: true,
             availability: {
               monday: { start: '09:00', end: '17:00', available: true },

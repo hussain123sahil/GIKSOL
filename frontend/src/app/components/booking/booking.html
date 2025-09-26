@@ -66,7 +66,8 @@
             <h3>Session with {{ mentor.firstName }} {{ mentor.lastName }}</h3>
             <div class="mentor-info">
               <div class="mentor-avatar">
-                {{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}
+                <img [src]="mentor.profilePicture" [alt]="mentor.firstName + ' ' + mentor.lastName" *ngIf="mentor.profilePicture">
+                <span *ngIf="!mentor.profilePicture">{{ mentor.firstName.charAt(0) }}{{ mentor.lastName.charAt(0) }}</span>
               </div>
               <div class="mentor-details">
                 <h4>{{ mentor.position }}</h4>

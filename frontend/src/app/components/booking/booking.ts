@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
 
 interface Mentor {
   id: string;
@@ -47,7 +48,8 @@ export class BookingComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private mentorService: MentorService
   ) {}
 
   ngOnInit(): void {
@@ -72,19 +74,48 @@ export class BookingComponent implements OnInit {
   }
 
   loadMentorDetails(mentorId: string): void {
-    // Mock data - replace with actual API call
-    setTimeout(() => {
-      this.mentor = {
-        id: mentorId,
-        firstName: 'John',
-        lastName: 'Smith',
-        company: 'Google',
-        position: 'Senior Software Engineer',
-        hourlyRate: 75,
-        rating: 4.9
-      };
-      this.isLoading = false;
-    }, 1000);
+    this.mentorService.getMentorById(mentorId).subscribe({
+      next: (mentor: BackendMentor) => {
+        // Transform backend mentor data to display format
+        this.mentor = {
+          id: mentor._id,
+          firstName: mentor.user.firstName,
+          lastName: mentor.user.lastName,
+          company: mentor.company,
+          position: mentor.position,
+          hourlyRate: mentor.hourlyRate,
+          rating: Math.round(mentor.rating * 10) / 10, // Round to 1 decimal place
+          profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName)
+        };
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading mentor details:', error);
+        this.isLoading = false;
+        // Fallback to mock data if API fails
+        this.loadMockMentorDetails(mentorId);
+      }
+    });
+  }
+
+  private loadMockMentorDetails(mentorId: string): void {
+    // Fallback mock data
+    this.mentor = {
+      id: mentorId,
+      firstName: 'John',
+      lastName: 'Smith',
+      company: 'Google',
+      position: 'Senior Software Engineer',
+      hourlyRate: 75,
+      rating: 4.9,
+      profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face'
+    };
+  }
+
+  private getDefaultProfilePicture(firstName: string, lastName: string): string {
+    // Generate a default profile picture based on name initials
+    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    return `https://via.placeholder.com/300x300/4f46e5/ffffff?text=${initials}`;
   }
 
   getTotalPrice(): number {
