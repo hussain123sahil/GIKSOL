@@ -7,6 +7,60 @@ const Connection = require('../models/Connection');
 
 const router = express.Router();
 
+// Create a new session
+router.post('/', async (req, res) => {
+  try {
+    const { studentId, mentorId, title, description, sessionType, scheduledDate, duration, notes } = req.body;
+
+    // Validate required fields
+    if (!studentId || !mentorId || !title || !scheduledDate) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Check if student and mentor users exist
+    const studentUser = await User.findById(studentId);
+    const mentorUser = await User.findById(mentorId);
+
+    if (!studentUser) {
+      return res.status(404).json({ message: 'Student user not found' });
+    }
+
+    if (!mentorUser) {
+      return res.status(404).json({ message: 'Mentor user not found' });
+    }
+
+    // Create new session
+    const session = new Session({
+      student: studentId,
+      mentor: mentorId,
+      title,
+      description,
+      sessionType,
+      scheduledDate: new Date(scheduledDate),
+      duration: duration || 60,
+      notes,
+      status: 'scheduled',
+      isActive: true
+    });
+
+    await session.save();
+
+    // Populate the session with user details
+    const populatedSession = await Session.findById(session._id)
+      .populate('student', 'firstName lastName email profilePicture')
+      .populate('mentor', 'firstName lastName email profilePicture');
+
+    res.status(201).json({
+      message: 'Session created successfully',
+      session: populatedSession
+    });
+
+  } catch (error) {
+    console.error('Create session error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get student dashboard data
 router.get('/dashboard/:studentId', async (req, res) => {
   try {
@@ -105,59 +159,6 @@ router.get('/dashboard/:studentId', async (req, res) => {
 
   } catch (error) {
     console.error('Get dashboard data error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Create a new session
-router.post('/', async (req, res) => {
-  try {
-    const { studentId, mentorId, title, description, sessionType, scheduledDate, duration, notes } = req.body;
-
-    // Validate required fields
-    if (!studentId || !mentorId || !title || !scheduledDate) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // Check if student and mentor exist
-    const student = await Student.findOne({ user: studentId });
-    const mentor = await Mentor.findOne({ user: mentorId });
-
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    if (!mentor) {
-      return res.status(404).json({ message: 'Mentor not found' });
-    }
-
-    // Create session
-    const session = new Session({
-      student: studentId,
-      mentor: mentorId,
-      title,
-      description,
-      sessionType: sessionType || 'Video Call',
-      scheduledDate: new Date(scheduledDate),
-      duration: duration || 60,
-      notes,
-      status: 'scheduled'
-    });
-
-    await session.save();
-
-    // Populate the session
-    const populatedSession = await Session.findById(session._id)
-      .populate('student', 'firstName lastName email')
-      .populate('mentor', 'firstName lastName email');
-
-    res.status(201).json({
-      message: 'Session created successfully',
-      session: populatedSession
-    });
-
-  } catch (error) {
-    console.error('Create session error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

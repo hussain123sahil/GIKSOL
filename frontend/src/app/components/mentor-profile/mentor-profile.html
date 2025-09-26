@@ -41,8 +41,13 @@
 									</div>
 								</div>
 								<div class="profile-actions">
-									<button class="btn-primary">Book Session</button>
-									<button class="btn-secondary">Message</button>
+									<button class="btn-primary">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+											<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+											<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+										</svg>
+										Edit Profile
+									</button>
 								</div>
 							</div>
 						</div>
@@ -191,7 +196,7 @@
                 </div>
               </div>
               <div class="profile-actions">
-                <button class="btn-primary" (click)="toggleBookingForm()">Book Session</button>
+                <button class="btn-primary" (click)="submitBooking()">Book Session</button>
                 <button class="btn-secondary">Message</button>
               </div>
             </div>
@@ -290,50 +295,6 @@
           </div>
         </div>
 
-        <!-- Booking Form Modal -->
-        <div class="booking-modal" *ngIf="showBookingForm" (click)="toggleBookingForm()">
-          <div class="booking-content" (click)="$event.stopPropagation()">
-            <h2>Book a Session with {{ mentor.firstName }} {{ mentor.lastName }}</h2>
-            <form (ngSubmit)="submitBooking()">
-              <div class="form-group">
-                <label>Preferred Date</label>
-                <input type="date" [(ngModel)]="bookingForm.preferredDate" name="preferredDate" required>
-              </div>
-              <div class="form-group">
-                <label>Preferred Time</label>
-                <select [(ngModel)]="bookingForm.preferredTime" name="preferredTime" required>
-                  <option value="">Select time</option>
-                  <option *ngFor="let time of availableTimeSlots" [value]="time">{{ time }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Session Duration (minutes)</label>
-                <select [(ngModel)]="bookingForm.sessionDuration" name="sessionDuration">
-                  <option value="30">30 minutes</option>
-                  <option value="60">1 hour</option>
-                  <option value="90">1.5 hours</option>
-                  <option value="120">2 hours</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Session Type</label>
-                <select [(ngModel)]="bookingForm.sessionType" name="sessionType">
-                  <option value="video">Video Call</option>
-                  <option value="phone">Phone Call</option>
-                  <option value="in-person">In-Person</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Notes (Optional)</label>
-                <textarea [(ngModel)]="bookingForm.notes" name="notes" rows="3" placeholder="Any specific topics or questions you'd like to discuss..."></textarea>
-              </div>
-              <div class="form-actions">
-                <button type="button" class="btn-secondary" (click)="toggleBookingForm()">Cancel</button>
-                <button type="submit" class="btn-primary">Book Session</button>
-              </div>
-            </form>
-          </div>
-        </div>
       </div>
     </div>
   </div>

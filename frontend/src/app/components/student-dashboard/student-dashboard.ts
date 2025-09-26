@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
 import { DashboardService, Session, Connection, DashboardData } from '../../services/dashboard.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -13,7 +14,7 @@ import { SidebarComponent } from '../sidebar/sidebar';
   templateUrl: './student-dashboard.html',
   styleUrls: ['./student-dashboard.scss']
 })
-export class StudentDashboardComponent implements OnInit {
+export class StudentDashboardComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
@@ -28,6 +29,8 @@ export class StudentDashboardComponent implements OnInit {
   isLoading = true;
   error: string | null = null;
 
+  private navigationSubscription: any;
+
   constructor(
     public router: Router,
     private authService: AuthService,
@@ -35,10 +38,10 @@ export class StudentDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
-    console.log('Current user:', this.currentUser);
+    // Get user from localStorage like the booking component does
+    this.currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     
-    if (!this.currentUser) {
+    if (!this.currentUser || !this.currentUser.id) {
       console.log('No user found, using mock user for development');
       // For development, create a mock user instead of redirecting
       this.currentUser = {
@@ -50,11 +53,31 @@ export class StudentDashboardComponent implements OnInit {
       };
     }
     this.loadDashboardData();
+
+    // Subscribe to navigation events to refresh data when returning to dashboard
+    this.navigationSubscription = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        if (event.url === '/student-dashboard') {
+          this.refreshDashboard();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.navigationSubscription) {
+      this.navigationSubscription.unsubscribe();
+    }
+  }
+
+  // Method to refresh dashboard data
+  refreshDashboard(): void {
+    this.loadDashboardData();
   }
 
   loadDashboardData(): void {
-    // For testing, use the seeded student ID
-    const studentId = this.currentUser?.id || '68d2c326ac49758f6e269b4e';
+    // Use the actual logged-in user's ID
+    const studentId = this.currentUser?.id;
     
     if (!studentId) {
       this.error = 'User not found';
