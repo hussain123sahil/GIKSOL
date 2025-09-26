@@ -152,6 +152,23 @@ const createUsers = async () => {
       password: 'password123',
       role: 'mentor',
       profilePicture: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face'
+    },
+    // Admin users
+    {
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@giksol.com',
+      password: 'admin123',
+      role: 'admin',
+      profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+    },
+    {
+      firstName: 'Super',
+      lastName: 'Admin',
+      email: 'superadmin@giksol.com',
+      password: 'superadmin123',
+      role: 'admin',
+      profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
     }
   ];
 

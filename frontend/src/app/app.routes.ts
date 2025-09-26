@@ -14,6 +14,10 @@ import { MySessionsComponent } from './components/my-sessions/my-sessions';
 import { MentorDashboardComponent } from './components/mentor-dashboard/mentor-dashboard';
 import { MentorSessionsComponent } from './components/mentor-sessions/mentor-sessions';
 import { AdminComponent } from './components/admin/admin';
+import { AdminStudentsComponent } from './components/admin-students/admin-students';
+import { AdminMentorsComponent } from './components/admin-mentors/admin-mentors';
+import { AdminUsersComponent } from './components/admin-users/admin-users';
+import { AdminSessionsComponent } from './components/admin-sessions/admin-sessions';
 
 export const routes: Routes = [
   { path: 'book-session', component: BookSessionComponent },
@@ -33,5 +37,9 @@ export const routes: Routes = [
   { path: 'mentor-dashboard', component: MentorDashboardComponent },
   { path: 'mentor-sessions', component: MentorSessionsComponent },
   { path: 'admin', component: AdminComponent },
+  { path: 'admin/users', component: AdminUsersComponent },
+  { path: 'admin/students', component: AdminStudentsComponent },
+  { path: 'admin/mentors', component: AdminMentorsComponent },
+  { path: 'admin/sessions', component: AdminSessionsComponent },
   { path: '**', redirectTo: '' }
 ];

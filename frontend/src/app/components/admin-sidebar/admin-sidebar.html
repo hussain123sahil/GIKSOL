@@ -1,0 +1,57 @@
+<div class="admin-sidebar" [class.collapsed]="isCollapsed">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <div class="logo" *ngIf="!isCollapsed">
+      <img src="/logo_giksol2.png" alt="GIKSOL" class="logo-img">
+      <span class="logo-text">Admin Panel</span>
+    </div>
+    <div class="logo-collapsed" *ngIf="isCollapsed">
+      <img src="/logo_giksol2.png" alt="GIKSOL" class="logo-img-small">
+    </div>
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <span [class]="isCollapsed ? 'icon-chevron-right' : 'icon-chevron-left'">‹</span>
+    </button>
+  </div>
+
+  <!-- User Info -->
+  <div class="user-info" *ngIf="!isCollapsed">
+    <div class="user-avatar">
+      {{ getInitials() }}
+    </div>
+    <div class="user-details">
+      <h4>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</h4>
+      <p class="user-role">Administrator</p>
+    </div>
+  </div>
+
+  <div class="user-info-collapsed" *ngIf="isCollapsed">
+    <div class="user-avatar-small">
+      {{ getInitials() }}
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li class="nav-item" *ngFor="let item of menuItems">
+        <a 
+          class="nav-link" 
+          [class.active]="item.active"
+          (click)="navigateTo(item.route)"
+          [title]="isCollapsed ? item.title : ''"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-text" *ngIf="!isCollapsed">{{ item.title }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <button class="logout-btn" (click)="logout()" [title]="isCollapsed ? 'Logout' : ''">
+      <span class="logout-icon">🚪</span>
+      <span class="logout-text" *ngIf="!isCollapsed">Logout</span>
+    </button>
+  </div>
+</div>

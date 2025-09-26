@@ -1,0 +1,266 @@
+<div class="admin-container admin-mentors-container">
+  <!-- Admin Sidebar -->
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Mentor Management</h1>
+          <p class="header-subtitle">Manage all mentors and their profiles</p>
+        </div>
+        <div class="header-right">
+          <div class="user-info">
+            <span>Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+            <button class="btn btn-secondary" (click)="logout()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading mentors...</p>
+    </div>
+
+    <!-- Mentors Content -->
+    <div *ngIf="!isLoading" class="mentors-content">
+      <div class="content-header">
+        <div class="search-filters">
+          <div class="search-box">
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm" 
+              placeholder="Search mentors by name or email..."
+              (keyup.enter)="search()"
+            >
+            <button class="btn btn-primary" (click)="search()">Search</button>
+          </div>
+          <div class="stats-info">
+            <span class="total-count">Total Mentors: {{ totalItems }}</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" (click)="openMentorModal()" type="button">
+          <span>+</span> Add New Mentor
+        </button>
+      </div>
+
+      <!-- Mentors Table -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Mentor</th>
+              <th>Email</th>
+              <th>Company</th>
+              <th>Position</th>
+              <th>Hourly Rate</th>
+              <th>Expertise</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let mentor of mentors">
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">{{ getInitials(mentor.firstName, mentor.lastName) }}</div>
+                  <div class="user-details">
+                    <span class="user-name">{{ mentor.firstName }} {{ mentor.lastName }}</span>
+                    <span class="user-email">{{ mentor.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>{{ mentor.email }}</td>
+              <td>{{ mentor.profile.company }}</td>
+              <td>{{ mentor.profile.position }}</td>
+              <td>${{ mentor.profile.hourlyRate }}/hr</td>
+              <td>
+                <div class="skills-tags">
+                  <span class="skill-tag" *ngFor="let expertise of mentor.profile.expertise.slice(0, 2)">
+                    {{ expertise }}
+                  </span>
+                  <span class="more-tag" *ngIf="mentor.profile.expertise.length > 2">
+                    +{{ mentor.profile.expertise.length - 2 }} more
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge" [style.background-color]="getStatusColor(mentor.isActive ? 'active' : 'inactive')">
+                  {{ mentor.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>{{ formatDate(mentor.createdAt) }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-secondary" (click)="openMentorModal(mentor)" title="Edit Mentor">
+                    ✏️
+                  </button>
+                  <button class="btn btn-sm" [class.btn-success]="!mentor.isActive" [class.btn-warning]="mentor.isActive" (click)="toggleMentorStatus(mentor)" [title]="mentor.isActive ? 'Deactivate' : 'Activate'">
+                    {{ mentor.isActive ? '⏸️' : '▶️' }}
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="openDeleteModal(mentor)" title="Delete Mentor">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="btn btn-secondary" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">Previous</button>
+        <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button class="btn btn-secondary" [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">Next</button>
+      </div>
+
+      <!-- Mentor Modal -->
+      <div class="modal-overlay" *ngIf="showMentorModal" (click)="closeMentorModal()">
+        <div class="modal large-modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ isEditing ? 'Edit Mentor' : 'Add New Mentor' }}</h3>
+            <button class="close-btn" (click)="closeMentorModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form (ngSubmit)="saveMentor()">
+              <div class="form-section">
+                <h4>Basic Information</h4>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" [(ngModel)]="mentorForm.firstName" name="firstName" required placeholder="Enter first name">
+                  </div>
+                  <div class="form-group">
+                    <label>Last Name *</label>
+                    <input type="text" [(ngModel)]="mentorForm.lastName" name="lastName" required placeholder="Enter last name">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input type="email" [(ngModel)]="mentorForm.email" name="email" required placeholder="Enter email address">
+                </div>
+                <div class="form-group">
+                  <label>Password {{ isEditing ? '(leave blank to keep current)' : '*' }}</label>
+                  <input type="password" [(ngModel)]="mentorForm.password" name="password" [required]="!isEditing" placeholder="Enter password">
+                </div>
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="mentorForm.isActive" name="isActive">
+                    Active Mentor
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Professional Information</h4>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Company *</label>
+                    <input type="text" [(ngModel)]="mentorForm.company" name="company" required placeholder="e.g., Google, Microsoft">
+                  </div>
+                  <div class="form-group">
+                    <label>Position *</label>
+                    <input type="text" [(ngModel)]="mentorForm.position" name="position" required placeholder="e.g., Senior Developer, Tech Lead">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Hourly Rate ($) *</label>
+                    <input type="number" [(ngModel)]="mentorForm.hourlyRate" name="hourlyRate" required min="0" placeholder="50">
+                  </div>
+                  <div class="form-group">
+                    <label>LinkedIn URL</label>
+                    <input type="url" [(ngModel)]="mentorForm.linkedinUrl" name="linkedinUrl" placeholder="https://linkedin.com/in/username">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="mentorForm.isAvailable" name="isAvailable">
+                    Available for mentoring
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Expertise</h4>
+                <div class="dynamic-list">
+                  <div class="list-item" *ngFor="let expertise of mentorForm.expertise; let i = index">
+                    <input type="text" [(ngModel)]="mentorForm.expertise[i]" [name]="'expertise' + i" placeholder="Enter expertise area">
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeExpertise(i)">Remove</button>
+                  </div>
+                  <button type="button" class="btn btn-secondary" (click)="addExpertise()">+ Add Expertise</button>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Education</h4>
+                <div class="dynamic-list">
+                  <div class="list-item" *ngFor="let edu of mentorForm.education; let i = index">
+                    <div class="education-item">
+                      <input type="text" [(ngModel)]="mentorForm.education[i].degree" [name]="'eduDegree' + i" placeholder="Degree">
+                      <input type="text" [(ngModel)]="mentorForm.education[i].institution" [name]="'eduInstitution' + i" placeholder="Institution">
+                      <input type="number" [(ngModel)]="mentorForm.education[i].year" [name]="'eduYear' + i" placeholder="Year" min="1900" max="2030">
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeEducation(i)">Remove</button>
+                  </div>
+                  <button type="button" class="btn btn-secondary" (click)="addEducation()">+ Add Education</button>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Certifications</h4>
+                <div class="dynamic-list">
+                  <div class="list-item" *ngFor="let cert of mentorForm.certifications; let i = index">
+                    <div class="certification-item">
+                      <input type="text" [(ngModel)]="mentorForm.certifications[i].name" [name]="'certName' + i" placeholder="Certification Name">
+                      <input type="text" [(ngModel)]="mentorForm.certifications[i].issuer" [name]="'certIssuer' + i" placeholder="Issuer">
+                      <input type="date" [(ngModel)]="mentorForm.certifications[i].date" [name]="'certDate' + i" placeholder="Date">
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger" (click)="removeCertification(i)">Remove</button>
+                  </div>
+                  <button type="button" class="btn btn-secondary" (click)="addCertification()">+ Add Certification</button>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h4>Bio</h4>
+                <div class="form-group">
+                  <textarea [(ngModel)]="mentorForm.bio" name="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
+                </div>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeMentorModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Mentor</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Confirm Delete</h3>
+            <button class="close-btn" (click)="closeDeleteModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete <strong>{{ selectedMentor?.firstName }} {{ selectedMentor?.lastName }}</strong>?</p>
+            <p class="warning-text">This action cannot be undone and will delete all associated data including sessions and connections.</p>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+              <button type="button" class="btn btn-danger" (click)="deleteMentor()">Delete Mentor</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

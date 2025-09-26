@@ -50,8 +50,10 @@ export class LoginComponent {
           // Navigate based on user role
           if (response.user.role === 'student') {
             this.router.navigate(['/student-dashboard']);
-          } else {
+          } else if (response.user.role === 'mentor') {
             this.router.navigate(['/mentor-dashboard']);
+          } else if (response.user.role === 'admin') {
+            this.router.navigate(['/admin']);
           }
         },
         error: (error) => {
@@ -97,8 +99,10 @@ export class LoginComponent {
         // Navigate based on user role
         if (response.user.role === 'student') {
           this.router.navigate(['/student-dashboard']);
-        } else {
+        } else if (response.user.role === 'mentor') {
           this.router.navigate(['/mentor-dashboard']);
+        } else if (response.user.role === 'admin') {
+          this.router.navigate(['/admin']);
         }
       },
       error: (error) => {
