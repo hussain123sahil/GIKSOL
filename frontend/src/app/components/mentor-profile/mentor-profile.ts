@@ -119,7 +119,7 @@ export class MentorProfileComponent implements OnInit {
             position: response.mentor.position,
             expertise: response.mentor.expertise,
             hourlyRate: 75, // Default value, should be fetched from mentor profile
-            rating: response.mentor.rating,
+            rating: Math.round(response.mentor.rating * 10) / 10, // Round to 1 decimal place
             totalSessions: response.mentor.totalSessions,
             bio: 'I am passionate about mentoring and helping others grow in their careers. I believe in hands-on learning with real-world projects.',
             linkedinUrl: 'https://linkedin.com/in/mentor',
