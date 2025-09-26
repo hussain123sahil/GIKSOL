@@ -157,6 +157,10 @@ export class BookingComponent implements OnInit {
     this.router.navigate(['/student-dashboard']);
   }
 
+  goToMentors(): void {
+    this.router.navigate(['/mentors']);
+  }
+
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
