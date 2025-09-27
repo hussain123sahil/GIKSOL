@@ -53,8 +53,11 @@ router.post('/', async (req, res) => {
 
     // Send email notifications
     try {
-      // Generate Google Meet link
-      const meetLink = await emailService.sendStudentConfirmation(
+      // Generate a single Google Meet link for this session
+      const meetLink = emailService.generateGoogleMeetLink();
+      
+      // Send email to student
+      await emailService.sendStudentConfirmation(
         {
           title: title,
           scheduledDate: scheduledDate,
@@ -63,10 +66,11 @@ router.post('/', async (req, res) => {
           description: description
         },
         studentUser.email,
-        studentUser.firstName
+        studentUser.firstName,
+        meetLink
       );
 
-      // Send email to mentor
+      // Send email to mentor with the same meeting link
       await emailService.sendMentorNotification(
         {
           title: title,
