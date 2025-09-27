@@ -179,22 +179,45 @@
 }
 
 .back-btn {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
   border: none;
-  color: #1565c0;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
 }
 
 .back-btn:hover {
-  background: #e3f2fd;
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+.back-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.back-arrow {
+  font-size: 16px;
+  font-weight: bold;
+  transition: transform 0.3s ease;
+}
+
+.back-btn:hover .back-arrow {
+  transform: translateX(-2px);
 }
 
 .form-header h3 {
@@ -209,8 +232,8 @@
 }
 
 .form-section {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #e3f2fd;
 }
 
@@ -228,31 +251,32 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 15px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   font-weight: 600;
   color: #1565c0;
+  font-size: 14px;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e3f2fd;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 8px 12px;
+  border: 1px solid #e3f2fd;
+  border-radius: 6px;
+  font-size: 14px;
   transition: border-color 0.3s ease;
   background: white;
-  color: #1565c0;
+  color: #333;
 }
 
 .form-group input:focus,
@@ -271,8 +295,8 @@
 
 .error-message {
   color: #d32f2f;
-  font-size: 14px;
-  margin-top: 5px;
+  font-size: 12px;
+  margin-top: 3px;
 }
 
 .global-error {
@@ -403,6 +427,69 @@ textarea {
   min-height: 80px;
 }
 
+/* Progress Indicator */
+.form-progress {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background-color: #e3f2fd;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1976d2, #42a5f5);
+  border-radius: 2px;
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+.form-progress p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Form improvements */
+.form-section h3 {
+  color: #1565c0;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e3f2fd;
+  padding-bottom: 6px;
+}
+
+.form-section h4 {
+  color: #1565c0;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* Required field indicator */
+label:has-text("*") {
+  position: relative;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .register-container {
@@ -440,7 +527,9 @@ textarea {
     position: static;
     transform: none;
     margin-bottom: 16px;
-    display: inline-block;
+    display: inline-flex;
+    padding: 10px 16px;
+    font-size: 13px;
   }
 
   .form-header h3 {
