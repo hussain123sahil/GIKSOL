@@ -3,10 +3,53 @@
     <h2>Join GikSol</h2>
     <p class="subtitle">Create your account to get started</p>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+    <!-- Role Selection -->
+    <div class="role-selection" *ngIf="!selectedRole">
+      <h3>Choose Your Role</h3>
+      <p class="role-subtitle">Select how you'd like to use GikSol</p>
+      
+      <div class="role-cards">
+        <div class="role-card" (click)="selectRole('student')">
+          <div class="role-icon">🎓</div>
+          <h4>Student</h4>
+          <p>I want to learn and get mentored by experienced professionals</p>
+          <ul>
+            <li>Connect with expert mentors</li>
+            <li>Book learning sessions</li>
+            <li>Track your progress</li>
+            <li>Access learning resources</li>
+          </ul>
+          <button type="button" class="role-select-btn">Register as Student</button>
+        </div>
+
+        <div class="role-card" (click)="selectRole('mentor')">
+          <div class="role-icon">👨‍🏫</div>
+          <h4>Mentor</h4>
+          <p>I want to share my expertise and help others grow</p>
+          <ul>
+            <li>Share your knowledge</li>
+            <li>Earn from mentoring</li>
+            <li>Build your reputation</li>
+            <li>Help others succeed</li>
+          </ul>
+          <button type="button" class="role-select-btn">Register as Mentor</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registration Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form" *ngIf="selectedRole">
+      <!-- Back Button -->
+      <div class="form-header">
+        <button type="button" class="back-btn" (click)="goBackToRoleSelection()">
+          ← Back to Role Selection
+        </button>
+        <h3>{{ selectedRole === 'student' ? 'Student Registration' : 'Mentor Registration' }}</h3>
+      </div>
+
       <!-- Basic Information -->
       <div class="form-section">
-        <h3>Basic Information</h3>
+        <h4>Basic Information</h4>
         <div class="form-row">
           <div class="form-group">
             <label for="firstName">First Name</label>
@@ -52,18 +95,6 @@
             <span *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</span>
             <span *ngIf="registerForm.get('email')?.errors?.['email']">Please enter a valid email</span>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label for="role">I am a</label>
-          <select
-            id="role"
-            formControlName="role"
-            [class.error]="registerForm.get('role')?.invalid && registerForm.get('role')?.touched"
-          >
-            <option value="student">Student</option>
-            <option value="mentor">Mentor</option>
-          </select>
         </div>
       </div>
 
@@ -243,7 +274,7 @@
       <button
         type="submit"
         class="register-button"
-        [disabled]="registerForm.invalid || isLoading"
+        [disabled]="isLoading"
       >
         <span *ngIf="isLoading">Creating Account...</span>
         <span *ngIf="!isLoading">Create Account</span>

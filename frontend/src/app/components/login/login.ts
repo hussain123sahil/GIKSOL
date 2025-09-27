@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
 
@@ -11,21 +11,45 @@ import { AuthService } from '../../services/auth';
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
   showPassword = false;
+  registeredEmail = '';
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       rememberMe: [false]
+    });
+  }
+
+  ngOnInit(): void {
+    // Check if user came from registration
+    this.route.queryParams.subscribe(params => {
+      if (params['registered'] === 'true') {
+        this.registeredEmail = params['email'] || '';
+        const role = params['role'] || 'user';
+        this.successMessage = `🎉 Account created successfully! Please log in.`;
+        
+        // Pre-fill email if available
+        if (this.registeredEmail) {
+          this.loginForm.patchValue({ email: this.registeredEmail });
+        }
+        
+        // Clear success message after 15 seconds
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 15000);
+      }
     });
   }
 
@@ -35,6 +59,10 @@ export class LoginComponent {
 
   clearError(): void {
     this.errorMessage = '';
+  }
+
+  clearSuccess(): void {
+    this.successMessage = '';
   }
 
   onSubmit(): void {
