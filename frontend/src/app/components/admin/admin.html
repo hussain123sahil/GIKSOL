@@ -240,6 +240,7 @@
                   <button class="btn btn-sm" [class.btn-success]="!student.isActive" [class.btn-warning]="student.isActive" (click)="toggleUserStatus(student)">
                     {{ student.isActive ? 'Deactivate' : 'Activate' }}
                   </button>
+                  <button class="btn btn-sm btn-danger" (click)="openDeleteModal(student)">Delete</button>
                 </div>
               </td>
             </tr>
@@ -313,6 +314,7 @@
                   <button class="btn btn-sm" [class.btn-success]="!mentor.isActive" [class.btn-warning]="mentor.isActive" (click)="toggleUserStatus(mentor)">
                     {{ mentor.isActive ? 'Deactivate' : 'Activate' }}
                   </button>
+                  <button class="btn btn-sm btn-danger" (click)="openDeleteModal(mentor)">Delete</button>
                 </div>
               </td>
             </tr>

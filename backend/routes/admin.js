@@ -41,10 +41,19 @@ router.get('/users', async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Transform users to include id field for frontend compatibility
+    const usersWithId = users.map(user => {
+      const userObj = user.toObject();
+      return {
+        ...userObj,
+        id: userObj._id
+      };
+    });
+
     const total = await User.countDocuments(query);
 
     res.json({
-      users,
+      users: usersWithId,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
@@ -269,8 +278,10 @@ router.get('/students', async (req, res) => {
     const studentsWithProfiles = await Promise.all(
       students.map(async (student) => {
         const profile = await Student.findOne({ user: student._id });
+        const studentObj = student.toObject();
         return {
-          ...student.toObject(),
+          ...studentObj,
+          id: studentObj._id, // Add id field for frontend compatibility
           profile
         };
       })
@@ -321,8 +332,10 @@ router.get('/mentors', async (req, res) => {
     const mentorsWithProfiles = await Promise.all(
       mentors.map(async (mentor) => {
         const profile = await Mentor.findOne({ user: mentor._id });
+        const mentorObj = mentor.toObject();
         return {
-          ...mentor.toObject(),
+          ...mentorObj,
+          id: mentorObj._id, // Add id field for frontend compatibility
           profile
         };
       })

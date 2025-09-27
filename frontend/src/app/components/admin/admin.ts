@@ -338,7 +338,15 @@ export class AdminComponent implements OnInit {
       next: (response) => {
         console.log('User deleted:', response);
         this.closeDeleteModal();
-        this.loadUsers();
+        
+        // Refresh the appropriate list based on active tab
+        if (this.activeTab === 'students') {
+          this.loadStudents();
+        } else if (this.activeTab === 'mentors') {
+          this.loadMentors();
+        } else {
+          this.loadUsers();
+        }
       },
       error: (error) => {
         console.error('Error deleting user:', error);

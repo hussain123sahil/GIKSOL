@@ -175,7 +175,7 @@ class EmailService {
                     <img src="cid:giksol-logo" alt="GikSol Logo" style="width: 60px; height: 60px; object-fit: contain;">
                 </div>
                 
-                <p style="margin-top: -10px;">Best regards,<br>Team GikSol</p>
+                <p>Best regards,<br>Team GikSol</p>
             </div>
             
             <div class="footer">
@@ -259,7 +259,7 @@ class EmailService {
                     <img src="cid:giksol-logo" alt="GikSol Logo" style="width: 60px; height: 60px; object-fit: contain;">
                 </div>
                 
-                <p style="margin-top: -10px;">Best regards,<br>Team GikSol</p>
+                <p>Best regards,<br>Team GikSol</p>
             </div>
             
             <div class="footer">
