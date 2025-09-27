@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Mentor = require('../models/Mentor');
 const Student = require('../models/Student');
 const Connection = require('../models/Connection');
+const emailService = require('../services/emailService');
 
 const router = express.Router();
 
@@ -49,6 +50,44 @@ router.post('/', async (req, res) => {
     const populatedSession = await Session.findById(session._id)
       .populate('student', 'firstName lastName email profilePicture')
       .populate('mentor', 'firstName lastName email profilePicture');
+
+    // Send email notifications
+    try {
+      // Generate Google Meet link
+      const meetLink = await emailService.sendStudentConfirmation(
+        {
+          title: title,
+          scheduledDate: scheduledDate,
+          duration: duration || 60,
+          sessionType: sessionType,
+          description: description
+        },
+        studentUser.email,
+        studentUser.firstName
+      );
+
+      // Send email to mentor
+      await emailService.sendMentorNotification(
+        {
+          title: title,
+          scheduledDate: scheduledDate,
+          duration: duration || 60,
+          sessionType: sessionType,
+          description: description
+        },
+        mentorUser.email,
+        mentorUser.firstName,
+        meetLink
+      );
+
+      // Update session with meet link
+      session.meetingLink = meetLink;
+      await session.save();
+
+    } catch (emailError) {
+      console.error('Error sending emails:', emailError);
+      // Don't fail the session creation if email fails
+    }
 
     res.status(201).json({
       message: 'Session created successfully',
