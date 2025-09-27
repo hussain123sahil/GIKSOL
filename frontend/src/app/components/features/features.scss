@@ -7,14 +7,100 @@
   display: flex;
   align-items: center;
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.features-hero-content h1 {
+/* Subtle Background Animation */
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.floating-dots {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(25, 118, 210, 0.3);
+  border-radius: 50%;
+  animation: floatUp 8s ease-in-out infinite;
+}
+
+.dot-1 {
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+  animation-duration: 6s;
+}
+
+.dot-2 {
+  top: 60%;
+  right: 15%;
+  animation-delay: 2s;
+  animation-duration: 8s;
+}
+
+.dot-3 {
+  top: 30%;
+  right: 30%;
+  animation-delay: 4s;
+  animation-duration: 7s;
+}
+
+.dot-4 {
+  bottom: 20%;
+  left: 20%;
+  animation-delay: 1s;
+  animation-duration: 9s;
+}
+
+.dot-5 {
+  top: 10%;
+  right: 50%;
+  animation-delay: 3s;
+  animation-duration: 5s;
+}
+
+/* Hero Content - Preserving exact layout */
+.features-hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-title {
   font-size: 48px;
   font-weight: 700;
   color: #1565c0;
   margin-bottom: 24px;
   line-height: 1.2;
+  animation: fadeInUp 1s ease-out;
+  position: relative;
+}
+
+.hero-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1976d2, #00c851);
+  border-radius: 2px;
+  animation: expandLine 1.5s ease-out 0.5s forwards;
 }
 
 .hero-subtitle {
@@ -24,6 +110,51 @@
   margin: 0 auto;
   line-height: 1.6;
   font-weight: 500;
+  animation: fadeInUp 1s ease-out 0.3s both;
+  position: relative;
+}
+
+/* Subtle hover effects */
+.hero-title:hover {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
+.hero-subtitle:hover {
+  transform: translateY(-1px);
+  transition: transform 0.3s ease;
+}
+
+/* Animations */
+@keyframes floatUp {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes expandLine {
+  from {
+    width: 0;
+  }
+  to {
+    width: 80px;
+  }
 }
 
 /* Why Choose GikSol Section */
@@ -339,60 +470,110 @@
 
 /* Footer */
 .footer {
-  background: #1565c0;
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
   color: white;
   padding: 60px 0 20px;
+  position: relative;
 }
 
 .footer-content {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 40px;
   margin-bottom: 40px;
 }
 
-.footer-section h3 {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
+.footer-logo {
   margin-bottom: 20px;
-}
-
-.footer-section a {
-  color: #e3f2fd;
-  text-decoration: none;
-  display: block;
-  margin-bottom: 8px;
-  transition: color 0.3s ease;
-}
-
-.footer-section a:hover {
-  color: white;
-}
-
-.footer-section p {
-  color: #e3f2fd;
-  margin-bottom: 8px;
-  font-size: 14px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .footer-logo-image {
-  width: 60px;
-  height: 60px;
+  max-width: 160px;
+  height: auto;
+  background: white;
+  padding: 12px;
   border-radius: 8px;
+  transition: all 0.3s ease;
+  display: block;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.footer-logo-image:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.footer-section h3 {
+  margin-bottom: 20px;
+  color: #f7fafc;
+  font-size: 16px;
+  font-weight: 600;
+  position: relative;
+}
+
+.footer-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 25px;
+  height: 2px;
+  background: #3b82f6;
+  border-radius: 1px;
+}
+
+.footer-section a {
+  color: #e2e8f0;
+  text-decoration: none;
+  display: block;
   margin-bottom: 10px;
+  transition: color 0.2s ease;
+  font-size: 14px;
+}
+
+.footer-section a:hover {
+  color: #f7fafc;
+}
+
+.footer-section p {
+  color: #e2e8f0;
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .footer-bottom {
-  border-top: 1px solid #1976d2;
-  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 25px 0;
+  color: #cbd5e1;
   text-align: center;
+  background: rgba(0, 0, 0, 0.15);
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  position: relative;
+}
+
+.footer-bottom::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
 }
 
 .footer-bottom p {
-  color: #e3f2fd;
   margin: 0;
   font-size: 14px;
+  font-weight: 500;
+  opacity: 0.9;
+  letter-spacing: 0.5px;
 }
 
 /* Responsive Design */
@@ -410,12 +591,16 @@
 }
 
 @media (max-width: 768px) {
-  .features-hero-content h1 {
+  .hero-title {
     font-size: 36px;
   }
   
   .hero-subtitle {
     font-size: 20px;
+  }
+  
+  .dot {
+    display: none; /* Hide floating dots on mobile for better performance */
   }
   
   .features-grid,
@@ -460,27 +645,76 @@
   }
   
   .footer-content {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 30px;
+    text-align: center;
+  }
+  
+  .footer-logo {
+    justify-content: center;
+  }
+  
+  .footer-section h3 {
+    font-size: 15px;
+  }
+  
+  .footer-section a,
+  .footer-section p {
+    font-size: 13px;
+  }
+  
+  .footer-logo-image {
+    max-width: 140px;
+    padding: 10px;
+  }
+  
+  .footer {
+    padding: 40px 0 15px;
+  }
+  
+  .footer-bottom {
+    padding: 15px 0;
+  }
+  
+  .footer-bottom p {
+    font-size: 12px;
+  }
+  
+  .footer-section h3::after {
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 
 @media (max-width: 480px) {
   .footer-content {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 25px;
   }
+  
+  .footer-logo-image {
+    max-width: 120px;
+    padding: 8px;
+  }
+  
+  .footer {
+    padding: 30px 0 10px;
+  }
+}
   
   .features-hero {
     padding: 100px 0 60px;
   }
   
-  .features-hero-content h1 {
+  .hero-title {
     font-size: 28px;
   }
   
   .hero-subtitle {
     font-size: 18px;
+  }
+  
+  .dot {
+    display: none; /* Hide floating dots on mobile for better performance */
   }
   
   .feature-card,
