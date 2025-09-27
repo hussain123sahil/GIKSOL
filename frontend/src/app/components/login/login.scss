@@ -4,13 +4,18 @@
 /* Login Page Container */
 .login-page {
   display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: calc(100vh - 4rem);
+  max-height: calc(100vh - 4rem);
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  position: relative;
+  position: fixed;
+  top: 4rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1rem;
   overflow: hidden;
-  margin-top: 4rem;
-  position: relative;
+  z-index: 1;
 }
 
 /* Add subtle background pattern */
@@ -21,80 +26,119 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></svg>');
+  background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%231976d2" fill-opacity="0.03"><circle cx="30" cy="30" r="2"/></g></svg>');
   pointer-events: none;
+}
+
+/* Add floating background elements */
+.login-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(25, 118, 210, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(0, 200, 81, 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(25, 118, 210, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Left Panel - Illustration */
 .left-panel {
   flex: 1;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.2) 100%);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(227, 242, 253, 0.8) 100%);
+  backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: 2rem 1.5rem;
   position: relative;
   overflow: hidden;
-  border-radius: 0 20px 20px 0;
-  margin: 20px 0 20px 20px;
+  border-radius: 20px;
+  margin: 0.5rem;
+  border: 2px solid rgba(25, 118, 210, 0.1);
+  box-shadow: 0 15px 40px rgba(25, 118, 210, 0.15), 0 6px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  max-height: calc(100vh - 6rem);
+}
+
+.left-panel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 50px rgba(25, 118, 210, 0.2), 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .illustration-container {
   text-align: center;
   max-width: 500px;
   width: 100%;
+  position: relative;
+  z-index: 2;
 }
 
 /* Growth Journey Illustration */
 .growth-illustration {
   position: relative;
-  height: 300px;
-  margin-bottom: 2rem;
+  height: 140px;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(227, 242, 253, 0.2) 100%);
+  border-radius: 16px;
+  padding: 0.8rem;
+  box-shadow: inset 0 2px 10px rgba(25, 118, 210, 0.1);
 }
 
 .characters {
   position: relative;
-  height: 200px;
+  height: 80px;
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 20px;
+  gap: 12px;
+  margin-bottom: 0.8rem;
 }
 
 .character {
-  width: 60px;
-  height: 80px;
-  border-radius: 30px 30px 0 0;
+  width: 35px;
+  height: 45px;
+  border-radius: 17px 17px 0 0;
   position: relative;
+  box-shadow: 0 3px 12px rgba(25, 118, 210, 0.3);
+  transition: all 0.3s ease;
+}
+
+.character:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(25, 118, 210, 0.4);
 }
 
 .character-1 {
-  background: linear-gradient(135deg, #64b5f6, #42a5f5);
+  background: linear-gradient(135deg, #1976d2, #1565c0);
   margin-right: 10px;
 }
 
 .character-2 {
-  background: linear-gradient(135deg, #90caf9, #64b5f6);
-  height: 70px;
+  background: linear-gradient(135deg, #42a5f5, #1976d2);
+  height: 35px;
 }
 
 .character-3 {
-  background: linear-gradient(135deg, #42a5f5, #1976d2);
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
   margin-left: 10px;
 }
 
 .growth-arrow {
   position: absolute;
-  bottom: 20px;
+  bottom: 15px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-bottom: 40px solid #64b5f6;
-  opacity: 0.8;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 25px solid #1976d2;
+  opacity: 0.9;
+  filter: drop-shadow(0 2px 8px rgba(25, 118, 210, 0.3));
 }
 
 .leaf-elements {
@@ -109,7 +153,7 @@
   position: absolute;
   width: 20px;
   height: 20px;
-  background: #81c784;
+  background: #00c851;
   border-radius: 50% 0;
   transform: rotate(45deg);
 }
@@ -145,7 +189,7 @@
   position: absolute;
   background: #e3f2fd;
   border-radius: 50%;
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .element-1 {
@@ -180,30 +224,36 @@
 /* Welcome Message */
 .welcome-message {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 3px 12px rgba(25, 118, 210, 0.1);
 }
 
 .welcome-text {
   font-family: 'Poppins', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #1565c0;
+  margin: 0 0 0.2rem 0;
   letter-spacing: -0.5px;
 }
 
 .growth-text {
   font-family: 'Poppins', sans-serif;
-  font-size: 3.2rem;
+  font-size: 1.8rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #1565c0;
   margin: 0;
-  background: linear-gradient(135deg, #ffffff, #f0f8ff);
+  background: linear-gradient(135deg, #1565c0, #1976d2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 4px 20px rgba(21, 101, 192, 0.2);
   letter-spacing: -1px;
+  filter: drop-shadow(0 2px 4px rgba(25, 118, 210, 0.3));
 }
 
 /* Right Panel - Login Form */
@@ -212,12 +262,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: 2rem 1.5rem;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 20px 0 0 20px;
-  margin: 20px 20px 20px 0;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  margin: 0.5rem;
+  box-shadow: 0 15px 40px rgba(25, 118, 210, 0.15), 0 6px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(25, 118, 210, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  max-height: calc(100vh - 6rem);
+}
+
+.right-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1976d2, #00c851);
+  border-radius: 20px 20px 0 0;
+}
+
+.right-panel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 50px rgba(25, 118, 210, 0.2), 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .login-form-container {
@@ -227,23 +298,39 @@
   border-radius: 0;
   padding: 0;
   box-shadow: none;
+  position: relative;
+  z-index: 2;
 }
 
 .login-title {
   font-family: 'Poppins', sans-serif;
-  font-size: 2.4rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #2d3748;
-  margin: 0 0 2.5rem 0;
+  color: #1565c0;
+  margin: 0 0 1.2rem 0;
   text-align: center;
   letter-spacing: -0.5px;
+  position: relative;
+}
+
+.login-title::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(90deg, #1976d2, #00c851);
+  border-radius: 2px;
 }
 
 /* Form Styles */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  padding: 0.5rem 0;
 }
 
 .form-group {
@@ -260,32 +347,34 @@
 
 .input-icon {
   position: absolute;
-  left: 16px;
+  left: 12px;
   z-index: 1;
   color: #a0aec0;
   transition: color 0.3s ease;
+  font-size: 16px;
 }
 
 .input-container:focus-within .input-icon {
-  color: #667eea;
+  color: #1976d2;
 }
 
 .form-input {
   width: 100%;
-  padding: 16px 16px 16px 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: 12px 12px 12px 40px;
+  border: 2px solid #e3f2fd;
+  border-radius: 10px;
+  font-size: 14px;
   font-family: 'Inter', sans-serif;
   font-weight: 400;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: #ffffff;
-  color: #2d3748;
+  color: #424242;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 
   &:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    border-color: #1976d2;
+    box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
     transform: translateY(-1px);
   }
 
@@ -308,7 +397,7 @@
   transition: color 0.3s ease;
 
   &:hover {
-    color: #1565c0;
+    color: #1976d2;
   }
 }
 
@@ -325,7 +414,7 @@
   align-items: center;
   cursor: pointer;
   font-size: 14px;
-  color: #757575;
+  color: #424242;
 
   input[type="checkbox"] {
     display: none;
@@ -342,8 +431,8 @@
   }
 
   input[type="checkbox"]:checked + .checkmark {
-    background: #1565c0;
-    border-color: #1565c0;
+    background: #1976d2;
+    border-color: #1976d2;
 
     &::after {
       content: '✓';
@@ -359,14 +448,14 @@
 }
 
 .forgot-password {
-  color: #1565c0;
+  color: #1976d2;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
   transition: color 0.3s ease;
 
   &:hover {
-    color: #0d47a1;
+    color: #1565c0;
     text-decoration: underline;
   }
 }
@@ -374,19 +463,20 @@
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 14px;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 1.5rem;
+  margin-top: 0.8rem;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
 
   &::before {
     content: '';
@@ -401,7 +491,8 @@
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.4);
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
     
     &::before {
       left: 100%;
@@ -423,10 +514,10 @@
 .divider {
   display: flex;
   align-items: center;
-  margin: 1.5rem 0;
+  margin: 0.8rem 0;
   text-align: center;
   color: #9e9e9e;
-  font-size: 14px;
+  font-size: 12px;
 
   &::before,
   &::after {
@@ -445,12 +536,12 @@
 /* Google Button */
 .google-btn {
   width: 100%;
-  padding: 16px 24px;
+  padding: 12px 20px;
   background: #ffffff;
-  color: #2d3748;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 16px;
+  color: #424242;
+  border: 2px solid #e3f2fd;
+  border-radius: 10px;
+  font-size: 14px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   cursor: pointer;
@@ -458,9 +549,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 
   &::before {
     content: '';
@@ -474,10 +566,10 @@
   }
 
   &:hover {
-    border-color: #667eea;
+    border-color: #1976d2;
     background: #f7fafc;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
     
     &::before {
       left: 100%;
@@ -490,28 +582,28 @@
 }
 
 .google-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 /* Signup Link */
 .signup-link {
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 0.8rem;
 
   p {
-    color: #757575;
+    color: #424242;
     font-size: 14px;
     margin: 0;
 
     a {
-      color: #1565c0;
+      color: #1976d2;
       text-decoration: none;
       font-weight: 500;
       transition: color 0.3s ease;
 
       &:hover {
-        color: #0d47a1;
+        color: #1565c0;
         text-decoration: underline;
       }
     }
@@ -562,32 +654,41 @@
 @media (max-width: 768px) {
   .login-page {
     flex-direction: column;
-    padding: 0;
+    padding: 0.5rem;
+    height: calc(100vh - 4rem);
+    max-height: calc(100vh - 4rem);
   }
 
   .left-panel {
     min-height: 35vh;
-    padding: 2rem 1rem;
-    margin: 10px;
-    border-radius: 20px 20px 0 0;
+    padding: 1.5rem 1rem;
+    margin: 0.25rem;
+    border-radius: 16px;
+    max-height: 45vh;
   }
 
   .growth-illustration {
-    height: 150px;
+    height: 100px;
   }
 
   .welcome-text {
-    font-size: 1.4rem;
+    font-size: 1rem;
   }
 
   .growth-text {
-    font-size: 2.2rem;
+    font-size: 1.4rem;
   }
 
   .right-panel {
-    padding: 2rem 1rem;
-    margin: 0 10px 10px 10px;
-    border-radius: 0 0 20px 20px;
+    padding: 1.5rem 1rem;
+    margin: 0.25rem;
+    border-radius: 16px;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  .right-panel::before {
+    border-radius: 16px 16px 0 0;
   }
 
   .login-form-container {
@@ -595,22 +696,73 @@
   }
 
   .login-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
+  .login-page {
+    padding: 0.25rem;
+  }
+
+  .left-panel, .right-panel {
+    margin: 0.125rem;
+    padding: 1rem 0.8rem;
+    border-radius: 12px;
+  }
+
+  .left-panel {
+    min-height: 30vh;
+    max-height: 40vh;
+  }
+
+  .right-panel {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .right-panel::before {
+    border-radius: 12px 12px 0 0;
+  }
+
   .login-form-container {
-    padding: 1rem;
+    padding: 0;
   }
 
   .login-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .form-options {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.6rem;
     align-items: flex-start;
+  }
+
+  .growth-illustration {
+    height: 80px;
+  }
+
+  .welcome-text {
+    font-size: 0.9rem;
+  }
+
+  .growth-text {
+    font-size: 1.2rem;
+  }
+
+  .characters {
+    height: 60px;
+    gap: 8px;
+  }
+
+  .character {
+    width: 30px;
+    height: 35px;
+    border-radius: 15px 15px 0 0;
+  }
+
+  .character-2 {
+    height: 30px;
   }
 }
