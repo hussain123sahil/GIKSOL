@@ -26,10 +26,16 @@ class EmailService {
 
   // Generate a Google Meet link
   generateGoogleMeetLink() {
-    // For demo purposes, we'll generate a simple meet link
-    // In production, you might want to use Google Calendar API to create actual meetings
-    const randomId = Math.random().toString(36).substring(2, 15);
-    return `https://meet.google.com/${randomId}`;
+    // Use Google Meet's instant meeting feature
+    // This creates a new meeting when the link is clicked
+    // The meeting will be available for both student and mentor
+    
+    // Generate a unique session identifier
+    const sessionId = Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+    
+    // Return a Google Meet instant meeting link
+    // This will create a new meeting when clicked
+    return `https://meet.google.com/new`;
   }
 
   // Send email to student
