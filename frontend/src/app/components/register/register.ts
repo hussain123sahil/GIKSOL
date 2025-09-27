@@ -12,24 +12,29 @@ import { AuthService } from '../../services/auth';
   styleUrls: ['./register.scss']
 })
 export class RegisterComponent {
-  registerForm: FormGroup;
+  registerForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
   selectedFile: File | null = null;
   filePreview: string | null = null;
+  selectedRole: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
+    this.initializeForm();
+  }
+
+  initializeForm() {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
-      role: ['student', [Validators.required]],
+      role: ['', [Validators.required]],
       bio: [''],
       skills: [''],
       // Mentor-specific fields
@@ -45,14 +50,30 @@ export class RegisterComponent {
     }, { validators: this.passwordMatchValidator });
   }
 
+  selectRole(role: string): void {
+    this.selectedRole = role;
+    this.registerForm.patchValue({ role: role });
+    // Trigger validation update
+    this.registerForm.get('role')?.updateValueAndValidity();
+  }
+
+  goBackToRoleSelection(): void {
+    this.selectedRole = null;
+    this.registerForm.reset();
+    this.initializeForm();
+  }
+
   passwordMatchValidator(form: FormGroup) {
     const password = form.get('password');
     const confirmPassword = form.get('confirmPassword');
     
     if (password && confirmPassword && password.value !== confirmPassword.value) {
       confirmPassword.setErrors({ passwordMismatch: true });
+      return { passwordMismatch: true };
     } else {
-      confirmPassword?.setErrors(null);
+      if (confirmPassword?.hasError('passwordMismatch')) {
+        confirmPassword.setErrors(null);
+      }
     }
     
     return null;
@@ -65,6 +86,8 @@ export class RegisterComponent {
 
       const formData = this.registerForm.value;
       delete formData.confirmPassword;
+      
+      console.log('Sending registration data:', formData);
 
       // Convert skills string to array
       if (formData.skills) {
@@ -88,19 +111,28 @@ export class RegisterComponent {
 
       this.authService.register(formData).subscribe({
         next: (response) => {
+          console.log('Registration successful:', response);
           this.isLoading = false;
-          // Navigate based on user role
-          if (response.user.role === 'student') {
-            this.router.navigate(['/student-dashboard']);
-          } else {
-            this.router.navigate(['/mentor-dashboard']);
-          }
+          // Navigate directly to login page with success message
+          this.router.navigate(['/login'], { 
+            queryParams: { 
+              registered: 'true', 
+              role: response.user.role,
+              email: response.user.email 
+            } 
+          });
         },
         error: (error) => {
+          console.error('Registration error:', error);
           this.isLoading = false;
           this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
         }
       });
+    } else {
+      console.log('Form is invalid, cannot submit');
+      // Mark all fields as touched to show validation errors
+      this.registerForm.markAllAsTouched();
+      this.errorMessage = 'Please fill in all required fields correctly.';
     }
   }
 
