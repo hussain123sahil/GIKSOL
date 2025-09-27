@@ -6,6 +6,9 @@ try {
   nodemailer = null;
 }
 
+const path = require('path');
+const fs = require('fs');
+
 class EmailService {
   constructor() {
     if (nodemailer) {
@@ -49,7 +52,14 @@ class EmailService {
       from: process.env.EMAIL_USER,
       to: studentEmail,
       subject: `Session Confirmed - ${sessionData.title}`,
-      html: this.getStudentEmailTemplate(sessionData, studentName, meetLink)
+      html: this.getStudentEmailTemplate(sessionData, studentName, meetLink),
+      attachments: [
+        {
+          filename: 'logo_giksol2.png',
+          path: path.join(__dirname, '../../frontend/public/logo_giksol2.png'),
+          cid: 'giksol-logo'
+        }
+      ]
     };
 
     try {
@@ -74,7 +84,14 @@ class EmailService {
       from: process.env.EMAIL_USER,
       to: mentorEmail,
       subject: `New Session Booking - ${sessionData.title}`,
-      html: this.getMentorEmailTemplate(sessionData, mentorName, meetLink)
+      html: this.getMentorEmailTemplate(sessionData, mentorName, meetLink),
+      attachments: [
+        {
+          filename: 'logo_giksol2.png',
+          path: path.join(__dirname, '../../frontend/public/logo_giksol2.png'),
+          cid: 'giksol-logo'
+        }
+      ]
     };
 
     try {
@@ -154,7 +171,11 @@ class EmailService {
 
                 <p>We're excited to see you in your mentoring session! If you have any questions, feel free to reach out.</p>
                 
-                <p>Best regards,<br>The Student-Mentor Platform Team</p>
+                <div style="text-align: left; margin: 10px 0 0px 0;">
+                    <img src="cid:giksol-logo" alt="GikSol Logo" style="width: 60px; height: 60px; object-fit: contain;">
+                </div>
+                
+                <p style="margin-top: -10px;">Best regards,<br>Team GikSol</p>
             </div>
             
             <div class="footer">
@@ -234,7 +255,11 @@ class EmailService {
 
                 <p>Thank you for being an amazing mentor! If you need to reschedule, please contact the student directly.</p>
                 
-                <p>Best regards,<br>The Student-Mentor Platform Team</p>
+                <div style="text-align: left; margin: 10px 0 0px 0;">
+                    <img src="cid:giksol-logo" alt="GikSol Logo" style="width: 60px; height: 60px; object-fit: contain;">
+                </div>
+                
+                <p style="margin-top: -10px;">Best regards,<br>Team GikSol</p>
             </div>
             
             <div class="footer">
