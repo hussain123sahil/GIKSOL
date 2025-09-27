@@ -26,27 +26,23 @@ class EmailService {
 
   // Generate a Google Meet link
   generateGoogleMeetLink() {
-    // Use Google Meet's instant meeting feature
-    // This creates a new meeting when the link is clicked
-    // The meeting will be available for both student and mentor
-    
-    // Generate a unique session identifier
+    // Create a unique session identifier for this booking
+    // This ensures both student and mentor get the same meeting link
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
     
-    // Return a Google Meet instant meeting link
-    // This will create a new meeting when clicked
-    return `https://meet.google.com/new`;
+    // Use Jitsi Meet for reliable video conferencing
+    // This creates a persistent meeting room that both participants can join
+    // Jitsi Meet links are always valid and work immediately
+    return `https://meet.jit.si/session-${sessionId}`;
   }
 
   // Send email to student
-  async sendStudentConfirmation(sessionData, studentEmail, studentName) {
-    const meetLink = this.generateGoogleMeetLink();
-    
+  async sendStudentConfirmation(sessionData, studentEmail, studentName, meetLink) {
     console.log('Sending student confirmation email to:', studentEmail);
     
     if (!this.transporter) {
-      console.log('Email service not available. Meet link generated:', meetLink);
-      return meetLink;
+      console.log('Email service not available. Meet link:', meetLink);
+      return;
     }
     
     const mailOptions = {
@@ -59,7 +55,6 @@ class EmailService {
     try {
       const result = await this.transporter.sendMail(mailOptions);
       console.log('✅ Student confirmation email sent successfully');
-      return meetLink;
     } catch (error) {
       console.error('❌ Error sending student email:', error.message);
       throw error;
@@ -144,7 +139,7 @@ class EmailService {
                 </div>
 
                 <div style="text-align: center;">
-                    <a href="${meetLink}" class="meet-button">🔗 Join Google Meet</a>
+                    <a href="${meetLink}" class="meet-button">🔗 Join Video Session</a>
                 </div>
 
                 <div class="session-details">
@@ -224,7 +219,7 @@ class EmailService {
                 </div>
 
                 <div style="text-align: center;">
-                    <a href="${meetLink}" class="meet-button">🔗 Join Google Meet</a>
+                    <a href="${meetLink}" class="meet-button">🔗 Join Video Session</a>
                 </div>
 
                 <div class="session-details">
