@@ -10,7 +10,30 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { 
+      firstName, 
+      lastName, 
+      email, 
+      password, 
+      role,
+      // Mentor fields
+      company,
+      position,
+      experience,
+      hourlyRate,
+      expertise,
+      bio,
+      linkedinUrl,
+      // Student fields
+      grade,
+      school,
+      learningGoals
+    } = req.body;
+
+    // Validate role
+    if (role && !['student', 'mentor'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be student or mentor.' });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -34,7 +57,9 @@ router.post('/register', async (req, res) => {
     if (user.role === 'student') {
       roleRecord = new Student({
         user: user._id,
-        learningGoals: ['Learn new skills', 'Career development'],
+        grade: grade || 'Not specified',
+        school: school || 'Not specified',
+        learningGoals: learningGoals || ['Learn new skills', 'Career development'],
         currentLevel: 'beginner',
         interests: ['Technology', 'Programming'],
         preferredLearningStyle: 'visual',
@@ -46,12 +71,13 @@ router.post('/register', async (req, res) => {
     } else if (user.role === 'mentor') {
       roleRecord = new Mentor({
         user: user._id,
-        company: 'Your Company',
-        position: 'Your Position',
-        expertise: ['General Mentoring', 'Career Guidance'],
-        hourlyRate: 50,
-        bio: `Hi, I'm ${user.firstName} ${user.lastName}. I'm passionate about helping others grow and succeed!`,
-        linkedinUrl: '',
+        company: company || 'Not specified',
+        position: position || 'Not specified',
+        expertise: expertise || ['General Mentoring', 'Career Guidance'],
+        hourlyRate: hourlyRate || 50,
+        experience: experience || 'Experienced professional',
+        bio: bio || `Hi, I'm ${user.firstName} ${user.lastName}. I'm passionate about helping others grow and succeed!`,
+        linkedinUrl: linkedinUrl || '',
         education: [{
           degree: 'Bachelor\'s Degree',
           institution: 'University',

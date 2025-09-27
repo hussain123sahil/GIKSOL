@@ -43,6 +43,7 @@ export class RegisterComponent {
       experience: [''],
       hourlyRate: [''],
       expertise: [''],
+      linkedinUrl: ['', [Validators.pattern(/^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/)]],
       // Student-specific fields
       grade: [''],
       school: [''],
@@ -53,8 +54,32 @@ export class RegisterComponent {
   selectRole(role: string): void {
     this.selectedRole = role;
     this.registerForm.patchValue({ role: role });
-    // Trigger validation update
-    this.registerForm.get('role')?.updateValueAndValidity();
+    
+    // Set validation based on role
+    if (role === 'mentor') {
+      this.registerForm.get('company')?.setValidators([Validators.required]);
+      this.registerForm.get('position')?.setValidators([Validators.required]);
+      this.registerForm.get('experience')?.setValidators([Validators.required, Validators.min(0)]);
+      this.registerForm.get('hourlyRate')?.setValidators([Validators.required, Validators.min(0)]);
+      this.registerForm.get('expertise')?.setValidators([Validators.required]);
+      this.registerForm.get('grade')?.clearValidators();
+      this.registerForm.get('school')?.clearValidators();
+      this.registerForm.get('learningGoals')?.clearValidators();
+    } else if (role === 'student') {
+      this.registerForm.get('grade')?.setValidators([Validators.required]);
+      this.registerForm.get('school')?.setValidators([Validators.required]);
+      this.registerForm.get('learningGoals')?.setValidators([Validators.required]);
+      this.registerForm.get('company')?.clearValidators();
+      this.registerForm.get('position')?.clearValidators();
+      this.registerForm.get('experience')?.clearValidators();
+      this.registerForm.get('hourlyRate')?.clearValidators();
+      this.registerForm.get('expertise')?.clearValidators();
+    }
+    
+    // Update validation for all fields
+    Object.keys(this.registerForm.controls).forEach(key => {
+      this.registerForm.get(key)?.updateValueAndValidity();
+    });
   }
 
   goBackToRoleSelection(): void {

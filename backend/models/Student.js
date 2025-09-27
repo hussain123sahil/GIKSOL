@@ -48,6 +48,16 @@ const studentSchema = new mongoose.Schema({
     trim: true,
     maxlength: [500, 'Bio cannot exceed 500 characters']
   },
+  grade: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Grade cannot exceed 50 characters']
+  },
+  school: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'School name cannot exceed 100 characters']
+  },
   isActive: {
     type: Boolean,
     default: true
