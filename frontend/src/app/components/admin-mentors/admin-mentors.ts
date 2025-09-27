@@ -131,7 +131,7 @@ export class AdminMentorsComponent implements OnInit {
     };
 
     if (this.isEditing && this.selectedMentor) {
-      this.adminService.updateMentor(this.selectedMentor.id, mentorData)
+      this.adminService.updateUser(this.selectedMentor.id, mentorData)
         .subscribe({
           next: () => {
             this.closeMentorModal();
@@ -140,7 +140,7 @@ export class AdminMentorsComponent implements OnInit {
           error: (error) => console.error('Error updating mentor:', error)
         });
     } else {
-      this.adminService.createMentor(mentorData)
+      this.adminService.createUser(mentorData)
         .subscribe({
           next: () => {
             this.closeMentorModal();
@@ -164,7 +164,7 @@ export class AdminMentorsComponent implements OnInit {
   deleteMentor(): void {
     if (!this.selectedMentor) return;
 
-    this.adminService.deleteMentor(this.selectedMentor.id)
+    this.adminService.deleteUser(this.selectedMentor.id)
       .subscribe({
         next: () => {
           this.closeDeleteModal();
@@ -175,7 +175,7 @@ export class AdminMentorsComponent implements OnInit {
   }
 
   toggleMentorStatus(mentor: AdminUser & { profile: MentorProfile }): void {
-    this.adminService.updateMentor(mentor.id, { isActive: !mentor.isActive })
+    this.adminService.updateUser(mentor.id, { isActive: !mentor.isActive })
       .subscribe({
         next: () => {
           this.loadMentors();
