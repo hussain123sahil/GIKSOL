@@ -239,11 +239,6 @@ export class AdminService {
 
   deleteSession(id: string): Observable<{ message: string }> {
     const url = `${this.baseUrl}/sessions/${id}`;
-    console.log('🔗 AdminService.deleteSession called with:');
-    console.log('  - ID:', id);
-    console.log('  - URL:', url);
-    console.log('  - Headers:', this.getHeaders());
-    
     return this.http.delete<{ message: string }>(url, {
       headers: this.getHeaders()
     });

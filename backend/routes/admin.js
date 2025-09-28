@@ -481,11 +481,6 @@ router.get('/sessions', async (req, res) => {
     // Transform sessions to include id field for frontend compatibility
     const sessionsWithId = sessions.map(session => {
       const sessionObj = session.toObject();
-      console.log('📋 Transforming session:', {
-        _id: sessionObj._id,
-        title: sessionObj.title,
-        id: sessionObj._id
-      });
       return {
         ...sessionObj,
         id: sessionObj._id

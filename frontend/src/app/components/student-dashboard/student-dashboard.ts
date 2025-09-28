@@ -87,8 +87,6 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
 
     this.dashboardService.getDashboardData(studentId).subscribe({
       next: (data: DashboardData) => {
-        console.log('📊 Dashboard data received:', data);
-        console.log('📅 Upcoming sessions:', data.upcomingSessions);
         this.upcomingSessions = data.upcomingSessions;
         this.completedSessions = data.completedSessions;
         this.connections = data.connections;

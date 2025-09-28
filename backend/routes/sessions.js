@@ -6,12 +6,6 @@ const Student = require('../models/Student');
 const Connection = require('../models/Connection');
 const emailService = require('../services/emailService');
 
-// Test email service on startup
-console.log('📧 Email service status:', {
-  transporter: !!emailService.transporter,
-  hasUser: !!process.env.EMAIL_USER,
-  hasPass: !!process.env.EMAIL_PASS
-});
 const { auth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -30,7 +24,6 @@ router.get('/dashboard/:studentId', async (req, res) => {
     }
 
     // Get upcoming sessions
-    console.log('📅 Fetching upcoming sessions for student:', studentId);
     const upcomingSessions = await Session.find({
       student: studentId,
       status: { $in: ['scheduled', 'upcoming'] },
@@ -40,8 +33,6 @@ router.get('/dashboard/:studentId', async (req, res) => {
     .populate('mentor', 'firstName lastName email profilePicture')
     .sort({ scheduledDate: 1 })
     .lean(); // Use lean() to get plain objects
-    
-    console.log('📅 Found upcoming sessions:', upcomingSessions.length);
 
     // Get completed sessions
     const completedSessions = await Session.find({
@@ -177,17 +168,10 @@ router.post('/', async (req, res) => {
 
     // Send email notifications
     try {
-      console.log('📧 Starting email notification process...');
-      console.log('  - Student email:', studentUser.email);
-      console.log('  - Mentor email:', mentorUser.email);
-      console.log('  - Email service available:', !!emailService.transporter);
-      
       // Generate a single Google Meet link for this session
       const meetLink = emailService.generateGoogleMeetLink();
-      console.log('  - Generated meet link:', meetLink);
       
       // Send email to student
-      console.log('📧 Sending student confirmation email...');
       await emailService.sendStudentConfirmation(
         {
           title: title,
@@ -202,7 +186,6 @@ router.post('/', async (req, res) => {
       );
 
       // Send email to mentor with the same meeting link
-      console.log('📧 Sending mentor notification email...');
       await emailService.sendMentorNotification(
         {
           title: title,
@@ -219,15 +202,9 @@ router.post('/', async (req, res) => {
       // Update session with meet link
       session.meetingLink = meetLink;
       await session.save();
-      console.log('✅ All emails sent successfully');
 
     } catch (emailError) {
-      console.error('❌ Error sending emails:', emailError);
-      console.error('Email error details:', {
-        message: emailError.message,
-        code: emailError.code,
-        response: emailError.response
-      });
+      console.error('Error sending emails:', emailError);
       // Don't fail the session creation if email fails
     }
 
@@ -518,35 +495,19 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const sessionId = req.params.id;
-    console.log('🗑️ DELETE /sessions/:id called');
-    console.log('  - Session ID:', sessionId);
-    console.log('  - User making request:', req.user?.id);
-    console.log('  - User role:', req.user?.role);
 
     // Check if session exists
     const session = await Session.findById(sessionId);
-    console.log('  - Session found:', !!session);
     
     if (!session) {
-      console.log('❌ Session not found');
       return res.status(404).json({ message: 'Session not found' });
     }
 
-    console.log('  - Session details:', {
-      id: session._id,
-      title: session.title,
-      student: session.student,
-      mentor: session.mentor
-    });
-
     // Delete the session
-    const deleteResult = await Session.findByIdAndDelete(sessionId);
-    console.log('  - Delete result:', !!deleteResult);
-
-    console.log('✅ Session deleted successfully');
+    await Session.findByIdAndDelete(sessionId);
     res.json({ message: 'Session deleted successfully' });
   } catch (error) {
-    console.error('❌ Delete session error:', error);
+    console.error('Delete session error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
