@@ -3,11 +3,13 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Student = require('../models/Student');
 const Mentor = require('../models/Mentor');
+const PendingRegistration = require('../models/PendingRegistration');
 const { auth } = require('../middleware/auth');
+const emailService = require('../services/emailService');
 
 const router = express.Router();
 
-// Register
+// Register - Send OTP for verification
 router.post('/register', async (req, res) => {
   try {
     const { 
@@ -35,19 +37,110 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Invalid role. Must be student or mentor.' });
     }
 
-    // Check if user already exists
+    // Check if user already exists in User collection
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Create new user
+    // Check if there's a pending registration
+    let pendingRegistration = await PendingRegistration.findOne({ email });
+    
+    if (pendingRegistration) {
+      // Update existing pending registration
+      pendingRegistration.firstName = firstName;
+      pendingRegistration.lastName = lastName;
+      pendingRegistration.password = password;
+      pendingRegistration.role = role || 'student';
+      pendingRegistration.registrationData = {
+        company,
+        position,
+        experience,
+        hourlyRate,
+        expertise,
+        bio,
+        linkedinUrl,
+        grade,
+        school,
+        learningGoals
+      };
+    } else {
+      // Create new pending registration
+      pendingRegistration = new PendingRegistration({
+        firstName,
+        lastName,
+        email,
+        password,
+        role: role || 'student',
+        registrationData: {
+          company,
+          position,
+          experience,
+          hourlyRate,
+          expertise,
+          bio,
+          linkedinUrl,
+          grade,
+          school,
+          learningGoals
+        }
+      });
+    }
+
+    // Generate and send OTP
+    const otp = pendingRegistration.generateOTP();
+    await pendingRegistration.save();
+    
+    // Send OTP email
+    try {
+      await emailService.sendOTPVerification(email, firstName, otp, role || 'student');
+    } catch (error) {
+      console.error('Failed to send OTP email:', error);
+      // Continue with OTP verification flow even if email fails
+    }
+
+    res.status(201).json({
+      message: 'OTP sent to your email for verification',
+      email: email,
+      requiresVerification: true
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+});
+
+// Verify OTP and complete registration
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    // Find pending registration by email
+    const pendingRegistration = await PendingRegistration.findOne({ email });
+    if (!pendingRegistration) {
+      return res.status(404).json({ message: 'No pending registration found for this email' });
+    }
+
+    // Verify OTP
+    const verificationResult = pendingRegistration.verifyOTP(otp);
+    
+    if (!verificationResult.valid) {
+      await pendingRegistration.save(); // Save the updated attempts count
+      return res.status(400).json({ message: verificationResult.message });
+    }
+
+    // OTP is valid, create the actual user record
     const user = new User({
-      firstName,
-      lastName,
-      email,
-      password,
-      role: role || 'student'
+      firstName: pendingRegistration.firstName,
+      lastName: pendingRegistration.lastName,
+      email: pendingRegistration.email,
+      password: pendingRegistration.password,
+      role: pendingRegistration.role,
+      isEmailVerified: true
     });
 
     await user.save();
@@ -55,6 +148,7 @@ router.post('/register', async (req, res) => {
     // Create role-specific record
     let roleRecord = null;
     if (user.role === 'student') {
+      const { grade, school, learningGoals } = pendingRegistration.registrationData || {};
       roleRecord = new Student({
         user: user._id,
         grade: grade || 'Not specified',
@@ -69,6 +163,7 @@ router.post('/register', async (req, res) => {
       });
       await roleRecord.save();
     } else if (user.role === 'mentor') {
+      const { company, position, experience, hourlyRate, expertise, bio, linkedinUrl } = pendingRegistration.registrationData || {};
       roleRecord = new Mentor({
         user: user._id,
         company: company || 'Not specified',
@@ -88,6 +183,9 @@ router.post('/register', async (req, res) => {
       await roleRecord.save();
     }
 
+    // Delete the pending registration
+    await PendingRegistration.findByIdAndDelete(pendingRegistration._id);
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id },
@@ -95,15 +193,16 @@ router.post('/register', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
-    res.status(201).json({
-      message: 'User registered successfully',
+    res.status(200).json({
+      message: 'Email verified successfully. Registration completed!',
       token,
       user: {
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role
+        role: user.role,
+        isEmailVerified: user.isEmailVerified
       },
       roleRecord: roleRecord ? {
         id: roleRecord._id,
@@ -111,8 +210,40 @@ router.post('/register', async (req, res) => {
       } : null
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    console.error('OTP verification error:', error);
+    res.status(500).json({ message: 'Server error during OTP verification' });
+  }
+});
+
+// Resend OTP
+router.post('/resend-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    // Find pending registration by email
+    const pendingRegistration = await PendingRegistration.findOne({ email });
+    if (!pendingRegistration) {
+      return res.status(404).json({ message: 'No pending registration found for this email' });
+    }
+
+    // Generate new OTP
+    const otp = pendingRegistration.generateOTP();
+    await pendingRegistration.save();
+    
+    // Send OTP email
+    await emailService.sendOTPVerification(email, pendingRegistration.firstName, otp, pendingRegistration.role);
+
+    res.status(200).json({
+      message: 'OTP resent to your email',
+      email: email
+    });
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    res.status(500).json({ message: 'Server error while resending OTP' });
   }
 });
 
@@ -333,6 +464,20 @@ router.post('/google-login', async (req, res) => {
   } catch (error) {
     console.error('Google login error:', error);
     res.status(500).json({ message: 'Server error during Google login' });
+  }
+});
+
+// Check if user exists (for testing)
+router.get('/check-user/:email', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email });
+    if (user) {
+      res.json({ exists: true, user: { id: user._id, email: user.email, isEmailVerified: user.isEmailVerified } });
+    } else {
+      res.status(404).json({ exists: false, message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

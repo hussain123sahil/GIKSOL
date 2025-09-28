@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,13 +11,19 @@ import { AuthService } from '../../services/auth';
   templateUrl: './register.html',
   styleUrls: ['./register.scss']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   registerForm!: FormGroup;
+  otpForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
   selectedFile: File | null = null;
   filePreview: string | null = null;
   selectedRole: string | null = null;
+  showOTPForm = false;
+  userEmail = '';
+  otpSent = false;
+  otpResendTimer = 0;
+  otpResendInterval: any;
 
   constructor(
     private fb: FormBuilder,
@@ -25,6 +31,7 @@ export class RegisterComponent {
     private router: Router
   ) {
     this.initializeForm();
+    this.initializeOTPForm();
   }
 
   initializeForm() {
@@ -49,6 +56,12 @@ export class RegisterComponent {
       school: [''],
       learningGoals: ['']
     }, { validators: this.passwordMatchValidator });
+  }
+
+  initializeOTPForm() {
+    this.otpForm = this.fb.group({
+      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+    });
   }
 
   selectRole(role: string): void {
@@ -136,16 +149,27 @@ export class RegisterComponent {
 
       this.authService.register(formData).subscribe({
         next: (response) => {
-          console.log('Registration successful:', response);
+          console.log('Registration response:', response);
           this.isLoading = false;
-          // Navigate directly to login page with success message
-          this.router.navigate(['/login'], { 
-            queryParams: { 
-              registered: 'true', 
-              role: response.user.role,
-              email: response.user.email 
-            } 
-          });
+          
+          if (response.requiresVerification) {
+            // Show OTP form
+            this.userEmail = response.email || formData.email;
+            this.showOTPForm = true;
+            this.otpSent = true;
+            this.startOTPResendTimer();
+            console.log('OTP verification required. Email:', this.userEmail);
+          } else {
+            // Direct registration (shouldn't happen with new flow)
+            console.log('Direct registration detected - this should not happen');
+            this.router.navigate(['/login'], { 
+              queryParams: { 
+                registered: 'true', 
+                role: response.user.role,
+                email: response.user.email 
+              } 
+            });
+          }
         },
         error: (error) => {
           console.error('Registration error:', error);
@@ -194,5 +218,91 @@ export class RegisterComponent {
 
   goToLogin(): void {
     this.router.navigate(['/login']);
+  }
+
+  onOTPSubmit(): void {
+    if (this.otpForm.valid) {
+      this.isLoading = true;
+      this.errorMessage = '';
+
+      const otp = this.otpForm.get('otp')?.value;
+
+      this.authService.verifyOTP(this.userEmail, otp).subscribe({
+        next: (response) => {
+          console.log('OTP verification successful:', response);
+          this.isLoading = false;
+          this.clearOTPTimer();
+          
+          // Navigate to login page after successful verification
+          this.router.navigate(['/login'], { 
+            queryParams: { 
+              verified: 'true',
+              role: response.user.role,
+              email: response.user.email,
+              message: 'Registration completed successfully! Please login to continue.'
+            } 
+          });
+        },
+        error: (error) => {
+          console.error('OTP verification error:', error);
+          this.isLoading = false;
+          this.errorMessage = error.error?.message || 'OTP verification failed. Please try again.';
+        }
+      });
+    } else {
+      this.otpForm.markAllAsTouched();
+      this.errorMessage = 'Please enter a valid 6-digit OTP.';
+    }
+  }
+
+  resendOTP(): void {
+    if (this.otpResendTimer > 0) return;
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.resendOTP(this.userEmail).subscribe({
+      next: (response) => {
+        console.log('OTP resent successfully:', response);
+        this.isLoading = false;
+        this.otpSent = true;
+        this.startOTPResendTimer();
+        this.errorMessage = '';
+      },
+      error: (error) => {
+        console.error('Resend OTP error:', error);
+        this.isLoading = false;
+        this.errorMessage = error.error?.message || 'Failed to resend OTP. Please try again.';
+      }
+    });
+  }
+
+  startOTPResendTimer(): void {
+    this.otpResendTimer = 60; // 60 seconds
+    this.otpResendInterval = setInterval(() => {
+      this.otpResendTimer--;
+      if (this.otpResendTimer <= 0) {
+        this.clearOTPTimer();
+      }
+    }, 1000);
+  }
+
+  clearOTPTimer(): void {
+    if (this.otpResendInterval) {
+      clearInterval(this.otpResendInterval);
+      this.otpResendInterval = null;
+    }
+    this.otpResendTimer = 0;
+  }
+
+  goBackToRegistration(): void {
+    this.showOTPForm = false;
+    this.otpForm.reset();
+    this.errorMessage = '';
+    this.clearOTPTimer();
+  }
+
+  ngOnDestroy(): void {
+    this.clearOTPTimer();
   }
 }
