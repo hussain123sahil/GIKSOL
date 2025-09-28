@@ -581,6 +581,34 @@
           gap: 1rem;
           justify-content: flex-end;
           margin-top: 2rem;
+
+          .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+
+            &.btn-secondary {
+              background: #6c757d;
+              color: white;
+
+              &:hover {
+                background: #5a6268;
+              }
+            }
+
+            &.btn-danger {
+              background: #dc3545 !important;
+              color: white !important;
+
+              &:hover {
+                background: #c82333 !important;
+              }
+            }
+          }
         }
 
         .warning-text {
