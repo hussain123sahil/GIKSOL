@@ -82,7 +82,7 @@
               </td>
               <td>
                 <div class="goals-tags">
-                  <span class="goal-tag" *ngFor="let goal of (student.profile?.learningGoals || []).slice(0, 2)">
+                  <span class="goal-tag" *ngFor="let goal of student.profile.learningGoals.slice(0, 2)">
                     {{ goal }}
                   </span>
                   <span class="more-tag" *ngIf="(student.profile?.learningGoals || []).length > 2">
