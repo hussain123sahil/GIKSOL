@@ -11,6 +11,11 @@ const fs = require('fs');
 
 class EmailService {
   constructor() {
+    console.log('📧 Initializing EmailService...');
+    console.log('  - Nodemailer available:', !!nodemailer);
+    console.log('  - EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
+    console.log('  - EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET');
+    
     if (nodemailer) {
       // Email configuration - you'll need to set these in your .env file
       this.transporter = nodemailer.createTransport({
@@ -22,8 +27,10 @@ class EmailService {
           pass: process.env.EMAIL_PASS // Your app password
         }
       });
+      console.log('✅ Email transporter created successfully');
     } else {
       this.transporter = null;
+      console.log('❌ Email transporter not created - nodemailer not available');
     }
   }
 

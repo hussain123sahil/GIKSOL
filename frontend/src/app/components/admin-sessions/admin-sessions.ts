@@ -68,16 +68,22 @@ export class AdminSessionsComponent implements OnInit {
 
   loadSessions(): void {
     this.isLoading = true;
+    console.log('📋 Loading sessions...');
     this.adminService.getSessions(this.currentPage, this.pageSize, this.statusFilter)
       .subscribe({
         next: (response) => {
+          console.log('📋 Sessions loaded:', response);
+          console.log('  - Number of sessions:', response.sessions?.length);
+          console.log('  - First session ID:', response.sessions?.[0]?.id);
+          console.log('  - First session type:', typeof response.sessions?.[0]?.id);
+          
           this.sessions = response.sessions;
           this.totalItems = response.pagination.totalSessions || 0;
           this.totalPages = Math.ceil(this.totalItems / this.pageSize);
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading sessions:', error);
+          console.error('❌ Error loading sessions:', error);
           this.isLoading = false;
         }
       });
@@ -177,6 +183,11 @@ export class AdminSessionsComponent implements OnInit {
   }
 
   openDeleteModal(session: Session): void {
+    console.log('🔍 Opening delete modal for session:', session);
+    console.log('  - Session ID:', session.id);
+    console.log('  - Session title:', session.title);
+    console.log('  - Session type:', typeof session.id);
+    
     this.selectedSession = session;
     this.showDeleteModal = true;
   }
@@ -187,15 +198,31 @@ export class AdminSessionsComponent implements OnInit {
   }
 
   deleteSession(): void {
-    if (!this.selectedSession) return;
+    console.log('=== DELETE SESSION DEBUG ===');
+    console.log('Selected session:', this.selectedSession);
+    console.log('Selected session ID:', this.selectedSession?.id);
+    console.log('Selected session type:', typeof this.selectedSession?.id);
+    
+    if (!this.selectedSession) {
+      console.error('No session selected for deletion');
+      return;
+    }
 
+    console.log('Calling adminService.deleteSession with ID:', this.selectedSession.id);
     this.adminService.deleteSession(this.selectedSession.id)
       .subscribe({
-        next: () => {
+        next: (response) => {
+          console.log('✅ Session deleted successfully:', response);
           this.closeDeleteModal();
           this.loadSessions();
         },
-        error: (error) => console.error('Error deleting session:', error)
+        error: (error) => {
+          console.error('❌ Error deleting session:', error);
+          console.error('Error status:', error.status);
+          console.error('Error message:', error.message);
+          console.error('Error body:', error.error);
+          console.error('Session ID was:', this.selectedSession?.id);
+        }
       });
   }
 

@@ -110,6 +110,7 @@ export interface PaginationInfo {
 })
 export class AdminService {
   private apiUrl = 'http://localhost:5000/api/admin';
+  private baseUrl = 'http://localhost:5000/api';
 
   constructor(
     private http: HttpClient,
@@ -225,19 +226,25 @@ export class AdminService {
   }
 
   createSession(sessionData: any): Observable<{ message: string; session: Session }> {
-    return this.http.post<{ message: string; session: Session }>(`${this.apiUrl}/sessions`, sessionData, {
+    return this.http.post<{ message: string; session: Session }>(`${this.baseUrl}/sessions`, sessionData, {
       headers: this.getHeaders()
     });
   }
 
   updateSession(id: string, sessionData: any): Observable<{ message: string; session: Session }> {
-    return this.http.put<{ message: string; session: Session }>(`${this.apiUrl}/sessions/${id}`, sessionData, {
+    return this.http.put<{ message: string; session: Session }>(`${this.baseUrl}/sessions/${id}`, sessionData, {
       headers: this.getHeaders()
     });
   }
 
   deleteSession(id: string): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/sessions/${id}`, {
+    const url = `${this.baseUrl}/sessions/${id}`;
+    console.log('🔗 AdminService.deleteSession called with:');
+    console.log('  - ID:', id);
+    console.log('  - URL:', url);
+    console.log('  - Headers:', this.getHeaders());
+    
+    return this.http.delete<{ message: string }>(url, {
       headers: this.getHeaders()
     });
   }
