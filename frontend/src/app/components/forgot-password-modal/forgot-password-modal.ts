@@ -23,7 +23,10 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
   resendCooldown = 0;
+  private isTyping = false;
   private destroy$ = new Subject<void>();
+  private lastProcessedValue = '';
+  private lastProcessedIndex = -1;
 
   emailForm: FormGroup;
   otpForm: FormGroup;
@@ -50,6 +53,10 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Set up OTP input handling
     this.setupOtpInputs();
+  }
+
+  trackByIndex(index: number, item: any): number {
+    return index;
   }
 
   ngOnDestroy(): void {
@@ -106,6 +113,10 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
             this.successMessage = 'Verification code sent to your email!';
             this.currentStep = 2;
             this.startResendCooldown();
+            // Focus first OTP input after a short delay
+            setTimeout(() => {
+              this.focusFirstOtpInput();
+            }, 100);
           },
           error: (error) => {
             this.isLoading = false;
@@ -116,29 +127,54 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
     }
   }
 
+  private focusFirstOtpInput(): void {
+    const firstInput = document.querySelector('.otp-input') as HTMLInputElement;
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }
+
   onOtpInput(event: any, index: number): void {
     const input = event.target;
-    const value = input.value;
+    let value = input.value;
 
-    // Only allow digits
-    if (!/^\d$/.test(value) && value !== '') {
-      input.value = '';
+    // Prevent duplicate processing by checking if this is the same value and index
+    if (value === this.lastProcessedValue && index === this.lastProcessedIndex) {
       return;
     }
 
+    // Only allow single digit
+    if (!/^\d$/.test(value)) {
+      this.otpDigits[index] = '';
+      this.updateOtpFormControl();
+      this.lastProcessedValue = '';
+      this.lastProcessedIndex = index;
+      return;
+    }
+
+    // Update the digit
     this.otpDigits[index] = value;
+    this.lastProcessedValue = value;
+    this.lastProcessedIndex = index;
+
+    // Update form control
+    this.updateOtpFormControl();
 
     // Move to next input
     if (value && index < this.otpDigits.length - 1) {
-      const nextInput = input.parentElement.children[index + 1];
+      const nextInput = input.parentElement?.children[index + 1] as HTMLInputElement;
       if (nextInput) {
         nextInput.focus();
       }
     }
-
-    // Update form control
-    this.updateOtpFormControl();
   }
+
+  onOtpFocus(event: any, index: number): void {
+    const input = event.target;
+    // Select all text when focusing
+    input.select();
+  }
+
 
   onOtpKeydown(event: KeyboardEvent, index: number): void {
     const input = event.target as HTMLInputElement;
@@ -169,34 +205,54 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
     }
   }
 
+
   onOtpPaste(event: ClipboardEvent): void {
     event.preventDefault();
+    
     const pastedData = event.clipboardData?.getData('text') || '';
     const digits = pastedData.replace(/\D/g, '').slice(0, 6);
 
+    // Update all digits
     for (let i = 0; i < this.otpDigits.length; i++) {
       this.otpDigits[i] = digits[i] || '';
     }
 
-    // Focus the last filled input or the first empty one
-    const lastFilledIndex = Math.min(digits.length - 1, this.otpDigits.length - 1);
-    const nextEmptyIndex = this.otpDigits.findIndex(digit => !digit);
-    const focusIndex = nextEmptyIndex !== -1 ? nextEmptyIndex : lastFilledIndex;
-
-    const inputs = document.querySelectorAll('.otp-input');
-    if (inputs[focusIndex]) {
-      (inputs[focusIndex] as HTMLInputElement).focus();
-    }
+    // Reset tracking variables
+    this.lastProcessedValue = '';
+    this.lastProcessedIndex = -1;
 
     this.updateOtpFormControl();
+
+    // Focus the last filled input
+    const lastFilledIndex = Math.min(digits.length - 1, this.otpDigits.length - 1);
+    const inputs = document.querySelectorAll('.otp-input');
+    if (inputs[lastFilledIndex]) {
+      (inputs[lastFilledIndex] as HTMLInputElement).focus();
+    }
   }
 
   private updateOtpFormControl(): void {
     const otpValue = this.otpDigits.join('');
     this.otpForm.patchValue({ otp: otpValue });
+    
+    // Auto-submit when all 6 digits are entered and user is not actively typing
+    if (otpValue.length === 6 && !this.isTyping) {
+      setTimeout(() => {
+        if (this.otpForm.valid && !this.isLoading) {
+          this.verifyOTP();
+        }
+      }, 300);
+    }
   }
 
   verifyOTP(): void {
+    console.log('Verifying OTP...', {
+      formValid: this.otpForm.valid,
+      otpValue: this.otpForm.get('otp')?.value,
+      otpDigits: this.otpDigits,
+      userEmail: this.userEmail
+    });
+
     if (this.otpForm.valid) {
       this.isLoading = true;
       this.errorMessage = '';
@@ -208,16 +264,20 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
+            console.log('OTP verification successful:', response);
             this.isLoading = false;
             this.successMessage = 'OTP verified successfully!';
             this.currentStep = 3;
           },
           error: (error) => {
-            this.isLoading = false;
             console.error('Verify OTP error:', error);
+            this.isLoading = false;
             this.errorMessage = error.error?.message || 'Invalid OTP. Please try again.';
           }
         });
+    } else {
+      console.log('Form validation failed:', this.otpForm.errors);
+      this.errorMessage = 'Please enter a valid 6-digit OTP.';
     }
   }
 
@@ -236,8 +296,7 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
           this.successMessage = 'New verification code sent!';
           this.startResendCooldown();
           // Reset OTP inputs
-          this.otpDigits = Array(6).fill('');
-          this.otpForm.patchValue({ otp: '' });
+          this.clearOtpInputs();
         },
         error: (error) => {
           this.isLoading = false;
@@ -245,6 +304,23 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
           this.errorMessage = error.error?.message || 'Failed to resend verification code. Please try again.';
         }
       });
+  }
+
+  private clearOtpInputs(): void {
+    this.otpDigits = Array(6).fill('');
+    this.otpForm.patchValue({ otp: '' });
+    this.otpForm.markAsUntouched();
+    this.otpForm.markAsPristine();
+    
+    // Reset tracking variables
+    this.lastProcessedValue = '';
+    this.lastProcessedIndex = -1;
+    
+    // Clear all input values
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach((input) => {
+      (input as HTMLInputElement).value = '';
+    });
   }
 
   private startResendCooldown(): void {
