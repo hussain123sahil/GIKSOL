@@ -27,6 +27,7 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private lastProcessedValue = '';
   private lastProcessedIndex = -1;
+  private verifiedOTP = ''; // Store the verified OTP
 
   emailForm: FormGroup;
   otpForm: FormGroup;
@@ -81,6 +82,16 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
   }
 
   closeModal(): void {
+    // Reset all state when closing modal
+    this.currentStep = 1;
+    this.userEmail = '';
+    this.verifiedOTP = '';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.clearOtpInputs();
+    this.emailForm.reset();
+    this.otpForm.reset();
+    this.passwordForm.reset();
     this.close.emit();
   }
 
@@ -104,6 +115,9 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
 
       const email = this.emailForm.get('email')?.value;
       this.userEmail = email;
+      
+      // Clear any previous verified OTP when starting new flow
+      this.verifiedOTP = '';
 
       this.authService.forgotPassword(email)
         .pipe(takeUntil(this.destroy$))
@@ -267,6 +281,7 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
             console.log('OTP verification successful:', response);
             this.isLoading = false;
             this.successMessage = 'OTP verified successfully!';
+            this.verifiedOTP = otp; // Store the verified OTP
             this.currentStep = 3;
           },
           error: (error) => {
@@ -340,14 +355,23 @@ export class ForgotPasswordModalComponent implements OnInit, OnDestroy {
       this.successMessage = '';
 
       const { newPassword, confirmPassword } = this.passwordForm.value;
-      const otp = this.otpForm.get('otp')?.value;
+      const otp = this.verifiedOTP || this.otpForm.get('otp')?.value; // Use verified OTP if available
+
+      console.log('Reset password - OTP being used:', otp);
+      console.log('Reset password - Verified OTP stored:', this.verifiedOTP);
+      console.log('Reset password - Form OTP value:', this.otpForm.get('otp')?.value);
 
       this.authService.resetPassword(this.userEmail, otp, newPassword, confirmPassword)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
             this.isLoading = false;
+            this.successMessage = 'Password reset successfully!';
             this.currentStep = 4;
+            // Clear the verified OTP and reset forms after successful reset
+            this.verifiedOTP = '';
+            this.clearOtpInputs();
+            this.passwordForm.reset();
           },
           error: (error) => {
             this.isLoading = false;

@@ -432,10 +432,14 @@ router.post('/reset-password', async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
 
-    // Find password reset OTP by email
+    // Find password reset OTP by email (allow recently used OTPs within 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     const passwordResetOTP = await PasswordResetOTP.findOne({ 
       email, 
-      isUsed: false,
+      $or: [
+        { isUsed: false },
+        { isUsed: true, updatedAt: { $gt: fiveMinutesAgo } }
+      ],
       'otp.expiresAt': { $gt: new Date() }
     });
     
@@ -443,8 +447,18 @@ router.post('/reset-password', async (req, res) => {
       return res.status(404).json({ message: 'No valid OTP found for this email' });
     }
 
-    // Verify OTP
-    const verificationResult = passwordResetOTP.verifyOTP(otp);
+    // For already verified OTPs, just check if the OTP code matches
+    let verificationResult;
+    if (passwordResetOTP.isUsed) {
+      // OTP was already verified, just check if it matches
+      if (passwordResetOTP.otp.code !== otp) {
+        return res.status(400).json({ message: 'Invalid OTP' });
+      }
+      verificationResult = { valid: true, message: 'OTP already verified' };
+    } else {
+      // OTP not yet verified, verify it now
+      verificationResult = passwordResetOTP.verifyOTP(otp);
+    }
     
     if (!verificationResult.valid) {
       await passwordResetOTP.save(); // Save the updated attempts count
@@ -461,8 +475,10 @@ router.post('/reset-password', async (req, res) => {
     user.password = newPassword;
     await user.save();
 
-    // Mark OTP as used
-    await passwordResetOTP.save();
+    // Delete the used OTP and clean up any other unused OTPs for this email
+    await PasswordResetOTP.deleteMany({ 
+      email: email
+    });
 
     res.json({ 
       message: 'Password reset successfully',

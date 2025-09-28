@@ -65,9 +65,6 @@ passwordResetOTPSchema.methods.verifyOTP = function(enteredOTP) {
 
   // OTP is valid, mark as used
   this.isUsed = true;
-  this.otp.code = null;
-  this.otp.expiresAt = null;
-  this.otp.attempts = 0;
   
   return { valid: true, message: 'OTP verified successfully' };
 };
