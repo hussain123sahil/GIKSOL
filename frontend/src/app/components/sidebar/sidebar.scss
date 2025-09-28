@@ -1,82 +1,150 @@
 .sidebar {
-	width: 240px;
-	background: #a8c6e5;
-	min-height: 100vh;
-	position: sticky;
-	top: 0;
-	padding: 16px 12px;
-	box-sizing: border-box;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+  color: #1565c0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  border-right: 1px solid #e9ecef;
+
+  .brand {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba(21, 101, 192, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .brand-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1565c0;
+    }
+  }
+
+  .nav {
+    flex: 1;
+    padding: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .nav-group {
+      padding: 0 1.5rem;
+
+      &.bottom {
+        margin-top: auto;
+        margin-bottom: 4rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(21, 101, 192, 0.1);
+      }
+
+      .nav-group-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgba(21, 101, 192, 0.7);
+        margin-bottom: 1rem;
+      }
+
+      .nav-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.25rem;
+        background: none;
+        border: none;
+        border-radius: 8px;
+        color: #1565c0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+
+        &:hover {
+          background: rgba(21, 101, 192, 0.1);
+          color: #0d47a1;
+          transform: translateX(4px);
+        }
+
+        &.active {
+          background: rgba(21, 101, 192, 0.2);
+          color: #0d47a1;
+          font-weight: 600;
+        }
+
+        &.danger {
+          color: #d32f2f;
+
+          &:hover {
+            background: rgba(211, 47, 47, 0.1);
+            color: #b71c1c;
+          }
+        }
+
+        .nav-icon {
+          font-size: 1.1rem;
+          width: 20px;
+          text-align: center;
+        }
+
+        .nav-label {
+          flex: 1;
+        }
+      }
+    }
+  }
 }
 
-.brand {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 10px 8px;
-	margin-bottom: 16px;
-	background: #7fb0de;
-	border-radius: 8px;
-}
+// Responsive design
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    flex-direction: row;
+    overflow-x: auto;
 
-.brand-logo {
-	width: 36px;
-	height: 36px;
-	object-fit: contain;
-}
+    .brand {
+      padding: 1rem;
+      min-width: 200px;
+    }
 
-.brand-name {
-	font-weight: 700;
-	color: #0f3057;
-}
+    .nav {
+      flex-direction: row;
+      padding: 1rem 0;
+      gap: 1rem;
 
-.nav {
-	display: flex;
-	flex-direction: column;
-	height: calc(100vh - 96px);
-}
+      .nav-group {
+        padding: 0 1rem;
+        min-width: 200px;
 
-.nav-group-title {
-	font-weight: 700;
-	background: #ffffff;
-	border-radius: 6px;
-	padding: 8px 10px;
-	margin: 6px 0 10px 0;
-	color: #1a202c;
-}
+        &.bottom {
+          margin-top: 0;
+          padding-top: 0;
+          border-top: none;
+          border-left: 1px solid rgba(21, 101, 192, 0.1);
+        }
 
-.nav-item {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	width: 100%;
-	padding: 10px 12px;
-	border: none;
-	background: #d9e6f3;
-	border-radius: 6px;
-	cursor: pointer;
-	text-align: left;
-	margin-bottom: 10px;
-	color: #1a202c;
-}
-
-.nav-item:hover {
-	background: #cfe0f0;
-}
-
-.nav-icon {
-	width: 24px;
-	text-align: center;
-}
-
-.nav-group.bottom {
-	margin-top: auto;
-}
-
-.nav-item.danger {
-	background: #ffe7e7;
-	color: #b02a2a;
-}
-
-.nav-item.danger:hover {
-	background: #ffdcdc;
+        .nav-group-title {
+          display: none;
+        }
+      }
+    }
+  }
 }
