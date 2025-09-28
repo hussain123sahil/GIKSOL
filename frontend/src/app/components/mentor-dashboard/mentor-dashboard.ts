@@ -121,13 +121,17 @@ export class MentorDashboardComponent implements OnInit {
       return;
     }
 
-    this.http.get(`${apiUrl}/${mentorId}`).subscribe({
+    this.http.get(`${apiUrl}/${mentorId}`, {
+      headers: this.authService.getAuthHeaders()
+    }).subscribe({
       next: (response: any) => {
+        console.log('Mentor dashboard response:', response);
+        console.log('Mentees data:', response.mentees);
         this.mentorInfo = response.mentor;
         this.quickStats = response.quickStats;
         this.upcomingSessions = response.upcomingSessions;
         this.completedSessions = response.completedSessions;
-        this.mentees = response.mentees;
+        this.mentees = response.mentees || [];
         this.connectionRequests = response.connectionRequests;
         this.isLoading = false;
       },

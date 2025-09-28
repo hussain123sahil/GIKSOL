@@ -66,7 +66,9 @@ export class MentorSessionsComponent implements OnInit {
       return;
     }
 
-    this.http.get(`${apiUrl}/${mentorId}`).subscribe({
+    this.http.get(`${apiUrl}/${mentorId}`, {
+      headers: this.authService.getAuthHeaders()
+    }).subscribe({
       next: (response: any) => {
         this.upcomingSessions = response.upcomingSessions || [];
         this.completedSessions = response.completedSessions || [];

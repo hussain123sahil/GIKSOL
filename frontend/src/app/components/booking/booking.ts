@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
+import { AuthService } from '../../services/auth';
 
 interface Mentor {
   id: string;
@@ -52,7 +53,8 @@ export class BookingComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private mentorService: MentorService,
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -164,7 +166,9 @@ export class BookingComponent implements OnInit {
       };
 
       // Send booking request to backend
-      this.http.post('http://localhost:5000/api/sessions', sessionData).subscribe({
+      this.http.post('http://localhost:5000/api/sessions', sessionData, {
+        headers: this.authService.getAuthHeaders()
+      }).subscribe({
         next: (response: any) => {
           this.isSubmitting = false;
           this.bookingConfirmed = true;

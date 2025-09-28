@@ -6,7 +6,122 @@ const Student = require('../models/Student');
 const Connection = require('../models/Connection');
 const emailService = require('../services/emailService');
 
+const { auth } = require('../middleware/auth');
+
 const router = express.Router();
+
+// Dashboard route (no auth required - just reading data)
+router.get('/dashboard/:studentId', async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    
+    // Get student info
+    const student = await Student.findOne({ user: studentId })
+      .populate('user', 'firstName lastName email profilePicture');
+    
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Get upcoming sessions
+    const upcomingSessions = await Session.find({
+      student: studentId,
+      status: { $in: ['scheduled', 'upcoming'] },
+      scheduledDate: { $gte: new Date() },
+      isActive: true
+    })
+    .populate('mentor', 'firstName lastName email profilePicture')
+    .sort({ scheduledDate: 1 })
+    .lean(); // Use lean() to get plain objects
+
+    // Get completed sessions
+    const completedSessions = await Session.find({
+      student: studentId,
+      status: 'completed',
+      isActive: true
+    })
+    .populate('mentor', 'firstName lastName email profilePicture')
+    .sort({ scheduledDate: -1 })
+    .limit(10)
+    .lean(); // Use lean() to get plain objects
+
+    // Get connections (mentors from sessions)
+    const mentorIds = [...new Set([
+      ...upcomingSessions.map(s => s.mentor._id),
+      ...completedSessions.map(s => s.mentor._id)
+    ])];
+    
+    const connections = await User.find({
+      _id: { $in: mentorIds }
+    }).select('firstName lastName email profilePicture');
+
+    // Calculate quick stats
+    const quickStats = {
+      upcomingSessions: upcomingSessions.length,
+      completedSessions: completedSessions.length,
+      totalConnections: connections.length,
+      totalSessions: await Session.countDocuments({ student: studentId, isActive: true }),
+      averageRating: await Session.aggregate([
+        { $match: { student: studentId, status: 'completed', rating: { $exists: true } } },
+        { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+      ]).then(result => result[0]?.avgRating || 0)
+    };
+
+    // Format sessions for frontend
+    const formatSessions = (sessions) => {
+      return sessions.map(session => {
+        const scheduledDate = new Date(session.scheduledDate);
+        const formattedDate = scheduledDate.toISOString().split('T')[0];
+        const formattedTime = scheduledDate.toTimeString().split(' ')[0].substring(0, 5);
+        
+        return {
+          id: session._id,
+          mentorId: session.mentor._id,
+          mentorName: `${session.mentor.firstName} ${session.mentor.lastName}`,
+          mentorCompany: 'Tech Company', // We'll get this from Mentor model later
+          title: session.title,
+          date: formattedDate,
+          time: formattedTime,
+          duration: session.duration,
+          status: session.status,
+          sessionType: session.sessionType,
+          notes: session.notes,
+          rating: session.rating,
+          meetingLink: session.meetingLink
+        };
+      });
+    };
+
+    res.json({
+      student: {
+        id: student.user._id,
+        firstName: student.user.firstName,
+        lastName: student.user.lastName,
+        email: student.user.email,
+        profilePicture: student.user.profilePicture
+      },
+      quickStats,
+      upcomingSessions: formatSessions(upcomingSessions),
+      completedSessions: formatSessions(completedSessions),
+      connections: connections.map(conn => ({
+        id: conn._id,
+        mentorId: conn._id,
+        mentorName: `${conn.firstName} ${conn.lastName}`,
+        mentorCompany: 'Tech Company', // We'll get this from Mentor model later
+        status: 'accepted',
+        requestedAt: new Date().toISOString(),
+        respondedAt: new Date().toISOString()
+      }))
+    });
+
+  } catch (error) {
+    console.error('Get dashboard data error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Apply authentication to all other routes
+router.use(auth);
 
 // Create a new session
 router.post('/', async (req, res) => {
@@ -100,108 +215,6 @@ router.post('/', async (req, res) => {
 
   } catch (error) {
     console.error('Create session error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Get student dashboard data
-router.get('/dashboard/:studentId', async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    
-    // Get student info
-    const student = await Student.findOne({ user: studentId })
-      .populate('user', 'firstName lastName email profilePicture');
-    
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    // Get upcoming sessions
-    const upcomingSessions = await Session.find({
-      student: studentId,
-      status: { $in: ['scheduled', 'upcoming'] },
-      scheduledDate: { $gte: new Date() },
-      isActive: true
-    })
-    .populate('mentor', 'firstName lastName email profilePicture')
-    .sort({ scheduledDate: 1 });
-
-    // Get completed sessions
-    const completedSessions = await Session.find({
-      student: studentId,
-      status: 'completed',
-      isActive: true
-    })
-    .populate('mentor', 'firstName lastName email profilePicture')
-    .sort({ scheduledDate: -1 })
-    .limit(10);
-
-    // Get connections (mentors from sessions)
-    const mentorIds = [...new Set([
-      ...upcomingSessions.map(s => s.mentor._id),
-      ...completedSessions.map(s => s.mentor._id)
-    ])];
-    
-    const connections = await User.find({
-      _id: { $in: mentorIds }
-    }).select('firstName lastName email profilePicture');
-
-    // Calculate quick stats
-    const quickStats = {
-      upcomingSessions: upcomingSessions.length,
-      completedSessions: completedSessions.length,
-      totalConnections: connections.length,
-      totalSessions: await Session.countDocuments({ student: studentId, isActive: true }),
-      averageRating: await Session.aggregate([
-        { $match: { student: studentId, status: 'completed', rating: { $exists: true } } },
-        { $group: { _id: null, avgRating: { $avg: '$rating' } } }
-      ]).then(result => result[0]?.avgRating || 0)
-    };
-
-    // Format sessions for frontend
-    const formatSessions = (sessions) => {
-      return sessions.map(session => ({
-        id: session._id,
-        mentorId: session.mentor._id,
-        mentorName: `${session.mentor.firstName} ${session.mentor.lastName}`,
-        mentorCompany: 'Tech Company', // We'll get this from Mentor model later
-        title: session.title,
-        date: session.formattedDate,
-        time: session.formattedTime,
-        duration: session.duration,
-        status: session.status,
-        sessionType: session.sessionType,
-        notes: session.notes,
-        rating: session.rating,
-        meetingLink: session.meetingLink
-      }));
-    };
-
-    res.json({
-      student: {
-        id: student.user._id,
-        firstName: student.user.firstName,
-        lastName: student.user.lastName,
-        email: student.user.email,
-        profilePicture: student.user.profilePicture
-      },
-      quickStats,
-      upcomingSessions: formatSessions(upcomingSessions),
-      completedSessions: formatSessions(completedSessions),
-      connections: connections.map(conn => ({
-        id: conn._id,
-        mentorId: conn._id,
-        mentorName: `${conn.firstName} ${conn.lastName}`,
-        mentorCompany: 'Tech Company', // We'll get this from Mentor model later
-        status: 'accepted',
-        requestedAt: new Date().toISOString(),
-        respondedAt: new Date().toISOString()
-      }))
-    });
-
-  } catch (error) {
-    console.error('Get dashboard data error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -356,7 +369,8 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
       isActive: true
     })
     .populate('student', 'firstName lastName email profilePicture')
-    .sort({ scheduledDate: 1 });
+    .sort({ scheduledDate: 1 })
+    .lean();
 
     // Get completed sessions
     const completedSessions = await Session.find({
@@ -366,7 +380,8 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
     })
     .populate('student', 'firstName lastName email profilePicture')
     .sort({ scheduledDate: -1 })
-    .limit(10);
+    .limit(10)
+    .lean();
 
     // Get connection requests
     const connectionRequests = await Connection.find({
@@ -377,13 +392,27 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
     .populate('student', 'firstName lastName email profilePicture')
     .sort({ requestedAt: -1 });
 
-    // Get active mentees (students with accepted connections)
+    // Get active mentees (students with accepted connections OR students with sessions)
     const activeConnections = await Connection.find({
       mentor: userId,
       status: 'accepted',
       isActive: true
     })
     .populate('student', 'firstName lastName email profilePicture');
+
+    // Get students who have sessions with this mentor (even without formal connections)
+    const studentsWithSessions = await Session.find({
+      mentor: userId,
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture')
+    .distinct('student');
+
+    // Combine both lists and remove duplicates
+    const allActiveMentees = [...new Set([
+      ...activeConnections.map(conn => conn.student._id.toString()),
+      ...studentsWithSessions.map(student => student._id.toString())
+    ])];
 
     // Calculate quick stats
     const totalSessions = await Session.countDocuments({ mentor: userId, isActive: true });
@@ -393,7 +422,7 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
     ]);
 
     const quickStats = {
-      activeMentees: activeConnections.length,
+      activeMentees: allActiveMentees.length,
       upcomingSessions: upcomingSessions.length,
       completedSessions: completedSessions.length,
       pendingRequests: connectionRequests.length,
@@ -403,21 +432,27 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
 
     // Format sessions for frontend
     const formatSessions = (sessions) => {
-      return sessions.map(session => ({
-        id: session._id,
-        studentId: session.student._id,
-        studentName: `${session.student.firstName} ${session.student.lastName}`,
-        studentEmail: session.student.email,
-        title: session.title,
-        date: session.formattedDate,
-        time: session.formattedTime,
-        duration: session.duration,
-        status: session.status,
-        sessionType: session.sessionType,
-        notes: session.notes,
-        rating: session.rating,
-        meetingLink: session.meetingLink
-      }));
+      return sessions.map(session => {
+        const scheduledDate = new Date(session.scheduledDate);
+        const formattedDate = scheduledDate.toISOString().split('T')[0];
+        const formattedTime = scheduledDate.toTimeString().split(' ')[0].substring(0, 5);
+        
+        return {
+          id: session._id,
+          studentId: session.student._id,
+          studentName: `${session.student.firstName} ${session.student.lastName}`,
+          studentEmail: session.student.email,
+          title: session.title,
+          date: formattedDate,
+          time: formattedTime,
+          duration: session.duration,
+          status: session.status,
+          sessionType: session.sessionType,
+          notes: session.notes,
+          rating: session.rating,
+          meetingLink: session.meetingLink
+        };
+      });
     };
 
     // Format mentees for frontend
@@ -435,6 +470,49 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
         lastSessionDate: null
       }));
     };
+
+    // Get all students who have sessions with this mentor for mentees list
+    const allStudentsWithSessions = await Session.find({
+      mentor: userId,
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture')
+    .lean();
+
+    // Group sessions by student and create mentee entries
+    const studentSessionsMap = new Map();
+    allStudentsWithSessions.forEach(session => {
+      const studentId = session.student._id.toString();
+      if (!studentSessionsMap.has(studentId)) {
+        studentSessionsMap.set(studentId, {
+          student: session.student,
+          sessions: []
+        });
+      }
+      studentSessionsMap.get(studentId).sessions.push(session);
+    });
+
+    // Format all mentees (from connections + from sessions)
+    const allMentees = [
+      ...formatMentees(activeConnections),
+      ...Array.from(studentSessionsMap.values()).map(({ student, sessions }) => ({
+        id: `session-${student._id}`, // Use a different ID format for session-based mentees
+        studentId: student._id,
+        studentName: `${student.firstName} ${student.lastName}`,
+        studentEmail: student.email,
+        school: 'University',
+        grade: 'Undergraduate',
+        learningGoals: ['Programming', 'Career Guidance'],
+        joinedDate: sessions[0].createdAt, // Use first session date
+        totalSessions: sessions.length,
+        lastSessionDate: sessions.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate))[0].scheduledDate
+      }))
+    ];
+
+    // Remove duplicates based on studentId
+    const uniqueMentees = allMentees.filter((mentee, index, self) => 
+      index === self.findIndex(m => m.studentId === mentee.studentId)
+    );
 
     // Format connection requests for frontend
     const formatConnectionRequests = (requests) => {
@@ -466,14 +544,40 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
       quickStats,
       upcomingSessions: formatSessions(upcomingSessions),
       completedSessions: formatSessions(completedSessions),
-      mentees: formatMentees(activeConnections),
+      mentees: uniqueMentees,
       connectionRequests: formatConnectionRequests(connectionRequests)
     };
+
+    console.log('Mentor dashboard response for user:', userId);
+    console.log('Active mentees count:', allActiveMentees.length);
+    console.log('Unique mentees:', uniqueMentees.length);
+    console.log('Mentees data:', uniqueMentees);
 
     res.json(response);
 
   } catch (error) {
     console.error('Get mentor dashboard data error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete a session
+router.delete('/:id', async (req, res) => {
+  try {
+    const sessionId = req.params.id;
+
+    // Check if session exists
+    const session = await Session.findById(sessionId);
+    
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Delete the session
+    await Session.findByIdAndDelete(sessionId);
+    res.json({ message: 'Session deleted successfully' });
+  } catch (error) {
+    console.error('Delete session error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

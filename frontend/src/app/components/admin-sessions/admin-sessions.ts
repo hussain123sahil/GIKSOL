@@ -187,15 +187,19 @@ export class AdminSessionsComponent implements OnInit {
   }
 
   deleteSession(): void {
-    if (!this.selectedSession) return;
+    if (!this.selectedSession) {
+      return;
+    }
 
     this.adminService.deleteSession(this.selectedSession.id)
       .subscribe({
-        next: () => {
+        next: (response) => {
           this.closeDeleteModal();
           this.loadSessions();
         },
-        error: (error) => console.error('Error deleting session:', error)
+        error: (error) => {
+          console.error('Error deleting session:', error);
+        }
       });
   }
 

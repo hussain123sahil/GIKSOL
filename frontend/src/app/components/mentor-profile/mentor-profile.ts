@@ -108,7 +108,9 @@ export class MentorProfileComponent implements OnInit {
       return;
     }
 
-    this.http.get(`${apiUrl}/${mentorId}`).subscribe({
+    this.http.get(`${apiUrl}/${mentorId}`, {
+      headers: this.authService.getAuthHeaders()
+    }).subscribe({
       next: (response: any) => {
         if (response.mentor) {
           this.mentor = {
