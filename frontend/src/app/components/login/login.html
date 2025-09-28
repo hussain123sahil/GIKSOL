@@ -155,4 +155,10 @@
       </form>
     </div>
   </div>
+
+  <!-- Forgot Password Modal -->
+  <app-forgot-password-modal 
+    *ngIf="showForgotPasswordModal" 
+    (close)="onForgotPasswordModalClose()">
+  </app-forgot-password-modal>
 </div>
