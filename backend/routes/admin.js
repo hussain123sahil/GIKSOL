@@ -496,6 +496,110 @@ router.get('/sessions', async (req, res) => {
   }
 });
 
+// Create a new session
+router.post('/sessions', async (req, res) => {
+  try {
+    const { title, description, scheduledDate, duration, status, mentorId, studentId, meetingLink, notes } = req.body;
+
+    // Validate required fields
+    if (!title || !scheduledDate || !mentorId || !studentId) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Check if mentor and student exist
+    const mentor = await User.findById(mentorId);
+    const student = await User.findById(studentId);
+
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Create new session
+    const session = new Session({
+      title,
+      description,
+      scheduledDate: new Date(scheduledDate),
+      duration: duration || 60,
+      status: status || 'scheduled',
+      mentor: mentorId,
+      student: studentId,
+      meetingLink,
+      notes,
+      isActive: true
+    });
+
+    await session.save();
+
+    // Populate the session with user details
+    const populatedSession = await Session.findById(session._id)
+      .populate('student', 'firstName lastName email')
+      .populate('mentor', 'firstName lastName email');
+
+    res.status(201).json({
+      message: 'Session created successfully',
+      session: populatedSession
+    });
+  } catch (error) {
+    console.error('Create session error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update a session
+router.put('/sessions/:id', async (req, res) => {
+  try {
+    const sessionId = req.params.id;
+    const updateData = req.body;
+
+    // Check if session exists
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Update the session
+    const updatedSession = await Session.findByIdAndUpdate(
+      sessionId,
+      { ...updateData, updatedAt: new Date() },
+      { new: true }
+    ).populate('student', 'firstName lastName email')
+     .populate('mentor', 'firstName lastName email');
+
+    res.json({
+      message: 'Session updated successfully',
+      session: updatedSession
+    });
+  } catch (error) {
+    console.error('Update session error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete a session
+router.delete('/sessions/:id', async (req, res) => {
+  try {
+    const sessionId = req.params.id;
+
+    // Check if session exists
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Delete the session
+    await Session.findByIdAndDelete(sessionId);
+
+    res.json({ message: 'Session deleted successfully' });
+  } catch (error) {
+    console.error('Delete session error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get all connections
 router.get('/connections', async (req, res) => {
   try {
