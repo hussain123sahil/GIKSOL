@@ -42,7 +42,8 @@
       <!-- Back Button -->
       <div class="form-header">
         <button type="button" class="back-btn" (click)="goBackToRoleSelection()">
-          ← Back to Role Selection
+          <span class="back-arrow">←</span>
+          Back to Role Selection
         </button>
         <h3>{{ selectedRole === 'student' ? 'Student Registration' : 'Mentor Registration' }}</h3>
       </div>
@@ -103,45 +104,63 @@
         <h3>Mentor Information</h3>
         <div class="form-row">
           <div class="form-group">
-            <label for="company">Company</label>
+            <label for="company">Company *</label>
             <input
               type="text"
               id="company"
               formControlName="company"
               placeholder="e.g., Google, Microsoft"
+              [class.error]="registerForm.get('company')?.invalid && registerForm.get('company')?.touched"
             />
+            <div *ngIf="registerForm.get('company')?.invalid && registerForm.get('company')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('company')?.errors?.['required']">Company is required</span>
+            </div>
           </div>
           <div class="form-group">
-            <label for="position">Position</label>
+            <label for="position">Position *</label>
             <input
               type="text"
               id="position"
               formControlName="position"
               placeholder="e.g., Senior Software Engineer"
+              [class.error]="registerForm.get('position')?.invalid && registerForm.get('position')?.touched"
             />
+            <div *ngIf="registerForm.get('position')?.invalid && registerForm.get('position')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('position')?.errors?.['required']">Position is required</span>
+            </div>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="experience">Years of Experience</label>
+            <label for="experience">Years of Experience *</label>
             <input
               type="number"
               id="experience"
               formControlName="experience"
               placeholder="e.g., 5"
               min="0"
+              [class.error]="registerForm.get('experience')?.invalid && registerForm.get('experience')?.touched"
             />
+            <div *ngIf="registerForm.get('experience')?.invalid && registerForm.get('experience')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('experience')?.errors?.['required']">Years of experience is required</span>
+              <span *ngIf="registerForm.get('experience')?.errors?.['min']">Experience must be 0 or greater</span>
+            </div>
           </div>
           <div class="form-group">
-            <label for="hourlyRate">Hourly Rate ($)</label>
+            <label for="hourlyRate">Hourly Rate ($) *</label>
             <input
               type="number"
               id="hourlyRate"
               formControlName="hourlyRate"
               placeholder="e.g., 75"
               min="0"
+              [class.error]="registerForm.get('hourlyRate')?.invalid && registerForm.get('hourlyRate')?.touched"
             />
+            <div *ngIf="registerForm.get('hourlyRate')?.invalid && registerForm.get('hourlyRate')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('hourlyRate')?.errors?.['required']">Hourly rate is required</span>
+              <span *ngIf="registerForm.get('hourlyRate')?.errors?.['min']">Hourly rate must be 0 or greater</span>
+            </div>
           </div>
         </div>
 
@@ -152,7 +171,25 @@
             id="expertise"
             formControlName="expertise"
             placeholder="e.g., JavaScript, React, Node.js (comma-separated)"
+            [class.error]="registerForm.get('expertise')?.invalid && registerForm.get('expertise')?.touched"
           />
+          <div *ngIf="registerForm.get('expertise')?.invalid && registerForm.get('expertise')?.touched" class="error-message">
+            <span *ngIf="registerForm.get('expertise')?.errors?.['required']">Areas of expertise are required</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="linkedinUrl">LinkedIn Profile (Optional)</label>
+          <input
+            type="url"
+            id="linkedinUrl"
+            formControlName="linkedinUrl"
+            placeholder="https://linkedin.com/in/yourprofile"
+            [class.error]="registerForm.get('linkedinUrl')?.invalid && registerForm.get('linkedinUrl')?.touched"
+          />
+          <div *ngIf="registerForm.get('linkedinUrl')?.invalid && registerForm.get('linkedinUrl')?.touched" class="error-message">
+            <span *ngIf="registerForm.get('linkedinUrl')?.errors?.['pattern']">Please enter a valid LinkedIn URL</span>
+          </div>
         </div>
 
         <div class="form-group">
@@ -180,33 +217,45 @@
         <h3>Student Information</h3>
         <div class="form-row">
           <div class="form-group">
-            <label for="grade">Grade/Level</label>
+            <label for="grade">Grade/Level *</label>
             <input
               type="text"
               id="grade"
               formControlName="grade"
               placeholder="e.g., 12th Grade, College Junior"
+              [class.error]="registerForm.get('grade')?.invalid && registerForm.get('grade')?.touched"
             />
+            <div *ngIf="registerForm.get('grade')?.invalid && registerForm.get('grade')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('grade')?.errors?.['required']">Grade/Level is required</span>
+            </div>
           </div>
           <div class="form-group">
-            <label for="school">School/Institution</label>
+            <label for="school">School/Institution *</label>
             <input
               type="text"
               id="school"
               formControlName="school"
               placeholder="e.g., Stanford University"
+              [class.error]="registerForm.get('school')?.invalid && registerForm.get('school')?.touched"
             />
+            <div *ngIf="registerForm.get('school')?.invalid && registerForm.get('school')?.touched" class="error-message">
+              <span *ngIf="registerForm.get('school')?.errors?.['required']">School/Institution is required</span>
+            </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="learningGoals">Learning Goals</label>
+          <label for="learningGoals">Learning Goals *</label>
           <input
             type="text"
             id="learningGoals"
             formControlName="learningGoals"
             placeholder="e.g., Learn React, Prepare for interviews (comma-separated)"
+            [class.error]="registerForm.get('learningGoals')?.invalid && registerForm.get('learningGoals')?.touched"
           />
+          <div *ngIf="registerForm.get('learningGoals')?.invalid && registerForm.get('learningGoals')?.touched" class="error-message">
+            <span *ngIf="registerForm.get('learningGoals')?.errors?.['required']">Learning goals are required</span>
+          </div>
         </div>
       </div>
 
@@ -271,10 +320,18 @@
         {{ errorMessage }}
       </div>
 
+      <!-- Progress indicator -->
+      <div class="form-progress" *ngIf="isLoading">
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <p>Creating your account...</p>
+      </div>
+
       <button
         type="submit"
         class="register-button"
-        [disabled]="isLoading"
+        [disabled]="isLoading || registerForm.invalid"
       >
         <span *ngIf="isLoading">Creating Account...</span>
         <span *ngIf="!isLoading">Create Account</span>
