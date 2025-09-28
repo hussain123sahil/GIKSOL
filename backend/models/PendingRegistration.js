@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
+const pendingRegistrationSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: [true, 'First name is required'],
@@ -29,71 +28,33 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['student', 'mentor', 'admin'],
-    default: 'student'
+    enum: ['student', 'mentor'],
+    required: true
   },
-  profilePicture: {
-    type: String,
-    default: ''
-  },
-  googleId: {
-    type: String,
-    default: null,
-    sparse: true // Allows multiple null values
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  isEmailVerified: {
-    type: Boolean,
-    default: false
+  registrationData: {
+    type: Object,
+    required: true
   },
   otp: {
     code: {
       type: String,
-      default: null
+      required: true
     },
     expiresAt: {
       type: Date,
-      default: null
+      required: true
     },
     attempts: {
       type: Number,
       default: 0
     }
-  },
-  registrationData: {
-    type: Object,
-    default: null
-  },
-  lastLogin: {
-    type: Date
   }
 }, {
   timestamps: true
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
-
 // Generate OTP
-userSchema.methods.generateOTP = function() {
+pendingRegistrationSchema.methods.generateOTP = function() {
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
   this.otp.code = otp;
   this.otp.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
@@ -102,7 +63,7 @@ userSchema.methods.generateOTP = function() {
 };
 
 // Verify OTP
-userSchema.methods.verifyOTP = function(enteredOTP) {
+pendingRegistrationSchema.methods.verifyOTP = function(enteredOTP) {
   if (!this.otp.code || !this.otp.expiresAt) {
     return { valid: false, message: 'No OTP found' };
   }
@@ -120,28 +81,16 @@ userSchema.methods.verifyOTP = function(enteredOTP) {
     return { valid: false, message: 'Invalid OTP' };
   }
 
-  // OTP is valid, clear it
-  this.otp.code = null;
-  this.otp.expiresAt = null;
-  this.otp.attempts = 0;
-  this.isEmailVerified = true;
-  
+  // OTP is valid
   return { valid: true, message: 'OTP verified successfully' };
 };
 
-// Clear OTP
-userSchema.methods.clearOTP = function() {
-  this.otp.code = null;
-  this.otp.expiresAt = null;
-  this.otp.attempts = 0;
-};
-
 // Remove password from JSON output
-userSchema.methods.toJSON = function() {
-  const userObject = this.toObject();
-  delete userObject.password;
-  delete userObject.otp;
-  return userObject;
+pendingRegistrationSchema.methods.toJSON = function() {
+  const obj = this.toObject();
+  delete obj.password;
+  delete obj.otp;
+  return obj;
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('PendingRegistration', pendingRegistrationSchema);
