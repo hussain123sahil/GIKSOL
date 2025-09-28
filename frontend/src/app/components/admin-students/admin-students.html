@@ -76,27 +76,27 @@
               </td>
               <td>{{ student.email }}</td>
               <td>
-                <span class="level-badge" [class]="'level-' + student.profile.currentLevel">
-                  {{ student.profile.currentLevel | titlecase }}
+                <span class="level-badge" [class]="'level-' + (student.profile?.currentLevel || 'beginner')">
+                  {{ (student.profile?.currentLevel || 'beginner') | titlecase }}
                 </span>
               </td>
               <td>
                 <div class="goals-tags">
-                  <span class="goal-tag" *ngFor="let goal of student.profile.learningGoals.slice(0, 2)">
+                  <span class="goal-tag" *ngFor="let goal of (student.profile?.learningGoals || []).slice(0, 2)">
                     {{ goal }}
                   </span>
-                  <span class="more-tag" *ngIf="student.profile.learningGoals.length > 2">
-                    +{{ student.profile.learningGoals.length - 2 }} more
+                  <span class="more-tag" *ngIf="(student.profile?.learningGoals || []).length > 2">
+                    +{{ (student.profile?.learningGoals || []).length - 2 }} more
                   </span>
                 </div>
               </td>
               <td>
                 <div class="interests-tags">
-                  <span class="interest-tag" *ngFor="let interest of student.profile.interests.slice(0, 2)">
+                  <span class="interest-tag" *ngFor="let interest of (student.profile?.interests || []).slice(0, 2)">
                     {{ interest }}
                   </span>
-                  <span class="more-tag" *ngIf="student.profile.interests.length > 2">
-                    +{{ student.profile.interests.length - 2 }} more
+                  <span class="more-tag" *ngIf="(student.profile?.interests || []).length > 2">
+                    +{{ (student.profile?.interests || []).length - 2 }} more
                   </span>
                 </div>
               </td>
