@@ -109,8 +109,12 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email });
   }
 
-  resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/reset-password`, { token, newPassword });
+  verifyPasswordResetOTP(email: string, otp: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/verify-password-reset-otp`, { email, otp });
+  }
+
+  resetPassword(email: string, otp: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/reset-password`, { email, otp, newPassword, confirmPassword });
   }
 
   googleLogin(googleData: any): Observable<AuthResponse> {

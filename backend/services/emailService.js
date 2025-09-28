@@ -154,6 +154,45 @@ class EmailService {
     }
   }
 
+  // Send password reset OTP email
+  async sendPasswordResetOTP(email, firstName, otp) {
+    console.log('Sending password reset OTP email to:', email);
+    console.log('OTP Code:', otp);
+    
+    if (!this.transporter) {
+      console.log('⚠️ Email service not available. Password reset OTP:', otp);
+      console.log('⚠️ Please configure EMAIL_USER and EMAIL_PASS in .env file');
+      return;
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset - GikSol',
+      html: this.getPasswordResetOTPEmailTemplate(firstName, otp)
+    };
+
+    try {
+      console.log('📧 Attempting to send password reset email with options:', {
+        from: mailOptions.from,
+        to: mailOptions.to,
+        subject: mailOptions.subject
+      });
+      
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Password reset OTP email sent successfully to:', email);
+      console.log('📧 Email result:', {
+        messageId: result.messageId,
+        response: result.response
+      });
+    } catch (error) {
+      console.error('❌ Error sending password reset OTP email:', error.message);
+      console.error('❌ Full error:', error);
+      console.log('⚠️ Password reset OTP for manual verification:', otp);
+      // Don't throw error, just log it so password reset can continue
+    }
+  }
+
   // Student email template
   getStudentEmailTemplate(sessionData, studentName, meetLink) {
     const sessionDate = new Date(sessionData.scheduledDate).toLocaleDateString('en-US', {
@@ -382,6 +421,75 @@ class EmailService {
                 </ul>
                 
                 <p>If you have any questions, feel free to contact our support team.</p>
+                
+                <p>Best regards,<br>The GikSol Team</p>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated message. Please do not reply to this email.</p>
+                <p>© 2024 GikSol. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+  }
+
+  // Password reset OTP email template
+  getPasswordResetOTPEmailTemplate(firstName, otp) {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Password Reset - GikSol</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .otp-code { background: #f5576c; color: white; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0; font-size: 32px; font-weight: bold; letter-spacing: 5px; }
+            .info-box { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f5576c; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+            .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .security-notice { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔐 Password Reset Request</h1>
+                <p>Reset your GikSol account password</p>
+            </div>
+            
+            <div class="content">
+                <h2>Hello ${firstName}!</h2>
+                <p>We received a request to reset your password for your GikSol account. To proceed with the password reset, please use the OTP code below:</p>
+                
+                <div class="otp-code">
+                    ${otp}
+                </div>
+                
+                <div class="info-box">
+                    <h3>📝 Important Information</h3>
+                    <ul>
+                        <li>This OTP is valid for <strong>10 minutes</strong> only</li>
+                        <li>You have <strong>3 attempts</strong> to enter the correct OTP</li>
+                        <li>If you don't use this OTP within 10 minutes, you'll need to request a new one</li>
+                        <li>Keep this code secure and don't share it with anyone</li>
+                        <li>After entering the OTP, you'll be able to set a new password</li>
+                    </ul>
+                </div>
+
+                <div class="security-notice">
+                    <strong>🔒 Security Notice:</strong> If you didn't request a password reset, please ignore this email. Your password will remain unchanged. If you're concerned about your account security, please contact our support team immediately.
+                </div>
+
+                <div class="warning">
+                    <strong>⚠️ Important:</strong> Never share this OTP with anyone. GikSol will never ask for your password or OTP via email, phone, or any other method.
+                </div>
+
+                <p>If you have any questions or need assistance, feel free to contact our support team.</p>
                 
                 <p>Best regards,<br>The GikSol Team</p>
             </div>

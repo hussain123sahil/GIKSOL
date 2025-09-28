@@ -3,11 +3,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
+import { ForgotPasswordModalComponent } from '../forgot-password-modal/forgot-password-modal';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ForgotPasswordModalComponent],
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
@@ -18,6 +19,7 @@ export class LoginComponent implements OnInit {
   successMessage = '';
   showPassword = false;
   registeredEmail = '';
+  showForgotPasswordModal = false;
 
   constructor(
     private fb: FormBuilder,
@@ -146,34 +148,10 @@ export class LoginComponent implements OnInit {
 
   forgotPassword(event: Event): void {
     event.preventDefault();
-    
-    // Get email from form
-    const email = this.loginForm.get('email')?.value;
-    
-    if (!email) {
-      this.errorMessage = 'Please enter your email address first.';
-      setTimeout(() => {
-        this.errorMessage = '';
-      }, 3000);
-      return;
-    }
+    this.showForgotPasswordModal = true;
+  }
 
-    // Call forgot password API
-    this.authService.forgotPassword(email).subscribe({
-      next: (response) => {
-        this.errorMessage = '';
-        // Show success message
-        this.errorMessage = `Password reset instructions sent to ${email}. Check your email for further instructions.`;
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
-      },
-      error: (error) => {
-        this.errorMessage = error.error?.message || 'Failed to send reset instructions. Please try again.';
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 4000);
-      }
-    });
+  onForgotPasswordModalClose(): void {
+    this.showForgotPasswordModal = false;
   }
 }
