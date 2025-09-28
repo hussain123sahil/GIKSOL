@@ -17,6 +17,13 @@ export interface AuthResponse {
   message: string;
   token: string;
   user: User;
+  requiresVerification?: boolean;
+  email?: string;
+}
+
+export interface OTPResponse {
+  message: string;
+  email?: string;
 }
 
 @Injectable({
@@ -54,13 +61,15 @@ export class AuthService {
   }
 
   register(userData: any): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, userData).pipe(
-      tap(response => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        this.currentUserSubject.next(response.user);
-      })
-    );
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, userData);
+  }
+
+  verifyOTP(email: string, otp: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/verify-otp`, { email, otp });
+  }
+
+  resendOTP(email: string): Observable<OTPResponse> {
+    return this.http.post<OTPResponse>(`${this.apiUrl}/auth/resend-otp`, { email });
   }
 
   logout(): void {

@@ -37,8 +37,68 @@
       </div>
     </div>
 
+    <!-- OTP Verification Form -->
+    <div class="otp-verification" *ngIf="showOTPForm">
+      <div class="otp-header">
+        <h3>Verify Your Email</h3>
+        <p>We've sent a 6-digit verification code to</p>
+        <p class="email-address">{{ userEmail }}</p>
+      </div>
+
+      <form [formGroup]="otpForm" (ngSubmit)="onOTPSubmit()" class="otp-form">
+        <div class="otp-input-group">
+          <label for="otp">Enter Verification Code</label>
+          <input
+            type="text"
+            id="otp"
+            formControlName="otp"
+            placeholder="000000"
+            maxlength="6"
+            class="otp-input"
+            [class.error]="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched"
+          />
+          <div *ngIf="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched" class="error-message">
+            <span *ngIf="otpForm.get('otp')?.errors?.['required']">OTP is required</span>
+            <span *ngIf="otpForm.get('otp')?.errors?.['pattern']">Please enter a valid 6-digit OTP</span>
+          </div>
+        </div>
+
+        <div class="otp-actions">
+          <button
+            type="submit"
+            class="verify-button"
+            [disabled]="isLoading || otpForm.invalid"
+          >
+            <span *ngIf="isLoading">Verifying...</span>
+            <span *ngIf="!isLoading">Verify Email</span>
+          </button>
+
+          <button
+            type="button"
+            class="resend-button"
+            (click)="resendOTP()"
+            [disabled]="otpResendTimer > 0 || isLoading"
+          >
+            <span *ngIf="otpResendTimer > 0">Resend in {{ otpResendTimer }}s</span>
+            <span *ngIf="otpResendTimer === 0">Resend OTP</span>
+          </button>
+        </div>
+
+        <div class="otp-help">
+          <p>Didn't receive the code? Check your spam folder or</p>
+          <button type="button" class="back-to-registration" (click)="goBackToRegistration()">
+            Go back to registration
+          </button>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message global-error">
+          {{ errorMessage }}
+        </div>
+      </form>
+    </div>
+
     <!-- Registration Form -->
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form" *ngIf="selectedRole">
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form" *ngIf="selectedRole && !showOTPForm">
       <!-- Back Button -->
       <div class="form-header">
         <button type="button" class="back-btn" (click)="goBackToRoleSelection()">

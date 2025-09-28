@@ -33,12 +33,13 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Check if user came from registration
+    // Check if user came from registration or OTP verification
     this.route.queryParams.subscribe(params => {
-      if (params['registered'] === 'true') {
+      if (params['registered'] === 'true' || params['verified'] === 'true') {
         this.registeredEmail = params['email'] || '';
         const role = params['role'] || 'user';
-        this.successMessage = `🎉 Account created successfully! Please log in.`;
+        const message = params['message'] || 'Account created successfully! Please log in.';
+        this.successMessage = `🎉 ${message}`;
         
         // Pre-fill email if available
         if (this.registeredEmail) {
