@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
 import { ForgotPasswordModalComponent } from '../forgot-password-modal/forgot-password-modal';
@@ -8,7 +8,7 @@ import { ForgotPasswordModalComponent } from '../forgot-password-modal/forgot-pa
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ForgotPasswordModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ForgotPasswordModalComponent],
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
