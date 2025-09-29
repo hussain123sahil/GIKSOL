@@ -110,41 +110,6 @@ export class LoginComponent implements OnInit {
     this.router.navigate(['/register']);
   }
 
-  loginWithGoogle(): void {
-    // For now, simulate Google login with demo data
-    // In a real application, you would integrate with Google OAuth
-    const googleData = {
-      googleId: 'demo-google-id-' + Date.now(),
-      email: 'demo@google.com',
-      firstName: 'Google',
-      lastName: 'User',
-      profilePicture: 'https://via.placeholder.com/150/667eea/ffffff?text=G'
-    };
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.googleLogin(googleData).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        // Navigate based on user role
-        if (response.user.role === 'student') {
-          this.router.navigate(['/student-dashboard']);
-        } else if (response.user.role === 'mentor') {
-          this.router.navigate(['/mentor-dashboard']);
-        } else if (response.user.role === 'admin') {
-          this.router.navigate(['/admin']);
-        }
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Google login failed. Please try again.';
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 4000);
-      }
-    });
-  }
 
   forgotPassword(event: Event): void {
     event.preventDefault();
