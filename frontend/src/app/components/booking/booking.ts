@@ -124,7 +124,7 @@ export class BookingComponent implements OnInit {
   private getDefaultProfilePicture(firstName: string, lastName: string): string {
     // Generate a default profile picture based on name initials
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    return `https://via.placeholder.com/300x300/4f46e5/ffffff?text=${initials}`;
+    return `https://ui-avatars.com/api/?name=${initials}&background=4f46e5&color=ffffff&size=300&bold=true`;
   }
 
   getTotalPrice(): number {

@@ -62,40 +62,72 @@ const mentorSchema = new mongoose.Schema({
   },
   availability: {
     monday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      isAvailable: { type: Boolean, default: false },
+      timeSlots: [{
+        id: { type: String, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
+      }]
     },
     tuesday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      isAvailable: { type: Boolean, default: false },
+      timeSlots: [{
+        id: { type: String, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
+      }]
     },
     wednesday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      isAvailable: { type: Boolean, default: false },
+      timeSlots: [{
+        id: { type: String, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
+      }]
     },
     thursday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      isAvailable: { type: Boolean, default: false },
+      timeSlots: [{
+        id: { type: String, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
+      }]
     },
     friday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      isAvailable: { type: Boolean, default: false },
+      timeSlots: [{
+        id: { type: String, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
+      }]
     },
     saturday: {
-      start: { type: String, default: '10:00' },
-      end: { type: String, default: '14:00' },
-      available: { type: Boolean, default: false }
+      isAvailable: { type: Boolean, default: false },
+      timeSlots: [{
+        id: { type: String, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
+      }]
     },
     sunday: {
-      start: { type: String, default: '' },
-      end: { type: String, default: '' },
-      available: { type: Boolean, default: false }
+      isAvailable: { type: Boolean, default: false },
+      timeSlots: [{
+        id: { type: String, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
+      }]
     }
+  },
+  availabilityLastUpdated: {
+    type: Date,
+    default: null
   },
   education: [{
     degree: {

@@ -1,0 +1,281 @@
+<div class="mentor-availability-shell">
+  <!-- Success Popup -->
+  <div class="success-popup-overlay" *ngIf="showSuccessPopup" (click)="closeSuccessPopup()">
+    <div class="success-popup" (click)="$event.stopPropagation()">
+      <div class="success-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 12l2 2 4-4"/>
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+      </div>
+      <h3 class="success-title">Availability Updated Successfully!</h3>
+      <p class="success-message">Your weekly availability has been saved and will be visible to students.</p>
+      <button class="success-close-btn" (click)="closeSuccessPopup()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <app-mentor-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-mentor-sidebar>
+  
+  <div class="availability-container main-pane">
+    <div class="availability-content">
+      <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+          <div class="header-content">
+            <h1 class="page-title">
+              <span class="title-icon">⏰</span>
+              Set Your Availability
+            </h1>
+            <p class="page-subtitle">Manage your weekly schedule and time slots for mentoring sessions</p>
+          </div>
+          
+          <!-- Quick Stats -->
+          <div class="quick-stats">
+            <div class="stat-card">
+              <div class="stat-icon">📅</div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getAvailableDaysCount() }}</div>
+                <div class="stat-label">Available Days</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⏱️</div>
+              <div class="stat-content">
+                <div class="stat-number">{{ getTotalActiveSlots() }}</div>
+                <div class="stat-label">Time Slots</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Week Navigation -->
+        <div class="week-navigation" *ngIf="currentWeek">
+          <div class="week-nav-header">
+            <h2 class="week-title">{{ currentWeek.weekLabel }}</h2>
+            <div class="week-nav-controls">
+              <button 
+                class="nav-btn prev-btn" 
+                (click)="previousWeek()"
+                [disabled]="currentWeekIndex === 0"
+              >
+                <span class="nav-icon">‹</span>
+                Previous
+              </button>
+              
+              <div class="week-selector">
+                <select 
+                  class="week-dropdown"
+                  [value]="currentWeekIndex"
+                  (change)="goToWeek(+$any($event.target).value)"
+                >
+                  <option *ngFor="let week of weeks; let i = index" [value]="i">
+                    {{ week.weekLabel }}
+                  </option>
+                </select>
+              </div>
+              
+              <button 
+                class="nav-btn next-btn" 
+                (click)="nextWeek()"
+              >
+                Next
+                <span class="nav-icon">›</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading availability settings...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error" class="error-state">
+          <div class="error-icon">⚠️</div>
+          <h3>Error</h3>
+          <p>{{ error }}</p>
+          <button class="btn btn-primary" (click)="loadAvailability()">Retry</button>
+        </div>
+
+        <!-- Success Message -->
+        <div *ngIf="successMessage" class="success-state">
+          <div class="success-icon">✅</div>
+          <p>{{ successMessage }}</p>
+        </div>
+
+        <!-- Main Content -->
+        <div *ngIf="!isLoading && !error" class="availability-main">
+          <!-- Instructions -->
+          <div class="instructions-card">
+            <div class="instructions-header">
+              <h3>How to set your availability</h3>
+            </div>
+            <div class="instructions-content">
+              <div class="instruction-item">
+                <span class="instruction-icon">1️⃣</span>
+                <span>Toggle the day switch to make a day available</span>
+              </div>
+              <div class="instruction-item">
+                <span class="instruction-icon">2️⃣</span>
+                <span>Add multiple time slots for each day</span>
+              </div>
+              <div class="instruction-item">
+                <span class="instruction-icon">3️⃣</span>
+                <span>Set start and end times for each slot</span>
+              </div>
+              <div class="instruction-item">
+                <span class="instruction-icon">4️⃣</span>
+                <span>Save your changes to update your profile</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Availability Grid -->
+          <div class="availability-grid" *ngIf="currentWeek">
+            <div *ngFor="let day of days" class="day-card" [class.available]="currentWeek.days[day.key].isAvailable">
+              <!-- Day Header -->
+              <div class="day-header">
+                <div class="day-info">
+                  <span class="day-icon">{{ day.icon }}</span>
+                  <div class="day-details">
+                    <h3 class="day-name">{{ day.name }}</h3>
+                    <span class="day-date">{{ currentWeek.days[day.key].date }}</span>
+                  </div>
+                  <span class="day-status" [class.active]="currentWeek.days[day.key].isAvailable">
+                    {{ currentWeek.days[day.key].isAvailable ? 'Available' : 'Unavailable' }}
+                  </span>
+                </div>
+                
+                <!-- Day Toggle -->
+                <div class="day-toggle">
+                  <label class="toggle-switch">
+                    <input 
+                      type="checkbox" 
+                      [checked]="currentWeek.days[day.key].isAvailable"
+                      (change)="toggleDayAvailability(day.key)"
+                    >
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Time Slots Section -->
+              <div class="time-slots-section" *ngIf="currentWeek.days[day.key].isAvailable">
+                <div class="slots-header">
+                  <h4>Time Slots ({{ getActiveSlotsCount(day.key) }} active)</h4>
+                  <button 
+                    class="btn btn-outline btn-sm add-slot-btn"
+                    (click)="addTimeSlot(day.key)"
+                    [disabled]="!currentWeek.days[day.key].isAvailable"
+                  >
+                    <span class="btn-icon">➕</span>
+                    Add Slot
+                  </button>
+                </div>
+
+                <div class="time-slots-list">
+                  <div 
+                    *ngFor="let slot of currentWeek.days[day.key].timeSlots; let i = index" 
+                    class="time-slot-card"
+                    [class.active]="slot.isActive"
+                  >
+                    <div class="slot-header">
+                      <div class="slot-toggle">
+                        <label class="toggle-switch small">
+                          <input 
+                            type="checkbox" 
+                            [checked]="slot.isActive"
+                            (change)="toggleTimeSlot(day.key, slot.id)"
+                          >
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+                      <button 
+                        class="remove-slot-btn"
+                        (click)="removeTimeSlot(day.key, slot.id)"
+                        [disabled]="currentWeek.days[day.key].timeSlots.length === 1"
+                      >
+                        <span class="btn-icon">🗑️</span>
+                      </button>
+                    </div>
+
+                    <div class="slot-times" *ngIf="slot.isActive">
+                      <div class="time-input-group">
+                        <label class="time-label">Start Time</label>
+                        <select 
+                          class="time-select"
+                          [value]="slot.startTime"
+                          (change)="updateTimeSlot(day.key, slot.id, 'startTime', $any($event.target).value)"
+                        >
+                          <option *ngFor="let time of timeOptions" [value]="time">
+                            {{ formatTime(time) }}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div class="time-separator">
+                        <span>to</span>
+                      </div>
+
+                      <div class="time-input-group">
+                        <label class="time-label">End Time</label>
+                        <select 
+                          class="time-select"
+                          [value]="slot.endTime"
+                          (change)="updateTimeSlot(day.key, slot.id, 'endTime', $any($event.target).value)"
+                        >
+                          <option *ngFor="let time of timeOptions" [value]="time">
+                            {{ formatTime(time) }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="slot-preview" *ngIf="!slot.isActive">
+                      <span class="preview-text">Slot {{ i + 1 }} - Inactive</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Unavailable Day Message -->
+              <div class="unavailable-message" *ngIf="!currentWeek.days[day.key].isAvailable">
+                <div class="message-icon">😴</div>
+                <p>Not available on {{ day.name }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button 
+              class="btn btn-outline"
+              (click)="resetAvailability()"
+              [disabled]="isSaving"
+            >
+              <span class="btn-icon">🔄</span>
+              Reset
+            </button>
+            
+            <button 
+              class="btn btn-primary"
+              (click)="saveAvailability()"
+              [disabled]="isSaving"
+            >
+              <span class="btn-icon" *ngIf="!isSaving">💾</span>
+              <span class="btn-icon" *ngIf="isSaving">⏳</span>
+              {{ isSaving ? 'Saving...' : 'Save Availability' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -29,6 +29,7 @@ app.use('/api/connections', require('./routes/connections'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/mentor-availability', require('./routes/mentor-availability'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

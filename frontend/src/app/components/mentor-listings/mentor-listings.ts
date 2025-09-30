@@ -150,7 +150,7 @@ export class MentorListingsComponent implements OnInit {
   private getDefaultProfilePicture(firstName: string, lastName: string): string {
     // Generate a default profile picture based on name initials
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    return `https://via.placeholder.com/200x200/4f46e5/ffffff?text=${initials}`;
+    return `https://ui-avatars.com/api/?name=${initials}&background=4f46e5&color=ffffff&size=200&bold=true`;
   }
 
   onSearchChange(): void {
@@ -318,15 +318,15 @@ export class MentorListingsComponent implements OnInit {
     const logoMap: { [key: string]: string } = {
       'Google': 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
       'Microsoft': 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg',
-      'JP Morgan': 'https://via.placeholder.com/24x24/1a365d/ffffff?text=JP',
+      'JP Morgan': 'https://ui-avatars.com/api/?name=JP&background=1a365d&color=ffffff&size=24&bold=true',
       'Nike': 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
-      'Harvard': 'https://via.placeholder.com/24x24/8b0000/ffffff?text=H',
+      'Harvard': 'https://ui-avatars.com/api/?name=H&background=8b0000&color=ffffff&size=24&bold=true',
       'Apple': 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
       'Spotify': 'https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg',
       'Tesla': 'https://upload.wikimedia.org/wikipedia/commons/b/bb/Tesla_T_symbol.svg',
       'Netflix': 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg'
     };
     
-    return logoMap[company] || 'https://via.placeholder.com/24x24/cccccc/666666?text=?';
+    return logoMap[company] || 'https://ui-avatars.com/api/?name=?&background=cccccc&color=666666&size=24&bold=true';
   }
 }
