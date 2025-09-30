@@ -561,6 +561,64 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
   }
 });
 
+// Cancel a session
+router.put('/:id/cancel', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { cancelledBy, cancellationReason } = req.body;
+
+    const session = await Session.findById(id);
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Check if session is in a cancellable state
+    if (!['scheduled', 'upcoming'].includes(session.status)) {
+      return res.status(400).json({ 
+        message: 'Only scheduled or upcoming sessions can be cancelled' 
+      });
+    }
+
+    const sessionDate = new Date(session.scheduledDate);
+    const now = new Date();
+
+    // Different cancellation rules for mentors vs students
+    if (cancelledBy === 'mentor') {
+      // Mentors can cancel anytime before the scheduled session time
+      if (now >= sessionDate) {
+        return res.status(400).json({ 
+          message: 'Sessions can only be cancelled before the scheduled time' 
+        });
+      }
+    } else {
+      // Students can only cancel at least 1 day before
+      const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
+      if (now >= oneDayBefore) {
+        return res.status(400).json({ 
+          message: 'Sessions can only be cancelled at least 1 day before the scheduled date' 
+        });
+      }
+    }
+
+    // Update session status to cancelled
+    session.status = 'cancelled';
+    session.cancelledAt = new Date();
+    session.cancelledBy = cancelledBy || 'student';
+    session.cancellationReason = cancellationReason || 'No reason provided';
+
+    await session.save();
+
+    res.json({
+      message: 'Session cancelled successfully',
+      session
+    });
+
+  } catch (error) {
+    console.error('Cancel session error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Delete a session
 router.delete('/:id', async (req, res) => {
   try {

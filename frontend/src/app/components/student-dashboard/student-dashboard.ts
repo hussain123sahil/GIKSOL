@@ -1,20 +1,23 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
 import { DashboardService, Session, Connection, DashboardData } from '../../services/dashboard.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, SidebarComponent],
+  imports: [CommonModule, HttpClientModule, SidebarComponent, CancelSessionModalComponent],
   templateUrl: './student-dashboard.html',
   styleUrls: ['./student-dashboard.scss']
 })
 export class StudentDashboardComponent implements OnInit, OnDestroy {
+  @ViewChild(CancelSessionModalComponent) cancelModal!: CancelSessionModalComponent;
+  
   currentUser: User | null = null;
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
@@ -28,6 +31,9 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   };
   isLoading = true;
   error: string | null = null;
+  showCancelModal = false;
+  sessionToCancel: Session | null = null;
+  isCancelling = false;
 
   private navigationSubscription: any;
 
@@ -133,7 +139,58 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
 
   browseMentors(): void { this.router.navigate(['/mentors']); }
   viewSession(sessionId: string): void { console.log('View session:', sessionId); }
-  cancelSession(sessionId: string): void { console.log('Cancel session:', sessionId); }
+  
+  canCancelSession(session: Session): boolean {
+    const sessionDate = new Date(session.date);
+    const now = new Date();
+    const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
+    
+    // Students can only cancel if session is scheduled/upcoming and it's more than 1 day before the session
+    return ['scheduled', 'upcoming'].includes(session.status) && now < oneDayBefore;
+  }
+
+  cancelSession(session: Session): void {
+    if (!this.canCancelSession(session)) {
+      alert('Sessions can only be cancelled at least 1 day before the scheduled date.');
+      return;
+    }
+
+    this.sessionToCancel = session;
+    this.showCancelModal = true;
+  }
+
+  onCancelModalConfirm(event: { session: any; reason: string }): void {
+    this.isCancelling = true;
+    this.dashboardService.cancelSession(event.session.id, 'student', event.reason).subscribe({
+      next: (response) => {
+        console.log('Session cancelled successfully:', response);
+        // Remove the cancelled session from the list
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== event.session.id);
+        // Update quick stats
+        this.quickStats.upcomingSessions = this.upcomingSessions.length;
+        this.isCancelling = false;
+        // Show success message in modal
+        this.cancelModal.showSuccess();
+      },
+      error: (error) => {
+        console.error('Error cancelling session:', error);
+        const errorMessage = error.error?.message || 'Failed to cancel session. Please try again.';
+        alert(errorMessage);
+        this.isCancelling = false;
+      }
+    });
+  }
+
+  onCancelModalSuccess(): void {
+    this.showCancelModal = false;
+    this.sessionToCancel = null;
+  }
+
+  onCancelModalCancel(): void {
+    this.showCancelModal = false;
+    this.sessionToCancel = null;
+  }
+  
   rateSession(sessionId: string): void { console.log('Rate session:', sessionId); }
   viewAllSessions(): void { console.log('View all sessions'); }
   viewSessionDetails(sessionId: string): void { console.log('View session details:', sessionId); }

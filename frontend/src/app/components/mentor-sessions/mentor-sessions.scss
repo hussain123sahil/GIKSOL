@@ -357,6 +357,23 @@
 	flex-wrap: wrap;
 }
 
+/* Disabled Cancel Button */
+.btn-danger:disabled {
+	background: #e0e0e0;
+	color: #9e9e9e;
+	border-color: #e0e0e0;
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.btn-danger:disabled:hover {
+	background: #e0e0e0;
+	color: #9e9e9e;
+	border-color: #e0e0e0;
+	transform: none;
+	box-shadow: none;
+}
+
 /* Buttons */
 .btn {
 	display: inline-flex;
