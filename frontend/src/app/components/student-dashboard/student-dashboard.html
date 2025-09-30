@@ -105,9 +105,9 @@
 									<span class="btn-icon">🎥</span>
 									Join Session
 								</button>
-								<button class="btn btn-outline btn-sm" (click)="cancelSession(session.id)">
-									<span class="btn-icon">🔄</span>
-									Reschedule
+								<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
+									<span class="btn-icon">❌</span>
+									Cancel
 								</button>
 							</div>
 						</div>
@@ -180,3 +180,13 @@
 		</div>
 	</div>
 </div>
+
+<!-- Cancel Session Modal -->
+<app-cancel-session-modal
+	*ngIf="showCancelModal"
+	[session]="sessionToCancel"
+	[isLoading]="isCancelling"
+	(confirm)="onCancelModalConfirm($event)"
+	(cancel)="onCancelModalCancel()"
+	(success)="onCancelModalSuccess()">
+</app-cancel-session-modal>

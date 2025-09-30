@@ -1,23 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
 import { DashboardService, Session, DashboardData } from '../../services/dashboard.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
 
 @Component({
   selector: 'app-my-sessions',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, SidebarComponent],
+  imports: [CommonModule, HttpClientModule, SidebarComponent, CancelSessionModalComponent],
   templateUrl: './my-sessions.html',
   styleUrls: ['./my-sessions.scss']
 })
 export class MySessionsComponent implements OnInit {
+  @ViewChild(CancelSessionModalComponent) cancelModal!: CancelSessionModalComponent;
+  
   currentUser: User | null = null;
   upcomingSessions: Session[] = [];
   isLoading = true;
   error: string | null = null;
+  showCancelModal = false;
+  sessionToCancel: Session | null = null;
+  isCancelling = false;
 
   constructor(
     public router: Router,
@@ -132,18 +138,55 @@ export class MySessionsComponent implements OnInit {
     }
   }
 
-  rescheduleSession(sessionId: string): void {
-    console.log('Reschedule session:', sessionId);
-    // TODO: Implement reschedule functionality
-    alert('Reschedule functionality will be implemented soon!');
+  canCancelSession(session: Session): boolean {
+    const sessionDate = new Date(session.date);
+    const now = new Date();
+    const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
+    
+    // Students can only cancel if session is scheduled/upcoming and it's more than 1 day before the session
+    return ['scheduled', 'upcoming'].includes(session.status) && now < oneDayBefore;
   }
 
-  cancelSession(sessionId: string): void {
-    if (confirm('Are you sure you want to cancel this session?')) {
-      console.log('Cancel session:', sessionId);
-      // TODO: Implement cancel functionality
-      alert('Cancel functionality will be implemented soon!');
+  cancelSession(session: Session): void {
+    if (!this.canCancelSession(session)) {
+      alert('Sessions can only be cancelled at least 1 day before the scheduled date.');
+      return;
     }
+
+    this.sessionToCancel = session;
+    this.showCancelModal = true;
+  }
+
+  onCancelModalConfirm(event: { session: any; reason: string }): void {
+    this.isCancelling = true;
+    
+    // Use the dashboard service with proper authentication
+    this.dashboardService.cancelSession(event.session.id, 'student', event.reason).subscribe({
+      next: (response) => {
+        console.log('Session cancelled successfully:', response);
+        // Remove the cancelled session from the list
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== event.session.id);
+        this.isCancelling = false;
+        // Show success message in modal
+        this.cancelModal.showSuccess();
+      },
+      error: (error) => {
+        console.error('Error cancelling session:', error);
+        const errorMessage = error.error?.message || 'Failed to cancel session. Please try again.';
+        alert(errorMessage);
+        this.isCancelling = false;
+      }
+    });
+  }
+
+  onCancelModalSuccess(): void {
+    this.showCancelModal = false;
+    this.sessionToCancel = null;
+  }
+
+  onCancelModalCancel(): void {
+    this.showCancelModal = false;
+    this.sessionToCancel = null;
   }
 
   // Utility methods

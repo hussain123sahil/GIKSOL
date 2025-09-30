@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Session {
@@ -99,5 +99,18 @@ export class DashboardService {
 
   getSession(sessionId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/sessions/${sessionId}`);
+  }
+
+  cancelSession(sessionId: string, cancelledBy: string, cancellationReason?: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.put(`${this.apiUrl}/sessions/${sessionId}/cancel`, {
+      cancelledBy,
+      cancellationReason: cancellationReason || 'No reason provided'
+    }, { headers });
   }
 }

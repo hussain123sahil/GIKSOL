@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
+import { DashboardService } from '../../services/dashboard.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
+import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
 
 interface Session {
   id: string;
@@ -24,22 +26,28 @@ interface Session {
 @Component({
   selector: 'app-mentor-sessions',
   standalone: true,
-  imports: [CommonModule, MentorSidebarComponent],
+  imports: [CommonModule, MentorSidebarComponent, CancelSessionModalComponent],
   templateUrl: './mentor-sessions.html',
   styleUrls: ['./mentor-sessions.scss']
 })
 export class MentorSessionsComponent implements OnInit {
+  @ViewChild(CancelSessionModalComponent) cancelModal!: CancelSessionModalComponent;
+  
   currentUser: User | null = null;
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
   activeTab: 'upcoming' | 'past' = 'upcoming';
   isLoading = true;
   error: string | null = null;
+  showCancelModal = false;
+  sessionToCancel: Session | null = null;
+  isCancelling = false;
 
   constructor(
     private authService: AuthService,
     public router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private dashboardService: DashboardService
   ) {}
 
   ngOnInit(): void {
@@ -95,16 +103,52 @@ export class MentorSessionsComponent implements OnInit {
     // Implement start session logic
   }
 
-  rescheduleSession(sessionId: string): void {
-    console.log('Rescheduling session:', sessionId);
-    // Implement reschedule session logic
+  canCancelSession(session: Session): boolean {
+    const sessionDate = new Date(session.date);
+    const now = new Date();
+    
+    // Mentors can cancel anytime before the scheduled session time
+    return ['scheduled', 'upcoming'].includes(session.status) && now < sessionDate;
   }
 
-  cancelSession(sessionId: string): void {
-    if (confirm('Are you sure you want to cancel this session?')) {
-      console.log('Cancelling session:', sessionId);
-      // Implement cancel session logic
+  cancelSession(session: Session): void {
+    if (!this.canCancelSession(session)) {
+      alert('Sessions can only be cancelled before the scheduled time.');
+      return;
     }
+
+    this.sessionToCancel = session;
+    this.showCancelModal = true;
+  }
+
+  onCancelModalConfirm(event: { session: any; reason: string }): void {
+    this.isCancelling = true;
+    this.dashboardService.cancelSession(event.session.id, 'mentor', event.reason).subscribe({
+      next: (response) => {
+        console.log('Session cancelled successfully:', response);
+        // Remove the cancelled session from the list
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== event.session.id);
+        this.isCancelling = false;
+        // Show success message in modal
+        this.cancelModal.showSuccess();
+      },
+      error: (error) => {
+        console.error('Error cancelling session:', error);
+        const errorMessage = error.error?.message || 'Failed to cancel session. Please try again.';
+        alert(errorMessage);
+        this.isCancelling = false;
+      }
+    });
+  }
+
+  onCancelModalSuccess(): void {
+    this.showCancelModal = false;
+    this.sessionToCancel = null;
+  }
+
+  onCancelModalCancel(): void {
+    this.showCancelModal = false;
+    this.sessionToCancel = null;
   }
 
   viewSessionDetails(sessionId: string): void {
