@@ -4,7 +4,53 @@ const { auth } = require('../middleware/auth');
 const Mentor = require('../models/Mentor');
 const User = require('../models/User');
 
-// Apply authentication to all routes
+// Get mentor availability for public view (for students) - NO AUTH REQUIRED
+router.get('/public/:mentorId', async (req, res) => {
+  try {
+    const { mentorId } = req.params;
+
+    // Find mentor by user ID
+    const mentor = await Mentor.findOne({ user: mentorId }).populate('user');
+    
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    // Return only available time slots for public view
+    const publicAvailability = {};
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    
+    days.forEach(day => {
+      const dayData = mentor.availability?.[day];
+      if (dayData && dayData.isAvailable && dayData.timeSlots.length > 0) {
+        publicAvailability[day] = {
+          isAvailable: true,
+          timeSlots: dayData.timeSlots.filter(slot => slot.isActive).map(slot => ({
+            startTime: slot.startTime,
+            endTime: slot.endTime
+          }))
+        };
+      } else {
+        publicAvailability[day] = {
+          isAvailable: false,
+          timeSlots: []
+        };
+      }
+    });
+
+    res.json({
+      mentorId,
+      mentorName: `${mentor.user.firstName} ${mentor.user.lastName}`,
+      availability: publicAvailability
+    });
+
+  } catch (error) {
+    console.error('Get public mentor availability error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Apply authentication to all other routes
 router.use(auth);
 
 // Get mentor availability
@@ -80,52 +126,6 @@ router.put('/:mentorId', async (req, res) => {
       message: 'Server error',
       error: error.message
     });
-  }
-});
-
-// Get mentor availability for public view (for students)
-router.get('/public/:mentorId', async (req, res) => {
-  try {
-    const { mentorId } = req.params;
-
-    // Find mentor by user ID
-    const mentor = await Mentor.findOne({ user: mentorId }).populate('user');
-    
-    if (!mentor) {
-      return res.status(404).json({ message: 'Mentor not found' });
-    }
-
-    // Return only available time slots for public view
-    const publicAvailability = {};
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    
-    days.forEach(day => {
-      const dayData = mentor.availability?.[day];
-      if (dayData && dayData.isAvailable && dayData.timeSlots.length > 0) {
-        publicAvailability[day] = {
-          isAvailable: true,
-          timeSlots: dayData.timeSlots.filter(slot => slot.isActive).map(slot => ({
-            startTime: slot.startTime,
-            endTime: slot.endTime
-          }))
-        };
-      } else {
-        publicAvailability[day] = {
-          isAvailable: false,
-          timeSlots: []
-        };
-      }
-    });
-
-    res.json({
-      mentorId,
-      mentorName: `${mentor.user.firstName} ${mentor.user.lastName}`,
-      availability: publicAvailability
-    });
-
-  } catch (error) {
-    console.error('Get public mentor availability error:', error);
-    res.status(500).json({ message: 'Server error' });
   }
 });
 
