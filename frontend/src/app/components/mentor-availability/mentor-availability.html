@@ -211,8 +211,8 @@
                         <label class="time-label">Start Time</label>
                         <select 
                           class="time-select"
-                          [value]="slot.startTime"
-                          (change)="updateTimeSlot(day.key, slot.id, 'startTime', $any($event.target).value)"
+                          [ngModel]="slot.startTime"
+                          (ngModelChange)="updateTimeSlot(day.key, slot.id, 'startTime', $event)"
                         >
                           <option *ngFor="let time of timeOptions" [value]="time">
                             {{ formatTime(time) }}
@@ -228,8 +228,8 @@
                         <label class="time-label">End Time</label>
                         <select 
                           class="time-select"
-                          [value]="slot.endTime"
-                          (change)="updateTimeSlot(day.key, slot.id, 'endTime', $any($event.target).value)"
+                          [ngModel]="slot.endTime"
+                          (ngModelChange)="updateTimeSlot(day.key, slot.id, 'endTime', $event)"
                         >
                           <option *ngFor="let time of timeOptions" [value]="time">
                             {{ formatTime(time) }}
@@ -255,15 +255,6 @@
 
           <!-- Action Buttons -->
           <div class="action-buttons">
-            <button 
-              class="btn btn-outline"
-              (click)="resetAvailability()"
-              [disabled]="isSaving"
-            >
-              <span class="btn-icon">🔄</span>
-              Reset
-            </button>
-            
             <button 
               class="btn btn-primary"
               (click)="saveAvailability()"

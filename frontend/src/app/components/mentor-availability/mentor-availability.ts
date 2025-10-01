@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -68,7 +68,8 @@ export class MentorAvailabilityComponent implements OnInit {
     private authService: AuthService,
     private http: HttpClient,
     private availabilityService: MentorAvailabilityService,
-    public router: Router
+    public router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.generateTimeOptions();
   }
@@ -81,7 +82,10 @@ export class MentorAvailabilityComponent implements OnInit {
     }
 
     this.initializeWeeks();
-    this.loadAvailability();
+    // Load availability after a small delay to ensure weeks are initialized
+    setTimeout(() => {
+      this.loadAvailability();
+    }, 100);
   }
 
   initializeWeeks(): void {
@@ -121,14 +125,7 @@ export class MentorAvailabilityComponent implements OnInit {
         key: day.key,
         date: this.formatDate(dayDate),
         isAvailable: false,
-        timeSlots: [
-          {
-            id: this.generateId(),
-            startTime: '09:00',
-            endTime: '17:00',
-            isActive: true
-          }
-        ]
+        timeSlots: []
       };
     });
     
@@ -201,19 +198,30 @@ export class MentorAvailabilityComponent implements OnInit {
 
     this.availabilityService.getAvailability(mentorId).subscribe({
       next: (response: any) => {
-        if (response.availability) {
+        if (response.availability && this.currentWeek) {
           // Update current week with data from backend
-          if (this.currentWeek) {
-            Object.keys(response.availability).forEach(dayKey => {
-              if (this.currentWeek!.days[dayKey]) {
-                this.currentWeek!.days[dayKey] = {
-                  ...this.currentWeek!.days[dayKey],
-                  isAvailable: response.availability[dayKey].isAvailable || false,
-                  timeSlots: response.availability[dayKey].timeSlots || []
-                };
-              }
-            });
-          }
+          Object.keys(response.availability).forEach(dayKey => {
+            if (this.currentWeek!.days[dayKey]) {
+              const backendDay = response.availability[dayKey];
+              
+              // Update with backend data
+              this.currentWeek!.days[dayKey] = {
+                ...this.currentWeek!.days[dayKey],
+                isAvailable: backendDay.isAvailable || false,
+                timeSlots: backendDay.timeSlots && backendDay.timeSlots.length > 0 
+                  ? backendDay.timeSlots.map((slot: any) => ({
+                      id: slot.id || `slot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                      startTime: slot.startTime,
+                      endTime: slot.endTime,
+                      isActive: slot.isActive !== undefined ? slot.isActive : true
+                    }))
+                  : []
+              };
+            }
+          });
+          
+          // Force change detection to update the UI
+          this.cdr.detectChanges();
         }
         
         this.isLoading = false;
@@ -278,14 +286,20 @@ export class MentorAvailabilityComponent implements OnInit {
     
     this.currentWeek.days[dayKey].isAvailable = !this.currentWeek.days[dayKey].isAvailable;
     
-    // If day becomes unavailable, deactivate all time slots
+    // If day becomes unavailable, clear time slots
     if (!this.currentWeek.days[dayKey].isAvailable) {
-      this.currentWeek.days[dayKey].timeSlots.forEach(slot => {
-        slot.isActive = false;
-      });
+      this.currentWeek.days[dayKey].timeSlots = [];
     } else {
-      // If day becomes available, activate the first time slot
-      if (this.currentWeek.days[dayKey].timeSlots.length > 0) {
+      // If day becomes available and has no time slots, add a default one
+      if (this.currentWeek.days[dayKey].timeSlots.length === 0) {
+        this.currentWeek.days[dayKey].timeSlots = [{
+          id: this.generateId(),
+          startTime: '09:00',
+          endTime: '17:00',
+          isActive: true
+        }];
+      } else {
+        // If day becomes available and has time slots, activate the first one
         this.currentWeek.days[dayKey].timeSlots[0].isActive = true;
       }
     }
@@ -296,10 +310,34 @@ export class MentorAvailabilityComponent implements OnInit {
       return;
     }
 
+    // Get the last time slot's end time as the start time for the new slot
+    const existingSlots = this.currentWeek.days[dayKey].timeSlots;
+    let startTime = '09:00';
+    let endTime = '17:00';
+
+    if (existingSlots.length > 0) {
+      // Use the end time of the last slot as the start time for the new slot
+      const lastSlot = existingSlots[existingSlots.length - 1];
+      startTime = lastSlot.endTime;
+      
+      // Calculate end time by adding 2 hours to start time
+      const [hours, minutes] = startTime.split(':').map(Number);
+      const startMinutes = hours * 60 + minutes;
+      const endMinutes = startMinutes + 120; // Add 2 hours
+      const endHours = Math.floor(endMinutes / 60);
+      const endMins = endMinutes % 60;
+      endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+      
+      // If end time goes beyond 23:30, set it to 23:30
+      if (endHours >= 23) {
+        endTime = '23:30';
+      }
+    }
+
     const newSlot: TimeSlot = {
       id: this.generateId(),
-      startTime: '09:00',
-      endTime: '17:00',
+      startTime: startTime,
+      endTime: endTime,
       isActive: true
     };
 
@@ -468,13 +506,6 @@ export class MentorAvailabilityComponent implements OnInit {
     return `${displayHour}:${minutes} ${ampm}`;
   }
 
-  resetAvailability(): void {
-    if (this.currentWeek) {
-      this.initializeWeekDays(new Date(this.currentWeek.startDate));
-    }
-    this.error = null;
-    this.successMessage = null;
-  }
 
   closeSuccessPopup(): void {
     this.showSuccessPopup = false;
