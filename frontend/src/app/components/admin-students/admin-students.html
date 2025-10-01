@@ -85,17 +85,17 @@
                   <span class="goal-tag" *ngFor="let goal of student.profile.learningGoals.slice(0, 2)">
                     {{ goal }}
                   </span>
-                  <span class="more-tag" *ngIf="(student.profile?.learningGoals || []).length > 2">
+                  <span class="more-tag" *ngIf="student.profile.learningGoals.length > 2">
                     +{{ (student.profile?.learningGoals || []).length - 2 }} more
                   </span>
                 </div>
               </td>
               <td>
                 <div class="interests-tags">
-                  <span class="interest-tag" *ngFor="let interest of (student.profile?.interests || []).slice(0, 2)">
+                  <span class="interest-tag" *ngFor="let interest of student.profile.interests.slice(0, 2)">
                     {{ interest }}
                   </span>
-                  <span class="more-tag" *ngIf="(student.profile?.interests || []).length > 2">
+                  <span class="more-tag" *ngIf="student.profile.interests.length > 2">
                     +{{ (student.profile?.interests || []).length - 2 }} more
                   </span>
                 </div>
@@ -198,11 +198,11 @@
                 </div>
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Budget Min ($)</label>
+                    <label>Budget Min (₹)</label>
                     <input type="number" [(ngModel)]="studentForm.budget.min" name="budgetMin" min="0">
                   </div>
                   <div class="form-group">
-                    <label>Budget Max ($)</label>
+                    <label>Budget Max (₹)</label>
                     <input type="number" [(ngModel)]="studentForm.budget.max" name="budgetMax" min="0">
                   </div>
                 </div>

@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
 import { AuthService } from '../../services/auth';
+import { MentorAvailabilityService, AvailabilityData, DayAvailability, TimeSlot } from '../../services/mentor-availability.service';
 
 interface Mentor {
   id: string;
@@ -25,6 +26,12 @@ interface BookingDetails {
   sessionType: string;
   notes: string;
   sessionId?: string;
+}
+
+interface TimeOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
 }
 
 @Component({
@@ -48,18 +55,26 @@ export class BookingComponent implements OnInit {
   isSubmitting = false;
   bookingConfirmed = false;
   minDate: string = '';
+  mentorAvailability: AvailabilityData | null = null;
+  availableTimeSlots: TimeOption[] = [];
+  isDateAvailable = true;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private mentorService: MentorService,
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private availabilityService: MentorAvailabilityService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     // Set minimum date to today
     this.minDate = new Date().toISOString().split('T')[0];
+    
+    // Initialize with default time slots
+    this.setDefaultTimeSlots();
     
     const mentorId = this.route.snapshot.paramMap.get('mentorId');
     const queryParams = this.route.snapshot.queryParams;
@@ -96,6 +111,10 @@ export class BookingComponent implements OnInit {
         // Update mentorId to use User ID instead of Mentor record ID
         this.bookingDetails.mentorId = mentor.user._id;
         
+        // Load mentor availability
+        console.log('🔍 About to load availability for mentor user ID:', mentor.user._id);
+        this.loadMentorAvailability(mentor.user._id);
+        
         this.isLoading = false;
       },
       error: (error) => {
@@ -124,7 +143,124 @@ export class BookingComponent implements OnInit {
   private getDefaultProfilePicture(firstName: string, lastName: string): string {
     // Generate a default profile picture based on name initials
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    return `https://via.placeholder.com/300x300/4f46e5/ffffff?text=${initials}`;
+    return `https://ui-avatars.com/api/?name=${initials}&background=4f46e5&color=ffffff&size=300&bold=true`;
+  }
+
+  loadMentorAvailability(mentorId: string): void {
+    this.availabilityService.getPublicAvailability(mentorId).subscribe({
+      next: (response: any) => {
+        this.mentorAvailability = response.availability;
+        // Update time slots when availability is loaded
+        this.updateTimeSlotsForSelectedDate();
+        // Force change detection
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading mentor availability:', error);
+        // If availability fails to load, show default time slots
+        this.setDefaultTimeSlots();
+      }
+    });
+  }
+
+  onDateChange(): void {
+    this.bookingDetails.preferredTime = ''; // Reset selected time
+    this.updateTimeSlotsForSelectedDate();
+  }
+
+  updateTimeSlotsForSelectedDate(): void {
+    if (!this.bookingDetails.preferredDate || !this.mentorAvailability) {
+      this.setDefaultTimeSlots();
+      return;
+    }
+
+    const selectedDate = new Date(this.bookingDetails.preferredDate);
+    const dayName = this.getDayName(selectedDate).toLowerCase();
+    
+    const dayAvailability = this.mentorAvailability[dayName];
+    
+    if (dayAvailability && dayAvailability.isAvailable && dayAvailability.timeSlots && dayAvailability.timeSlots.length > 0) {
+      this.isDateAvailable = true;
+      
+      // Generate time slots based on mentor's availability
+      const timeSlots = this.generateTimeSlotsFromAvailability(dayAvailability.timeSlots);
+      this.availableTimeSlots = timeSlots;
+    } else {
+      this.isDateAvailable = false;
+      this.availableTimeSlots = [{
+        value: '',
+        label: 'Mentor not available on this day',
+        disabled: true
+      }];
+    }
+    
+    // Force change detection
+    this.cdr.detectChanges();
+  }
+
+  private setDefaultTimeSlots(): void {
+    this.isDateAvailable = true;
+    this.availableTimeSlots = [
+      { value: '09:00', label: '9:00 AM' },
+      { value: '10:00', label: '10:00 AM' },
+      { value: '11:00', label: '11:00 AM' },
+      { value: '12:00', label: '12:00 PM' },
+      { value: '13:00', label: '1:00 PM' },
+      { value: '14:00', label: '2:00 PM' },
+      { value: '15:00', label: '3:00 PM' },
+      { value: '16:00', label: '4:00 PM' },
+      { value: '17:00', label: '5:00 PM' }
+    ];
+    // Force change detection
+    this.cdr.detectChanges();
+  }
+
+  private getDayName(date: Date): string {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[date.getDay()];
+  }
+
+  private formatTimeForDisplay(timeString: string): string {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  }
+
+  private generateTimeSlotsFromAvailability(availabilitySlots: any[]): TimeOption[] {
+    const timeSlots: TimeOption[] = [];
+    
+    availabilitySlots.forEach((slot, index) => {
+      // Since backend only sends startTime and endTime, assume all slots are active
+      if (slot.startTime && slot.endTime) {
+        // Generate hourly slots between start and end time
+        const startTime = this.timeToMinutes(slot.startTime);
+        const endTime = this.timeToMinutes(slot.endTime);
+        
+        for (let time = startTime; time < endTime; time += 60) { // 60 minutes = 1 hour
+          const timeString = this.minutesToTime(time);
+          const timeOption = {
+            value: timeString,
+            label: this.formatTimeForDisplay(timeString)
+          };
+          timeSlots.push(timeOption);
+        }
+      }
+    });
+    
+    return timeSlots;
+  }
+
+  private timeToMinutes(timeString: string): number {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private minutesToTime(minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   }
 
   getTotalPrice(): number {

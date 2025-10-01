@@ -36,7 +36,7 @@
 										<span class="stat-label">Sessions</span>
 									</div>
 									<div class="stat">
-										<span class="stat-value">${{ mentor.hourlyRate }}/hr</span>
+										<span class="stat-value">₹{{ mentor.hourlyRate }}/hr</span>
 										<span class="stat-label">Rate</span>
 									</div>
 								</div>
@@ -122,9 +122,14 @@
 									<div class="availability-calendar">
 										<div class="day" *ngFor="let day of getAvailabilityDays()">
 											<span class="day-name">{{ day.name }}</span>
-											<span class="day-time" [class.available]="day.available">
-												{{ day.available ? day.start + ' - ' + day.end : 'Not Available' }}
-											</span>
+											<div class="day-time" [class.available]="day.available">
+												<div *ngIf="day.available && day.timeSlots.length > 0" class="time-slots">
+													<div *ngFor="let slot of day.timeSlots" class="time-slot">
+														{{ formatTime(slot.startTime) }} - {{ formatTime(slot.endTime) }}
+													</div>
+												</div>
+												<span *ngIf="!day.available" class="not-available">Not Available</span>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -191,7 +196,7 @@
                   <span class="stat-label">Sessions</span>
                 </div>
                 <div class="stat">
-                  <span class="stat-value">${{ mentor.hourlyRate }}/hr</span>
+                  <span class="stat-value">₹{{ mentor.hourlyRate }}/hr</span>
                   <span class="stat-label">Rate</span>
                 </div>
               </div>
@@ -272,9 +277,14 @@
                 <div class="availability-calendar">
                   <div class="day" *ngFor="let day of getAvailabilityDays()">
                     <span class="day-name">{{ day.name }}</span>
-                    <span class="day-time" [class.available]="day.available">
-                      {{ day.available ? day.start + ' - ' + day.end : 'Not Available' }}
-                    </span>
+                    <div class="day-time" [class.available]="day.available">
+                      <div *ngIf="day.available && day.timeSlots.length > 0" class="time-slots">
+                        <div *ngFor="let slot of day.timeSlots" class="time-slot">
+                          {{ formatTime(slot.startTime) }} - {{ formatTime(slot.endTime) }}
+                        </div>
+                      </div>
+                      <span *ngIf="!day.available" class="not-available">Not Available</span>
+                    </div>
                   </div>
                 </div>
               </div>

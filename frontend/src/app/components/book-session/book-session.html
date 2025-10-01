@@ -142,8 +142,8 @@
 
           <div class="mentor-footer">
             <div class="pricing-info">
-              <span class="hourly-rate">${{ mentor.hourlyRate }}/hour</span>
-              <span class="session-cost">Total: ${{ getSessionCost(mentor.hourlyRate) }}</span>
+              <span class="hourly-rate">₹{{ mentor.hourlyRate }}/hour</span>
+              <span class="session-cost">Total: ₹{{ getSessionCost(mentor.hourlyRate) }}</span>
             </div>
             <button class="btn btn-primary book-btn" (click)="bookSession(mentor)">
               Book Session

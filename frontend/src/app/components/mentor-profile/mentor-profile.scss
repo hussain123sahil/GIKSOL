@@ -438,6 +438,29 @@
         color: #2e7d32;
         font-weight: 500;
       }
+
+      .time-slots {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .time-slot {
+          background: #e8f5e8;
+          color: #2e7d32;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 500;
+          display: inline-block;
+          margin-right: 8px;
+          margin-bottom: 4px;
+        }
+      }
+
+      .not-available {
+        color: #999;
+        font-style: italic;
+      }
     }
   }
 }

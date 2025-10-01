@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
 import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
+import { MentorAvailabilityService } from '../../services/mentor-availability.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 
 interface Mentor {
@@ -22,13 +23,13 @@ interface Mentor {
   profilePicture?: string;
   isAvailable: boolean;
   availability: {
-    monday: { start: string, end: string, available: boolean };
-    tuesday: { start: string, end: string, available: boolean };
-    wednesday: { start: string, end: string, available: boolean };
-    thursday: { start: string, end: string, available: boolean };
-    friday: { start: string, end: string, available: boolean };
-    saturday: { start: string, end: string, available: boolean };
-    sunday: { start: string, end: string, available: boolean };
+    monday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
+    tuesday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
+    wednesday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
+    thursday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
+    friday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
+    saturday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
+    sunday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
   };
   education: Array<{
     degree: string;
@@ -74,7 +75,8 @@ export class MentorProfileComponent implements OnInit {
     public router: Router,
     private http: HttpClient,
     private authService: AuthService,
-    private mentorService: MentorService
+    private mentorService: MentorService,
+    private availabilityService: MentorAvailabilityService
   ) {}
 
   ngOnInit(): void {
@@ -128,13 +130,13 @@ export class MentorProfileComponent implements OnInit {
             profilePicture: response.mentor.profilePicture || this.getDefaultProfilePicture(response.mentor.firstName, response.mentor.lastName),
             isAvailable: true,
             availability: {
-              monday: { start: '09:00', end: '17:00', available: true },
-              tuesday: { start: '09:00', end: '17:00', available: true },
-              wednesday: { start: '09:00', end: '17:00', available: true },
-              thursday: { start: '09:00', end: '17:00', available: true },
-              friday: { start: '09:00', end: '15:00', available: true },
-              saturday: { start: '10:00', end: '14:00', available: false },
-              sunday: { start: '', end: '', available: false }
+              monday: { isAvailable: false, timeSlots: [] },
+              tuesday: { isAvailable: false, timeSlots: [] },
+              wednesday: { isAvailable: false, timeSlots: [] },
+              thursday: { isAvailable: false, timeSlots: [] },
+              friday: { isAvailable: false, timeSlots: [] },
+              saturday: { isAvailable: false, timeSlots: [] },
+              sunday: { isAvailable: false, timeSlots: [] }
             },
             education: [
               { degree: 'Master of Science in Computer Science', institution: 'University', year: 2020 },
@@ -146,6 +148,10 @@ export class MentorProfileComponent implements OnInit {
           };
         }
         this.isLoading = false;
+        // Load availability after profile is loaded with a small delay
+        setTimeout(() => {
+          this.loadAvailability();
+        }, 100);
       },
       error: (error) => {
         console.error('Error loading own profile:', error);
@@ -175,18 +181,22 @@ export class MentorProfileComponent implements OnInit {
           profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName),
           isAvailable: mentor.isAvailable,
           availability: mentor.availability || {
-            monday: { start: '09:00', end: '17:00', available: true },
-            tuesday: { start: '09:00', end: '17:00', available: true },
-            wednesday: { start: '09:00', end: '17:00', available: true },
-            thursday: { start: '09:00', end: '17:00', available: true },
-            friday: { start: '09:00', end: '15:00', available: true },
-            saturday: { start: '10:00', end: '14:00', available: false },
-            sunday: { start: '', end: '', available: false }
+            monday: { isAvailable: false, timeSlots: [] },
+            tuesday: { isAvailable: false, timeSlots: [] },
+            wednesday: { isAvailable: false, timeSlots: [] },
+            thursday: { isAvailable: false, timeSlots: [] },
+            friday: { isAvailable: false, timeSlots: [] },
+            saturday: { isAvailable: false, timeSlots: [] },
+            sunday: { isAvailable: false, timeSlots: [] }
           },
           education: mentor.education || [],
           certifications: mentor.certifications || []
         };
         this.isLoading = false;
+        // Load availability after profile is loaded with a small delay
+        setTimeout(() => {
+          this.loadAvailability();
+        }, 100);
       },
       error: (error) => {
         console.error('Error loading mentor profile:', error);
@@ -214,13 +224,13 @@ export class MentorProfileComponent implements OnInit {
       profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
       isAvailable: true,
       availability: {
-        monday: { start: '09:00', end: '17:00', available: true },
-        tuesday: { start: '09:00', end: '17:00', available: true },
-        wednesday: { start: '09:00', end: '17:00', available: true },
-        thursday: { start: '09:00', end: '17:00', available: true },
-        friday: { start: '09:00', end: '15:00', available: true },
-        saturday: { start: '10:00', end: '14:00', available: true },
-        sunday: { start: '', end: '', available: false }
+        monday: { isAvailable: false, timeSlots: [] },
+        tuesday: { isAvailable: false, timeSlots: [] },
+        wednesday: { isAvailable: false, timeSlots: [] },
+        thursday: { isAvailable: false, timeSlots: [] },
+        friday: { isAvailable: false, timeSlots: [] },
+        saturday: { isAvailable: false, timeSlots: [] },
+        sunday: { isAvailable: false, timeSlots: [] }
       },
       education: [
         { degree: 'Master of Science in Computer Science', institution: 'Stanford University', year: 2016 },
@@ -237,7 +247,7 @@ export class MentorProfileComponent implements OnInit {
   private getDefaultProfilePicture(firstName: string, lastName: string): string {
     // Generate a default profile picture based on name initials
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    return `https://via.placeholder.com/300x300/4f46e5/ffffff?text=${initials}`;
+    return `https://ui-avatars.com/api/?name=${initials}&background=4f46e5&color=ffffff&size=300&bold=true`;
   }
 
   toggleBookingForm(): void {
@@ -271,7 +281,7 @@ export class MentorProfileComponent implements OnInit {
     if (!this.mentor) return '';
     
     const availableDays = Object.entries(this.mentor.availability)
-      .filter(([_, schedule]) => schedule.available)
+      .filter(([_, schedule]) => schedule.isAvailable)
       .map(([day, schedule]) => day.charAt(0).toUpperCase() + day.slice(1));
     
     return availableDays.join(', ');
@@ -281,16 +291,35 @@ export class MentorProfileComponent implements OnInit {
     return this.bookingForm.sessionDuration * (this.mentor?.hourlyRate || 0) / 60;
   }
 
-  getAvailabilityDays(): Array<{name: string, available: boolean, start: string, end: string}> {
+  loadAvailability(): void {
+    if (!this.mentor?.id) return;
+
+    this.availabilityService.getAvailability(this.mentor.id).subscribe({
+      next: (response: any) => {
+        if (response.availability && this.mentor) {
+          this.mentor.availability = response.availability;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading availability for profile:', error);
+      }
+    });
+  }
+
+  getAvailabilityDays(): Array<{name: string, available: boolean, timeSlots: Array<{startTime: string, endTime: string}>}> {
     if (!this.mentor) return [];
     
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    return days.map(day => ({
-      name: day.charAt(0).toUpperCase() + day.slice(1),
-      available: this.mentor!.availability[day as keyof typeof this.mentor.availability].available,
-      start: this.mentor!.availability[day as keyof typeof this.mentor.availability].start,
-      end: this.mentor!.availability[day as keyof typeof this.mentor.availability].end
-    }));
+    return days.map(day => {
+      const dayData = this.mentor!.availability[day as keyof typeof this.mentor.availability];
+      return {
+        name: day.charAt(0).toUpperCase() + day.slice(1),
+        available: dayData.isAvailable,
+        timeSlots: dayData.timeSlots
+          .filter(slot => slot.isActive)
+          .map(slot => ({ startTime: slot.startTime, endTime: slot.endTime }))
+      };
+    });
   }
 
   closeBookingModal(event: Event): void {
@@ -298,4 +327,13 @@ export class MentorProfileComponent implements OnInit {
       this.showBookingForm = false;
     }
   }
+
+  formatTime(time: string): string {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  }
+
 }

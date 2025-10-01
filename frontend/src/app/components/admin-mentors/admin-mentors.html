@@ -78,7 +78,7 @@
               <td>{{ mentor.email }}</td>
               <td>{{ mentor.profile.company }}</td>
               <td>{{ mentor.profile.position }}</td>
-              <td>${{ mentor.profile.hourlyRate }}/hr</td>
+              <td>₹{{ mentor.profile.hourlyRate }}/hr</td>
               <td>
                 <div class="skills-tags">
                   <span class="skill-tag" *ngFor="let expertise of mentor.profile.expertise.slice(0, 2)">
@@ -171,7 +171,7 @@
                 </div>
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Hourly Rate ($) *</label>
+                    <label>Hourly Rate (₹) *</label>
                     <input type="number" [(ngModel)]="mentorForm.hourlyRate" name="hourlyRate" required min="0" placeholder="50">
                   </div>
                   <div class="form-group">
