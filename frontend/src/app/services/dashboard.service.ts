@@ -17,6 +17,22 @@ export interface Session {
   notes?: string;
   rating?: number;
   meetingLink?: string;
+  // User details for cancelled sessions
+  student?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  mentor?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  // Cancellation details
+  cancelledAt?: string;
+  cancelledBy?: 'student' | 'mentor' | 'system';
+  cancellationReason?: string;
+  cancelledByName?: string;
 }
 
 export interface Connection {
@@ -32,6 +48,7 @@ export interface Connection {
 export interface QuickStats {
   upcomingSessions: number;
   completedSessions: number;
+  cancelledSessions: number;
   totalConnections: number;
   totalSessions: number;
   averageRating: number;
@@ -48,6 +65,7 @@ export interface DashboardData {
   quickStats: QuickStats;
   upcomingSessions: Session[];
   completedSessions: Session[];
+  cancelledSessions: Session[];
   connections: Connection[];
 }
 

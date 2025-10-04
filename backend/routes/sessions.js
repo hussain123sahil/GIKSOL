@@ -55,10 +55,28 @@ router.get('/dashboard/:studentId', async (req, res) => {
     .limit(10)
     .lean(); // Use lean() to get plain objects
 
+    // Get cancelled sessions
+    const cancelledSessions = await Session.find({
+      student: studentId,
+      status: 'cancelled',
+      isActive: true
+    })
+    .populate('mentor', 'firstName lastName email profilePicture')
+    .populate('student', 'firstName lastName email profilePicture')
+    .sort({ cancelledAt: -1 })
+    .limit(10)
+    .lean(); // Use lean() to get plain objects
+
+    console.log('🔍 Student Dashboard - Cancelled Sessions Query:');
+    console.log('Student ID:', studentId);
+    console.log('Cancelled Sessions Found:', cancelledSessions.length);
+    console.log('Cancelled Sessions Data:', cancelledSessions);
+
     // Get connections (mentors from sessions)
     const mentorIds = [...new Set([
       ...upcomingSessions.map(s => s.mentor._id),
-      ...completedSessions.map(s => s.mentor._id)
+      ...completedSessions.map(s => s.mentor._id),
+      ...cancelledSessions.map(s => s.mentor._id)
     ])];
     
     const connections = await User.find({
@@ -69,6 +87,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
     const quickStats = {
       upcomingSessions: upcomingSessions.length,
       completedSessions: completedSessions.length,
+      cancelledSessions: cancelledSessions.length,
       totalConnections: connections.length,
       totalSessions: await Session.countDocuments({ student: studentId, isActive: true }),
       averageRating: await Session.aggregate([
@@ -98,7 +117,14 @@ router.get('/dashboard/:studentId', async (req, res) => {
           sessionType: session.sessionType,
           notes: session.notes,
           rating: session.rating,
-          meetingLink: session.meetingLink
+          meetingLink: session.meetingLink,
+          // Cancellation details
+          cancelledAt: session.cancelledAt,
+          cancelledBy: session.cancelledBy,
+          cancellationReason: session.cancellationReason,
+          cancelledByName: session.cancelledBy === 'student' 
+            ? `${session.student?.firstName || ''} ${session.student?.lastName || ''}`.trim()
+            : `${session.mentor?.firstName || ''} ${session.mentor?.lastName || ''}`.trim()
         };
       });
     };
@@ -114,6 +140,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
       quickStats,
       upcomingSessions: formatSessions(upcomingSessions),
       completedSessions: formatSessions(completedSessions),
+      cancelledSessions: formatSessions(cancelledSessions),
       connections: connections.map(conn => ({
         id: conn._id,
         mentorId: conn._id,
@@ -394,6 +421,23 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
     .limit(10)
     .lean();
 
+    // Get cancelled sessions
+    const cancelledSessions = await Session.find({
+      mentor: userId,
+      status: 'cancelled',
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture')
+    .populate('mentor', 'firstName lastName email profilePicture')
+    .sort({ cancelledAt: -1 })
+    .limit(10)
+    .lean();
+
+    console.log('🔍 Mentor Dashboard - Cancelled Sessions Query:');
+    console.log('Mentor ID:', userId);
+    console.log('Cancelled Sessions Found:', cancelledSessions.length);
+    console.log('Cancelled Sessions Data:', cancelledSessions);
+
     // Get connection requests
     const connectionRequests = await Connection.find({
       mentor: userId,
@@ -436,6 +480,7 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
       activeMentees: allActiveMentees.length,
       upcomingSessions: upcomingSessions.length,
       completedSessions: completedSessions.length,
+      cancelledSessions: cancelledSessions.length,
       pendingRequests: connectionRequests.length,
       totalSessions: totalSessions,
       averageRating: avgRatingResult[0]?.avgRating || 0
@@ -462,7 +507,14 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
           sessionType: session.sessionType,
           notes: session.notes,
           rating: session.rating,
-          meetingLink: session.meetingLink
+          meetingLink: session.meetingLink,
+          // Cancellation details
+          cancelledAt: session.cancelledAt,
+          cancelledBy: session.cancelledBy,
+          cancellationReason: session.cancellationReason,
+          cancelledByName: session.cancelledBy === 'student' 
+            ? `${session.student?.firstName || ''} ${session.student?.lastName || ''}`.trim()
+            : `${session.mentor?.firstName || ''} ${session.mentor?.lastName || ''}`.trim()
         };
       });
     };
@@ -556,6 +608,7 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
       quickStats,
       upcomingSessions: formatSessions(upcomingSessions),
       completedSessions: formatSessions(completedSessions),
+      cancelledSessions: formatSessions(cancelledSessions),
       mentees: uniqueMentees,
       connectionRequests: formatConnectionRequests(connectionRequests)
     };

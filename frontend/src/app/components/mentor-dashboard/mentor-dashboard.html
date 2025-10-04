@@ -113,7 +113,7 @@
 						<div class="session-card" *ngFor="let session of upcomingSessions">
 							<div class="session-card-header">
 								<div class="student-avatar">
-									{{ session.studentName.charAt(0) }}
+									{{ (session.student?.firstName || 'S').charAt(0) }}
 								</div>
 								<div class="session-status-badge">
 									<span class="status-dot upcoming"></span>
@@ -123,7 +123,7 @@
 							
 							<div class="session-card-body">
 								<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
-								<p class="student-name">{{ session.studentName }}</p>
+								<p class="student-name">{{ session.student?.firstName }} {{ session.student?.lastName }}</p>
 								
 								<div class="session-details">
 									<div class="detail-item">
@@ -179,7 +179,7 @@
 						<div class="past-session-card" *ngFor="let session of completedSessions">
 							<div class="past-session-header">
 								<div class="past-avatar">
-									{{ session.studentName.charAt(0) }}
+									{{ (session.student?.firstName || 'S').charAt(0) }}
 								</div>
 								<div class="session-rating" *ngIf="session.rating">
 									<div class="stars">
@@ -191,7 +191,7 @@
 							
 							<div class="past-session-body">
 								<h4 class="past-session-title">{{ session.title || 'Mentoring Session' }}</h4>
-								<p class="past-student-name">{{ session.studentName }}</p>
+								<p class="past-student-name">{{ session.student?.firstName }} {{ session.student?.lastName }}</p>
 								<div class="past-session-date">{{ formatDate(session.date) }}</div>
 								<div class="past-session-type">{{ session.sessionType }}</div>
 							</div>
@@ -262,6 +262,36 @@
 						<h3>No active mentees</h3>
 						<p>Students who connect with you will appear here.</p>
 					</div>
+				</div>
+
+				<!-- Cancelled Sessions Section -->
+				<div class="dashboard-section">
+					<div class="section-header">
+						<h2 class="section-title">Cancelled Sessions</h2>
+					</div>
+					
+					<div *ngIf="cancelledSessions && cancelledSessions.length > 0; else noCancelledSessions">
+						<div class="sessions-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+							<div class="session-card" *ngFor="let session of cancelledSessions" style="background: #fff; border: 1px solid #e74c3c; border-radius: 10px; padding: 20px;">
+								<h3>{{ session.title || 'Mentoring Session' }}</h3>
+								<p><strong>Student:</strong> {{ session.student?.firstName }} {{ session.student?.lastName }}</p>
+								<p><strong>Email:</strong> {{ session.student?.email }}</p>
+								<p><strong>Date:</strong> {{ session.date }}</p>
+								<p><strong>Time:</strong> {{ session.time }}</p>
+								<p><strong>Status:</strong> {{ session.status }}</p>
+								<p><strong>Cancelled By:</strong> {{ session.cancelledByName || session.cancelledBy }}</p>
+								<p><strong>Reason:</strong> {{ session.cancellationReason }}</p>
+							</div>
+						</div>
+					</div>
+					
+					<ng-template #noCancelledSessions>
+						<div class="empty-state" style="text-align: center; padding: 40px; background: #f8f8f8; border-radius: 8px;">
+							<div style="font-size: 3rem; margin-bottom: 15px;">🚫</div>
+							<h3>No cancelled sessions</h3>
+							<p>Any sessions that are cancelled will appear here.</p>
+						</div>
+					</ng-template>
 				</div>
 
 				</div> <!-- End Dashboard Content -->
