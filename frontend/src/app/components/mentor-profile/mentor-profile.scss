@@ -1,19 +1,60 @@
-// Shell layout for own profile
+// Shell layout for both own profile and public profile
 .mentor-profile-shell {
   display: flex;
   min-height: 100vh;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .sidebar-pane {
-  width: 250px;
-  flex-shrink: 0;
+  flex: 0 0 280px;
+  background: white;
+  border-right: 1px solid #e3f2fd;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  overflow-y: auto;
 }
 
 .main-pane {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  margin-left: 280px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  position: relative;
+}
+
+.main-pane::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+// Responsive design for mobile
+@media (max-width: 768px) {
+  .mentor-profile-shell {
+    flex-direction: column;
+  }
+  
+  .sidebar-pane {
+    position: relative;
+    height: auto;
+    flex: none;
+  }
+  
+  .main-pane {
+    margin-left: 0;
+  }
 }
 
 .page-title {
@@ -25,7 +66,8 @@
 
 .mentor-profile-container {
   min-height: 100vh;
-  background: #f8f9fa;
+  position: relative;
+  z-index: 1;
 }
 
 .loading-state {
@@ -62,55 +104,6 @@
   min-height: 200px !important; // Ensure minimum height
 }
 
-// Back Button - Above Profile Picture
-.linkedin-profile .back-button-container {
-  position: absolute;
-  top: 60px;
-  left: 10px;
-  z-index: 10;
-}
-
-.linkedin-profile .back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  color: #1976d2;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  text-decoration: none;
-
-  &:hover {
-    background: rgba(255, 255, 255, 1);
-    border-color: #1976d2;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(25, 118, 210, 0.3);
-    color: #1565c0;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  svg {
-    transition: transform 0.3s ease;
-    stroke: currentColor;
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover svg {
-    transform: translateX(-3px);
-  }
-}
 
 // Profile Header (Cover Photo + Profile Info)
 .profile-header {
