@@ -5,10 +5,20 @@ const Mentor = require('../models/Mentor');
 const Student = require('../models/Student');
 const Connection = require('../models/Connection');
 const emailService = require('../services/emailService');
+const config = require('../config/config');
 
 const { auth } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Utility function to convert date to IST
+function convertToIST(dateString) {
+  const date = new Date(dateString);
+  // Convert to IST by adjusting for timezone offset
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const utc = date.getTime() + (date.getTimezoneOffset() * 60 * 1000);
+  return new Date(utc + istOffset);
+}
 
 // Dashboard route (no auth required - just reading data)
 router.get('/dashboard/:studentId', async (req, res) => {
@@ -45,10 +55,28 @@ router.get('/dashboard/:studentId', async (req, res) => {
     .limit(10)
     .lean(); // Use lean() to get plain objects
 
+    // Get cancelled sessions
+    const cancelledSessions = await Session.find({
+      student: studentId,
+      status: 'cancelled',
+      isActive: true
+    })
+    .populate('mentor', 'firstName lastName email profilePicture')
+    .populate('student', 'firstName lastName email profilePicture')
+    .sort({ cancelledAt: -1 })
+    .limit(10)
+    .lean(); // Use lean() to get plain objects
+
+    console.log('🔍 Student Dashboard - Cancelled Sessions Query:');
+    console.log('Student ID:', studentId);
+    console.log('Cancelled Sessions Found:', cancelledSessions.length);
+    console.log('Cancelled Sessions Data:', cancelledSessions);
+
     // Get connections (mentors from sessions)
     const mentorIds = [...new Set([
       ...upcomingSessions.map(s => s.mentor._id),
-      ...completedSessions.map(s => s.mentor._id)
+      ...completedSessions.map(s => s.mentor._id),
+      ...cancelledSessions.map(s => s.mentor._id)
     ])];
     
     const connections = await User.find({
@@ -59,6 +87,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
     const quickStats = {
       upcomingSessions: upcomingSessions.length,
       completedSessions: completedSessions.length,
+      cancelledSessions: cancelledSessions.length,
       totalConnections: connections.length,
       totalSessions: await Session.countDocuments({ student: studentId, isActive: true }),
       averageRating: await Session.aggregate([
@@ -82,12 +111,20 @@ router.get('/dashboard/:studentId', async (req, res) => {
           title: session.title,
           date: formattedDate,
           time: formattedTime,
+          scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
           duration: session.duration,
           status: session.status,
           sessionType: session.sessionType,
           notes: session.notes,
           rating: session.rating,
-          meetingLink: session.meetingLink
+          meetingLink: session.meetingLink,
+          // Cancellation details
+          cancelledAt: session.cancelledAt,
+          cancelledBy: session.cancelledBy,
+          cancellationReason: session.cancellationReason,
+          cancelledByName: session.cancelledBy === 'student' 
+            ? `${session.student?.firstName || ''} ${session.student?.lastName || ''}`.trim()
+            : `${session.mentor?.firstName || ''} ${session.mentor?.lastName || ''}`.trim()
         };
       });
     };
@@ -103,6 +140,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
       quickStats,
       upcomingSessions: formatSessions(upcomingSessions),
       completedSessions: formatSessions(completedSessions),
+      cancelledSessions: formatSessions(cancelledSessions),
       connections: connections.map(conn => ({
         id: conn._id,
         mentorId: conn._id,
@@ -152,7 +190,7 @@ router.post('/', async (req, res) => {
       title,
       description,
       sessionType,
-      scheduledDate: new Date(scheduledDate),
+      scheduledDate: convertToIST(scheduledDate),
       duration: duration || 60,
       notes,
       status: 'scheduled',
@@ -383,6 +421,23 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
     .limit(10)
     .lean();
 
+    // Get cancelled sessions
+    const cancelledSessions = await Session.find({
+      mentor: userId,
+      status: 'cancelled',
+      isActive: true
+    })
+    .populate('student', 'firstName lastName email profilePicture')
+    .populate('mentor', 'firstName lastName email profilePicture')
+    .sort({ cancelledAt: -1 })
+    .limit(10)
+    .lean();
+
+    console.log('🔍 Mentor Dashboard - Cancelled Sessions Query:');
+    console.log('Mentor ID:', userId);
+    console.log('Cancelled Sessions Found:', cancelledSessions.length);
+    console.log('Cancelled Sessions Data:', cancelledSessions);
+
     // Get connection requests
     const connectionRequests = await Connection.find({
       mentor: userId,
@@ -425,6 +480,7 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
       activeMentees: allActiveMentees.length,
       upcomingSessions: upcomingSessions.length,
       completedSessions: completedSessions.length,
+      cancelledSessions: cancelledSessions.length,
       pendingRequests: connectionRequests.length,
       totalSessions: totalSessions,
       averageRating: avgRatingResult[0]?.avgRating || 0
@@ -445,12 +501,20 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
           title: session.title,
           date: formattedDate,
           time: formattedTime,
+          scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
           duration: session.duration,
           status: session.status,
           sessionType: session.sessionType,
           notes: session.notes,
           rating: session.rating,
-          meetingLink: session.meetingLink
+          meetingLink: session.meetingLink,
+          // Cancellation details
+          cancelledAt: session.cancelledAt,
+          cancelledBy: session.cancelledBy,
+          cancellationReason: session.cancellationReason,
+          cancelledByName: session.cancelledBy === 'student' 
+            ? `${session.student?.firstName || ''} ${session.student?.lastName || ''}`.trim()
+            : `${session.mentor?.firstName || ''} ${session.mentor?.lastName || ''}`.trim()
         };
       });
     };
@@ -544,6 +608,7 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
       quickStats,
       upcomingSessions: formatSessions(upcomingSessions),
       completedSessions: formatSessions(completedSessions),
+      cancelledSessions: formatSessions(cancelledSessions),
       mentees: uniqueMentees,
       connectionRequests: formatConnectionRequests(connectionRequests)
     };
@@ -579,8 +644,9 @@ router.put('/:id/cancel', async (req, res) => {
       });
     }
 
-    const sessionDate = new Date(session.scheduledDate);
-    const now = new Date();
+    // Convert to IST for proper timezone handling
+    const sessionDate = convertToIST(session.scheduledDate);
+    const now = convertToIST(new Date());
 
     // Different cancellation rules for mentors vs students
     if (cancelledBy === 'mentor') {
@@ -591,11 +657,11 @@ router.put('/:id/cancel', async (req, res) => {
         });
       }
     } else {
-      // Students can only cancel at least 1 day before
+      // Students can only cancel at least 24 hours before
       const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
       if (now >= oneDayBefore) {
         return res.status(400).json({ 
-          message: 'Sessions can only be cancelled at least 1 day before the scheduled date' 
+          message: 'Sessions can only be cancelled at least 24 hours before the scheduled date' 
         });
       }
     }

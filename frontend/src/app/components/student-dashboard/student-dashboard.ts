@@ -6,6 +6,7 @@ import { AuthService, User } from '../../services/auth';
 import { DashboardService, Session, Connection, DashboardData } from '../../services/dashboard.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
+import { TimezoneService } from '../../services/timezone.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -21,10 +22,12 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
+  cancelledSessions: Session[] = [];
   connections: Connection[] = [];
   quickStats = {
     upcomingSessions: 0,
     completedSessions: 0,
+    cancelledSessions: 0,
     totalConnections: 0,
     totalSessions: 0,
     averageRating: 0
@@ -40,11 +43,13 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   constructor(
     public router: Router,
     private authService: AuthService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit(): void {
     this.loadUserData();
+    
     this.loadDashboardData();
 
     // Subscribe to navigation events to refresh data when returning to dashboard
@@ -107,6 +112,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       next: (data: DashboardData) => {
         this.upcomingSessions = data.upcomingSessions;
         this.completedSessions = data.completedSessions;
+        this.cancelledSessions = data.cancelledSessions || [];
         this.connections = data.connections;
         this.quickStats = data.quickStats;
         this.isLoading = false;
@@ -133,6 +139,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       { id: '3', mentorId: '3', mentorName: 'Sarah Wilson', mentorCompany: 'Amazon', date: '2024-03-10', time: '15:00', duration: 60, status: 'completed', sessionType: 'Video Call', notes: 'JavaScript fundamentals', rating: 5 },
       { id: '4', mentorId: '4', mentorName: 'Mike Chen', mentorCompany: 'Meta', date: '2024-03-08', time: '11:00', duration: 45, status: 'completed', sessionType: 'Video Call', notes: 'React best practices', rating: 4 }
     ];
+    this.cancelledSessions = [];
     this.connections = [
       { id: '1', mentorId: '1', mentorName: 'Jane Doe', mentorCompany: 'Google', status: 'accepted', requestedAt: '2024-01-10', respondedAt: '2024-01-11' },
       { id: '2', mentorId: '2', mentorName: 'John Smith', mentorCompany: 'Microsoft', status: 'accepted', requestedAt: '2024-01-12', respondedAt: '2024-01-13' },
@@ -143,22 +150,71 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     this.quickStats = {
       upcomingSessions: this.upcomingSessions.length,
       completedSessions: this.completedSessions.length,
+      cancelledSessions: this.cancelledSessions.length,
       totalConnections: this.connections.length,
-      totalSessions: this.upcomingSessions.length + this.completedSessions.length,
+      totalSessions: this.upcomingSessions.length + this.completedSessions.length + this.cancelledSessions.length,
       averageRating: 4.5
     };
+  }
+
+  getCurrentTime(): string {
+    return new Date().toLocaleString();
+  }
+
+  formatDate(dateString: string): string {
+    return this.timezoneService.formatDateIST(new Date(dateString));
+  }
+
+  formatTime(dateString: string): string {
+    return this.timezoneService.formatTimeIST(new Date(dateString));
+  }
+
+  getCancelledByTag(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return `👨‍🎓 Cancelled by ${session.cancelledByName || 'Student'}`;
+    } else if (session.cancelledBy === 'mentor') {
+      return `👨‍🏫 Cancelled by ${session.cancelledByName || 'Mentor'}`;
+    }
+    return `🤖 Cancelled by System`;
+  }
+
+  getCancelledByClass(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return 'tag-student-cancel';
+    } else if (session.cancelledBy === 'mentor') {
+      return 'tag-mentor-cancel';
+    }
+    return 'tag-system-cancel';
   }
 
   browseMentors(): void { this.router.navigate(['/mentors']); }
   viewSession(sessionId: string): void { console.log('View session:', sessionId); }
   
   canCancelSession(session: Session): boolean {
-    const sessionDate = new Date(session.date);
-    const now = new Date();
-    const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
+    // Check if session is in a cancellable state
+    if (!['scheduled', 'upcoming'].includes(session.status)) {
+      return false;
+    }
+
+    // Get the session date - it might be in 'date' or 'scheduledDate' property
+    const sessionDateString = session.scheduledDate || session.date;
     
-    // Students can only cancel if session is scheduled/upcoming and it's more than 1 day before the session
-    return ['scheduled', 'upcoming'].includes(session.status) && now < oneDayBefore;
+    if (!sessionDateString) {
+      return false;
+    }
+
+    // Convert session date to IST for proper comparison
+    const sessionDate = new Date(sessionDateString);
+    const sessionDateIST = this.timezoneService.toIST(sessionDate);
+    
+    // Get current time in IST
+    const nowIST = this.timezoneService.getCurrentIST();
+    
+    // Calculate 24 hours before session in IST
+    const oneDayBefore = new Date(sessionDateIST.getTime() - (24 * 60 * 60 * 1000));
+    
+    // Students can only cancel if it's more than 24 hours before the session
+    return nowIST < oneDayBefore;
   }
 
   cancelSession(session: Session): void {
@@ -207,19 +263,6 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   viewAllSessions(): void { console.log('View all sessions'); }
   viewSessionDetails(sessionId: string): void { console.log('View session details:', sessionId); }
   logout(): void { this.authService.logout(); }
-
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  }
-
-  formatTime(timeString: string): string {
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
-  }
 
   getStatusColor(status: string): string {
     switch (status) {
