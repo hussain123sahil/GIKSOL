@@ -1,0 +1,235 @@
+<div class="student-account-shell">
+  <app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
+  
+  <div class="student-account-container main-pane">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="container">
+        <div class="header-content">
+          <h1>Account Settings</h1>
+          <p>Manage your profile, preferences, and account settings</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="account-content">
+      <div class="container">
+        <div class="account-layout">
+          <!-- Sidebar Navigation -->
+          <nav class="account-sidebar">
+            <ul class="nav-list">
+              <li class="nav-item" [class.active]="currentTab === 'profile'" (click)="switchTab('profile')">
+                <i class="icon">👤</i>
+                <span>Profile</span>
+              </li>
+              <li class="nav-item" [class.active]="currentTab === 'settings'" (click)="switchTab('settings')">
+                <i class="icon">⚙️</i>
+                <span>Settings</span>
+              </li>
+            </ul>
+          </nav>
+
+          <!-- Content Area -->
+          <div class="account-main">
+            <!-- Loading State -->
+            <div *ngIf="isLoading" class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading account data...</p>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <div *ngIf="successMessage" class="alert alert-success">
+              <i class="icon">✅</i>
+              <span>{{ successMessage }}</span>
+              <button class="close-btn" (click)="clearMessages()">×</button>
+            </div>
+
+            <div *ngIf="errorMessage" class="alert alert-error">
+              <i class="icon">❌</i>
+              <span>{{ errorMessage }}</span>
+              <button class="close-btn" (click)="clearMessages()">×</button>
+            </div>
+
+            <!-- Profile Tab -->
+            <div *ngIf="currentTab === 'profile'" class="tab-content">
+              <div class="tab-header">
+                <h2>Profile Information</h2>
+                <p>Update your personal information and profile details</p>
+              </div>
+
+              <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="profile-form">
+                <!-- Profile Picture Section -->
+                <div class="profile-picture-section">
+                  <div class="picture-container">
+                    <img [src]="getProfilePictureUrl()" [alt]="userProfile?.firstName" class="profile-picture">
+                    <div class="picture-overlay">
+                      <input type="file" id="profilePicture" accept="image/*" (change)="onProfilePictureChange($event)" style="display: none;">
+                      <label for="profilePicture" class="upload-btn">
+                        <i class="icon">📷</i>
+                        <span>Change Photo</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="form-section">
+                  <h3>Basic Information</h3>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="firstName">First Name *</label>
+                      <input type="text" id="firstName" formControlName="firstName" class="form-input" [class.error]="getFieldError('firstName')">
+                      <span class="error-message" *ngIf="getFieldError('firstName')">{{ getFieldError('firstName') }}</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="lastName">Last Name *</label>
+                      <input type="text" id="lastName" formControlName="lastName" class="form-input" [class.error]="getFieldError('lastName')">
+                      <span class="error-message" *ngIf="getFieldError('lastName')">{{ getFieldError('lastName') }}</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="email">Email Address *</label>
+                      <input type="email" id="email" formControlName="email" class="form-input" [class.error]="getFieldError('email')">
+                      <span class="error-message" *ngIf="getFieldError('email')">{{ getFieldError('email') }}</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="phone">Phone Number</label>
+                      <input type="tel" id="phone" formControlName="phone" class="form-input">
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="dateOfBirth">Date of Birth</label>
+                      <input type="date" id="dateOfBirth" formControlName="dateOfBirth" class="form-input">
+                    </div>
+                    <div class="form-group">
+                      <label for="gender">Gender</label>
+                      <select id="gender" formControlName="gender" class="form-input">
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="form-section">
+                  <h3>Additional Information</h3>
+                  <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" formControlName="bio" class="form-textarea" rows="4" placeholder="Tell us about yourself..."></textarea>
+                    <div class="char-count">{{ profileForm.get('bio')?.value?.length || 0 }}/500</div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" formControlName="location" class="form-input" placeholder="City, Country">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="website">Website</label>
+                    <input type="url" id="website" formControlName="website" class="form-input" placeholder="https://yourwebsite.com">
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="linkedinUrl">LinkedIn Profile</label>
+                      <input type="url" id="linkedinUrl" formControlName="linkedinUrl" class="form-input" placeholder="https://linkedin.com/in/yourprofile">
+                    </div>
+                    <div class="form-group">
+                      <label for="githubUrl">GitHub Profile</label>
+                      <input type="url" id="githubUrl" formControlName="githubUrl" class="form-input" placeholder="https://github.com/yourusername">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+                    <span *ngIf="isSaving">Saving...</span>
+                    <span *ngIf="!isSaving">Save Changes</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+
+
+            <!-- Settings Tab -->
+            <div *ngIf="currentTab === 'settings'" class="tab-content">
+              <div class="tab-header">
+                <h2>Account Settings</h2>
+                <p>Manage your account settings</p>
+              </div>
+
+              <div class="settings-section">
+                <!-- Change Password -->
+                <div class="settings-item">
+                  <div class="settings-info">
+                    <h3>Change Password</h3>
+                    <p>Update your account password for better security</p>
+                  </div>
+                  <button class="btn btn-secondary" (click)="showPasswordForm = !showPasswordForm">
+                    Change Password
+                  </button>
+                </div>
+
+                <!-- Password Change Form -->
+                <div *ngIf="showPasswordForm" class="password-form">
+                  <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+                    <div class="form-group">
+                      <label for="currentPassword">Current Password *</label>
+                      <input type="password" id="currentPassword" formControlName="currentPassword" class="form-input" [class.error]="getPasswordError('currentPassword')">
+                      <span class="error-message" *ngIf="getPasswordError('currentPassword')">{{ getPasswordError('currentPassword') }}</span>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="newPassword">New Password *</label>
+                      <input type="password" id="newPassword" formControlName="newPassword" class="form-input" [class.error]="getPasswordError('newPassword')">
+                      <span class="error-message" *ngIf="getPasswordError('newPassword')">{{ getPasswordError('newPassword') }}</span>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="confirmPassword">Confirm New Password *</label>
+                      <input type="password" id="confirmPassword" formControlName="confirmPassword" class="form-input" [class.error]="getPasswordError('confirmPassword')">
+                      <span class="error-message" *ngIf="getPasswordError('confirmPassword')">{{ getPasswordError('confirmPassword') }}</span>
+                    </div>
+
+                    <div class="form-actions">
+                      <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+                        <span *ngIf="isSaving">Changing...</span>
+                        <span *ngIf="!isSaving">Change Password</span>
+                      </button>
+                      <button type="button" class="btn btn-outline" (click)="showPasswordForm = false; passwordForm.reset()">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- Delete Account -->
+                <div class="settings-item danger-zone">
+                  <div class="settings-info">
+                    <h3>Delete Account</h3>
+                    <p>Permanently delete your account and all associated data</p>
+                  </div>
+                  <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="isSaving">
+                    <span *ngIf="isSaving">Deleting...</span>
+                    <span *ngIf="!isSaving">Delete Account</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

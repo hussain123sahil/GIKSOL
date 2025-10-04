@@ -506,6 +506,95 @@ router.get('/check-user/:email', async (req, res) => {
   }
 });
 
+// Get user profile
+router.get('/profile', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update user profile
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, dateOfBirth, gender, bio, location, website, linkedinUrl, githubUrl } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user fields
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.email = email || user.email;
+    user.phone = phone || user.phone;
+    user.dateOfBirth = dateOfBirth || user.dateOfBirth;
+    user.gender = gender || user.gender;
+    user.bio = bio || user.bio;
+    user.location = location || user.location;
+    user.website = website || user.website;
+    user.linkedinUrl = linkedinUrl || user.linkedinUrl;
+    user.githubUrl = githubUrl || user.githubUrl;
+
+    await user.save();
+    res.json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Change password
+router.put('/change-password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+    
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete account
+router.delete('/account', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Delete user and related data
+    await User.findByIdAndDelete(userId);
+    await Student.findOneAndDelete({ user: userId });
+    await Mentor.findOneAndDelete({ user: userId });
+    
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Logout (client-side token removal)
 router.post('/logout', auth, (req, res) => {
   res.json({ message: 'Logout successful' });
