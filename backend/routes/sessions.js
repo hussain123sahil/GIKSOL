@@ -108,7 +108,9 @@ router.get('/dashboard/:studentId', async (req, res) => {
           mentorId: session.mentor._id,
           mentorName: `${session.mentor.firstName} ${session.mentor.lastName}`,
           mentorCompany: 'Tech Company', // We'll get this from Mentor model later
-          title: session.title,
+          title: session.status === 'cancelled' 
+            ? `Session with ${session.mentor.firstName} ${session.mentor.lastName}`
+            : session.title,
           date: formattedDate,
           time: formattedTime,
           scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
@@ -498,7 +500,9 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
           studentId: session.student._id,
           studentName: `${session.student.firstName} ${session.student.lastName}`,
           studentEmail: session.student.email,
-          title: session.title,
+          title: session.status === 'cancelled' 
+            ? `Session with ${session.student.firstName} ${session.student.lastName}`
+            : session.title,
           date: formattedDate,
           time: formattedTime,
           scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
