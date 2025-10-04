@@ -32,26 +32,37 @@ export class MySessionsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
-    console.log('My Sessions - Current user:', this.currentUser);
-    
-    if (!this.currentUser) {
-      console.log('No user found, using mock user for development');
-      // For development, create a mock user instead of redirecting
-      this.currentUser = {
-        id: '68d2c326ac49758f6e269b4e',
-        firstName: 'Alex',
-        lastName: 'Johnson',
-        email: 'alex.johnson@example.com',
-        role: 'student'
-      };
+    this.loadUserData();
+  }
+
+  // Load user data from API
+  loadUserData(): void {
+    // First try to get user from localStorage for immediate display
+    const cachedUser = this.authService.getCurrentUser();
+    if (cachedUser && cachedUser.id) {
+      this.currentUser = cachedUser;
+      this.loadSessionsData();
     }
-    this.loadSessionsData();
+
+    // Then fetch fresh user data from API
+    this.authService.fetchCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        this.loadSessionsData();
+      },
+      error: (error) => {
+        console.error('Error loading user data:', error);
+        if (!this.currentUser || !this.currentUser.id) {
+          console.error('No user found, redirecting to login');
+          this.router.navigate(['/login']);
+        }
+      }
+    });
   }
 
   loadSessionsData(): void {
     // For testing, use the seeded student ID
-    const studentId = this.currentUser?.id || '68d2c326ac49758f6e269b4e';
+    const studentId = this.currentUser?.id;
     
     if (!studentId) {
       this.error = 'User not found';

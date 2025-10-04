@@ -256,6 +256,7 @@ export class StudentAccountComponent implements OnInit {
                   this.isSaving = false;
                   this.loadUserProfile(); // Reload to get updated data
                   this.loadStudentProfile();
+                  this.updateLocalStorageUser(); // Update localStorage with new data
                 },
                 error: (error) => {
                   console.error('Error updating student profile:', error);
@@ -389,6 +390,22 @@ export class StudentAccountComponent implements OnInit {
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
+  }
+
+  // Update localStorage with current user data
+  updateLocalStorageUser(): void {
+    if (this.userProfile) {
+      const updatedUser = {
+        id: this.userProfile._id,
+        firstName: this.userProfile.firstName,
+        lastName: this.userProfile.lastName,
+        email: this.userProfile.email,
+        role: 'student' // Assuming student role for this component
+      };
+      
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      console.log('Updated localStorage user data:', updatedUser);
+    }
   }
 
   // Format date for display
