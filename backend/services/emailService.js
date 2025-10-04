@@ -508,6 +508,248 @@ class EmailService {
     </html>
     `;
   }
+
+  // Send cancellation email to student when student cancels
+  async sendStudentCancellationEmail(sessionData, studentEmail, studentName, mentorName) {
+    if (!this.transporter) {
+      return;
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: studentEmail,
+      subject: `Session Cancelled - ${sessionData.title}`,
+      html: this.getStudentCancellationTemplate(sessionData, studentName, mentorName, 'student')
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending student cancellation email:', error.message);
+      throw error;
+    }
+  }
+
+  // Send cancellation email to mentor when student cancels
+  async sendMentorCancellationEmail(sessionData, mentorEmail, mentorName, studentName) {
+    if (!this.transporter) {
+      return;
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: mentorEmail,
+      subject: `Session Cancelled - ${sessionData.title}`,
+      html: this.getMentorCancellationTemplate(sessionData, mentorName, studentName, 'student')
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending mentor cancellation email:', error.message);
+      throw error;
+    }
+  }
+
+  // Send cancellation email to student when mentor cancels
+  async sendStudentMentorCancellationEmail(sessionData, studentEmail, studentName, mentorName) {
+    if (!this.transporter) {
+      return;
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: studentEmail,
+      subject: `Session Cancelled - ${sessionData.title}`,
+      html: this.getStudentCancellationTemplate(sessionData, studentName, mentorName, 'mentor')
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending student mentor cancellation email:', error.message);
+      throw error;
+    }
+  }
+
+  // Send cancellation email to mentor when mentor cancels
+  async sendMentorSelfCancellationEmail(sessionData, mentorEmail, mentorName, studentName) {
+    if (!this.transporter) {
+      return;
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: mentorEmail,
+      subject: `Session Cancelled - ${sessionData.title}`,
+      html: this.getMentorCancellationTemplate(sessionData, mentorName, studentName, 'mentor')
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending mentor self cancellation email:', error.message);
+      throw error;
+    }
+  }
+
+  // Email template for student when they cancel
+  getStudentCancellationTemplate(sessionData, studentName, mentorName, cancelledBy) {
+    const sessionDate = new Date(sessionData.scheduledDate).toLocaleDateString('en-IN', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      timeZone: config.timezone.default 
+    });
+    const sessionTime = new Date(sessionData.scheduledDate).toLocaleTimeString('en-IN', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: config.timezone.default,
+      timeZoneName: 'short'
+    });
+
+    const isStudentCancellation = cancelledBy === 'student';
+    const refundMessage = isStudentCancellation 
+      ? 'No refund will be initiated as you cancelled the session.'
+      : 'A full refund will be initiated as the mentor cancelled the session.';
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Session Cancelled</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #f8f9fa; color: #333; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #dee2e6; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .session-info { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #6c757d; }
+            .refund-info { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>❌ Session Cancelled</h1>
+                <p>Your mentoring session has been cancelled</p>
+            </div>
+            
+            <div class="content">
+                <h2>Hello ${studentName}!</h2>
+                <p>Your mentoring session has been cancelled. Here are the details:</p>
+                
+                <div class="session-info">
+                    <h3>📅 Session Details</h3>
+                    <p><strong>Session:</strong> ${sessionData.title}</p>
+                    <p><strong>Mentor:</strong> ${mentorName}</p>
+                    <p><strong>Date:</strong> ${sessionDate}</p>
+                    <p><strong>Time:</strong> ${sessionTime}</p>
+                    <p><strong>Duration:</strong> ${sessionData.duration} minutes</p>
+                    <p><strong>Type:</strong> ${sessionData.sessionType}</p>
+                    <p><strong>Cancelled by:</strong> ${isStudentCancellation ? 'You' : 'Mentor'}</p>
+                    <p><strong>Reason:</strong> ${sessionData.cancellationReason || 'No reason provided'}</p>
+                </div>
+
+                <div class="refund-info">
+                    <strong>💰 Refund Information:</strong> ${refundMessage}
+                </div>
+
+                <p>If you have any questions or would like to reschedule, please contact our support team.</p>
+                
+                <p>Best regards,<br>Support Team</p>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated message. Please do not reply to this email.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+  }
+
+  // Email template for mentor when student cancels
+  getMentorCancellationTemplate(sessionData, mentorName, studentName, cancelledBy) {
+    const sessionDate = new Date(sessionData.scheduledDate).toLocaleDateString('en-IN', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      timeZone: config.timezone.default 
+    });
+    const sessionTime = new Date(sessionData.scheduledDate).toLocaleTimeString('en-IN', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: config.timezone.default,
+      timeZoneName: 'short'
+    });
+
+    const isStudentCancellation = cancelledBy === 'student';
+    const refundMessage = isStudentCancellation 
+      ? 'No refund will be initiated as the student cancelled the session.'
+      : 'A full refund will be initiated as you cancelled the session.';
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Session Cancelled</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #f8f9fa; color: #333; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #dee2e6; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .session-info { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #6c757d; }
+            .refund-info { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>❌ Session Cancelled</h1>
+                <p>A mentoring session has been cancelled</p>
+            </div>
+            
+            <div class="content">
+                <h2>Hello ${mentorName}!</h2>
+                <p>A mentoring session has been cancelled. Here are the details:</p>
+                
+                <div class="session-info">
+                    <h3>📅 Session Details</h3>
+                    <p><strong>Session:</strong> ${sessionData.title}</p>
+                    <p><strong>Student:</strong> ${studentName}</p>
+                    <p><strong>Date:</strong> ${sessionDate}</p>
+                    <p><strong>Time:</strong> ${sessionTime}</p>
+                    <p><strong>Duration:</strong> ${sessionData.duration} minutes</p>
+                    <p><strong>Type:</strong> ${sessionData.sessionType}</p>
+                    <p><strong>Cancelled by:</strong> ${isStudentCancellation ? 'Student' : 'You'}</p>
+                    <p><strong>Reason:</strong> ${sessionData.cancellationReason || 'No reason provided'}</p>
+                </div>
+
+                <div class="refund-info">
+                    <strong>💰 Refund Information:</strong> ${refundMessage}
+                </div>
+
+                <p>If you have any questions or would like to reschedule, please contact our support team.</p>
+                
+                <p>Best regards,<br>Support Team</p>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated message. Please do not reply to this email.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+  }
 }
 
 module.exports = new EmailService();
