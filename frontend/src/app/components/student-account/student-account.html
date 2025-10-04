@@ -204,7 +204,7 @@
                     <h3>Delete Account</h3>
                     <p>Permanently delete your account and all associated data</p>
                   </div>
-                  <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="isSaving">
+                  <button class="btn btn-danger" (click)="showDeleteModal()" [disabled]="isSaving">
                     <span *ngIf="isSaving">Deleting...</span>
                     <span *ngIf="!isSaving">Delete Account</span>
                   </button>
@@ -214,6 +214,50 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Confirmation Modal -->
+<div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="closeDeleteModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Delete Account</h3>
+      <button class="modal-close" (click)="closeDeleteModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="warning-icon">⚠️</div>
+      <h4>Are you absolutely sure?</h4>
+      <p>This action cannot be undone. This will permanently delete your account and remove all your data from our servers.</p>
+      
+      <div class="confirmation-section">
+        <p>Please type <strong>delete</strong> in the box below to confirm:</p>
+        <input 
+          type="text" 
+          [(ngModel)]="deleteConfirmationText" 
+          placeholder="Type 'delete' to confirm"
+          class="confirmation-input"
+          [class.error]="deleteConfirmationError"
+        />
+        <div *ngIf="deleteConfirmationError" class="error-message">
+          {{ deleteConfirmationError }}
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeDeleteModal()" [disabled]="isSaving">
+        Cancel
+      </button>
+      <button 
+        class="btn btn-danger" 
+        (click)="confirmDeleteAccount()" 
+        [disabled]="isSaving || deleteConfirmationText !== 'delete'"
+      >
+        <span *ngIf="isSaving">Deleting...</span>
+        <span *ngIf="!isSaving">Delete Account</span>
+      </button>
     </div>
   </div>
 </div>

@@ -65,6 +65,8 @@ export class StudentAccountComponent implements OnInit {
   isSaving = false;
   showPasswordForm = false;
   showDeleteConfirm = false;
+  deleteConfirmationText = '';
+  deleteConfirmationError = '';
   
   // Success/Error messages
   successMessage = '';
@@ -301,28 +303,51 @@ export class StudentAccountComponent implements OnInit {
   }
 
 
-  // Delete account
-  deleteAccount(): void {
-    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      this.isSaving = true;
-      
-      this.http.delete('http://localhost:5000/api/auth/account', {
-        headers: this.authService.getAuthHeaders()
-      })
-        .subscribe({
-          next: (response) => {
-            this.successMessage = 'Account deleted successfully. Redirecting to login...';
-            setTimeout(() => {
-              this.router.navigate(['/login']);
-            }, 2000);
-          },
-          error: (error) => {
-            console.error('Error deleting account:', error);
-            this.errorMessage = 'Failed to delete account. Please try again.';
-            this.isSaving = false;
-          }
-        });
+  // Show delete confirmation modal
+  showDeleteModal(): void {
+    this.showDeleteConfirm = true;
+    this.deleteConfirmationText = '';
+    this.deleteConfirmationError = '';
+  }
+
+  // Close delete confirmation modal
+  closeDeleteModal(): void {
+    this.showDeleteConfirm = false;
+    this.deleteConfirmationText = '';
+    this.deleteConfirmationError = '';
+  }
+
+  // Confirm delete account
+  confirmDeleteAccount(): void {
+    if (this.deleteConfirmationText !== 'delete') {
+      this.deleteConfirmationError = 'Please type "delete" exactly to confirm.';
+      return;
     }
+
+    this.deleteConfirmationError = '';
+    this.isSaving = true;
+    
+    this.http.delete('http://localhost:5000/api/auth/account', {
+      headers: this.authService.getAuthHeaders()
+    })
+      .subscribe({
+        next: (response) => {
+          this.successMessage = 'Account deleted successfully. Redirecting to login...';
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 2000);
+        },
+        error: (error) => {
+          console.error('Error deleting account:', error);
+          this.errorMessage = 'Failed to delete account. Please try again.';
+          this.isSaving = false;
+        }
+      });
+  }
+
+  // Delete account (original method - kept for compatibility)
+  deleteAccount(): void {
+    this.showDeleteModal();
   }
 
   // Upload profile picture
