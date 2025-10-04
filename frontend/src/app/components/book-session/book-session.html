@@ -43,6 +43,15 @@
                 (change)="onTimeChange()"
               >
                 <option value="">Select time</option>
+                <option value="00:00">12:00 AM</option>
+                <option value="01:00">1:00 AM</option>
+                <option value="02:00">2:00 AM</option>
+                <option value="03:00">3:00 AM</option>
+                <option value="04:00">4:00 AM</option>
+                <option value="05:00">5:00 AM</option>
+                <option value="06:00">6:00 AM</option>
+                <option value="07:00">7:00 AM</option>
+                <option value="08:00">8:00 AM</option>
                 <option value="09:00">9:00 AM</option>
                 <option value="10:00">10:00 AM</option>
                 <option value="11:00">11:00 AM</option>
@@ -52,6 +61,12 @@
                 <option value="15:00">3:00 PM</option>
                 <option value="16:00">4:00 PM</option>
                 <option value="17:00">5:00 PM</option>
+                <option value="18:00">6:00 PM</option>
+                <option value="19:00">7:00 PM</option>
+                <option value="20:00">8:00 PM</option>
+                <option value="21:00">9:00 PM</option>
+                <option value="22:00">10:00 PM</option>
+                <option value="23:00">11:00 PM</option>
               </select>
             </div>
 
@@ -63,10 +78,9 @@
                 name="sessionDuration"
                 (change)="onDurationChange()"
               >
+                <option value="15">15 minutes</option>
                 <option value="30">30 minutes</option>
                 <option value="60">60 minutes</option>
-                <option value="90">90 minutes</option>
-                <option value="120">120 minutes</option>
               </select>
             </div>
 
@@ -78,6 +92,12 @@
             </div>
           </div>
         </form>
+        
+        <div class="filter-actions">
+          <button type="button" class="btn btn-outline" (click)="clearFilters()">
+            Clear Filters
+          </button>
+        </div>
       </div>
     </div>
   </section>
@@ -106,7 +126,7 @@
         <div class="mentor-card" *ngFor="let mentor of availableMentors">
           <div class="mentor-header">
             <div class="mentor-avatar">
-              <img [src]="getMentorAvatar(mentor.user.firstName, mentor.user.lastName)" [alt]="mentor.user.firstName" class="avatar-image">
+              <img [src]="getMentorAvatar(mentor)" [alt]="mentor.user.firstName" class="avatar-image" (error)="onImageError($event, mentor)">
             </div>
             <div class="mentor-info">
               <h3>{{ mentor.user.firstName }} {{ mentor.user.lastName }}</h3>

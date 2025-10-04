@@ -117,6 +117,43 @@
   white-space: nowrap;
 }
 
+/* Filter Actions */
+.filter-actions {
+  display: flex;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.filter-actions .btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.filter-actions .btn-secondary {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.filter-actions .btn-secondary:hover:not(:disabled) {
+  background: #5a6268;
+  border-color: #545b62;
+}
+
+.filter-actions .btn-outline {
+  background: transparent;
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.filter-actions .btn-outline:hover:not(:disabled) {
+  background: #6c757d;
+  color: white;
+}
+
 /* Results Section */
 .results-section {
   padding: 40px 0;
