@@ -12,14 +12,7 @@ interface UserProfile {
   lastName: string;
   email: string;
   profilePicture?: string;
-  phone?: string;
-  dateOfBirth?: string;
-  gender?: string;
   bio?: string;
-  location?: string;
-  website?: string;
-  linkedinUrl?: string;
-  githubUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,25 +20,10 @@ interface UserProfile {
 interface StudentProfile {
   _id: string;
   user: string;
-  university?: string;
-  degree?: string;
-  graduationYear?: string;
-  major?: string;
-  gpa?: string;
+  grade?: string;
+  school?: string;
+  learningGoals: string[];
   skills: string[];
-  interests: string[];
-  careerGoals?: string;
-  experience?: string;
-  projects?: string;
-  achievements?: string;
-  budget: {
-    min: number;
-    max: number;
-  };
-  availability: string;
-  preferredMentorType?: string;
-  learningStyle?: string;
-  goals: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -84,18 +62,12 @@ export class StudentAccountComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
   
-  // Skills and interests options
+  // Skills options
   skillOptions = [
     'JavaScript', 'Python', 'Java', 'React', 'Angular', 'Node.js', 'SQL', 'MongoDB',
     'AWS', 'Docker', 'Git', 'Machine Learning', 'Data Science', 'Web Development',
     'Mobile Development', 'UI/UX Design', 'Project Management', 'Communication',
     'Leadership', 'Problem Solving', 'Critical Thinking', 'Teamwork'
-  ];
-  
-  interestOptions = [
-    'Technology', 'Business', 'Science', 'Arts', 'Sports', 'Music', 'Travel',
-    'Photography', 'Writing', 'Gaming', 'Cooking', 'Fitness', 'Reading',
-    'Movies', 'Fashion', 'Environment', 'Social Impact', 'Education'
   ];
 
   constructor(
@@ -108,14 +80,11 @@ export class StudentAccountComponent implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: [''],
-      dateOfBirth: [''],
-      gender: [''],
       bio: ['', [Validators.maxLength(500)]],
-      location: [''],
-      website: [''],
-      linkedinUrl: [''],
-      githubUrl: ['']
+      grade: ['', [Validators.required]],
+      school: ['', [Validators.required]],
+      learningGoals: ['', [Validators.required]],
+      skills: ['']
     });
 
     this.passwordForm = this.fb.group({
@@ -183,14 +152,16 @@ export class StudentAccountComponent implements OnInit {
         firstName: this.userProfile.firstName,
         lastName: this.userProfile.lastName,
         email: this.userProfile.email,
-        phone: this.userProfile.phone || '',
-        dateOfBirth: this.userProfile.dateOfBirth || '',
-        gender: this.userProfile.gender || '',
-        bio: this.userProfile.bio || '',
-        location: this.userProfile.location || '',
-        website: this.userProfile.website || '',
-        linkedinUrl: this.userProfile.linkedinUrl || '',
-        githubUrl: this.userProfile.githubUrl || ''
+        bio: this.userProfile.bio || ''
+      });
+    }
+    
+    if (this.studentProfile) {
+      this.profileForm.patchValue({
+        grade: this.studentProfile.grade || '',
+        school: this.studentProfile.school || '',
+        learningGoals: this.studentProfile.learningGoals ? this.studentProfile.learningGoals.join(', ') : '',
+        skills: this.studentProfile.skills ? this.studentProfile.skills.join(', ') : ''
       });
     }
   }
@@ -208,17 +179,47 @@ export class StudentAccountComponent implements OnInit {
       this.isSaving = true;
       const profileData = this.profileForm.value;
       
-      this.http.put('http://localhost:5000/api/auth/profile', profileData, {
+      // Separate user profile data and student profile data
+      const userProfileData = {
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: profileData.email,
+        bio: profileData.bio
+      };
+      
+      const studentProfileData = {
+        grade: profileData.grade,
+        school: profileData.school,
+        learningGoals: profileData.learningGoals ? profileData.learningGoals.split(',').map((goal: string) => goal.trim()).filter((goal: string) => goal) : [],
+        skills: profileData.skills ? profileData.skills.split(',').map((skill: string) => skill.trim()).filter((skill: string) => skill) : []
+      };
+      
+      // Update user profile
+      this.http.put('http://localhost:5000/api/auth/profile', userProfileData, {
         headers: this.authService.getAuthHeaders()
       })
         .subscribe({
           next: (response) => {
-            this.successMessage = 'Profile updated successfully!';
-            this.isSaving = false;
-            this.loadUserProfile(); // Reload to get updated data
+            // Update student profile
+            this.http.put('http://localhost:5000/api/students/profile', studentProfileData, {
+              headers: this.authService.getAuthHeaders()
+            })
+              .subscribe({
+                next: (studentResponse) => {
+                  this.successMessage = 'Profile updated successfully!';
+                  this.isSaving = false;
+                  this.loadUserProfile(); // Reload to get updated data
+                  this.loadStudentProfile();
+                },
+                error: (error) => {
+                  console.error('Error updating student profile:', error);
+                  this.errorMessage = 'Failed to update student profile. Please try again.';
+                  this.isSaving = false;
+                }
+              });
           },
           error: (error) => {
-            console.error('Error updating profile:', error);
+            console.error('Error updating user profile:', error);
             this.errorMessage = 'Failed to update profile. Please try again.';
             this.isSaving = false;
           }
