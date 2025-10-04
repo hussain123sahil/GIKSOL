@@ -106,22 +106,6 @@ export class StudentAccountComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserProfile();
     this.loadStudentProfile();
-    
-    // Debug: Check all students in database
-    this.debugCheckStudents();
-  }
-
-  // Debug method to check all students
-  debugCheckStudents(): void {
-    this.http.get('http://localhost:5000/api/students/debug/all')
-      .subscribe({
-        next: (response: any) => {
-          console.log('Debug - All students in database:', response);
-        },
-        error: (error) => {
-          console.error('Debug - Error fetching all students:', error);
-        }
-      });
   }
 
   // Password validation
@@ -139,19 +123,12 @@ export class StudentAccountComponent implements OnInit {
   // Load user profile data
   loadUserProfile(): void {
     this.isLoading = true;
-    console.log('Loading user profile...');
-    console.log('Current user:', this.authService.getCurrentUser());
-    console.log('Is authenticated:', this.authService.isAuthenticated());
-    console.log('Token:', this.authService.getToken());
-    
     this.http.get<UserProfile>('http://localhost:5000/api/auth/profile', {
       headers: this.authService.getAuthHeaders()
     })
       .subscribe({
         next: (profile) => {
-          console.log('User profile loaded:', profile);
           this.userProfile = profile;
-          // Don't populate form here, wait for student profile
           this.isLoading = false;
         },
         error: (error) => {
@@ -164,26 +141,16 @@ export class StudentAccountComponent implements OnInit {
 
   // Load student profile data
   loadStudentProfile(): void {
-    console.log('Loading student profile...');
-    console.log('Auth headers:', this.authService.getAuthHeaders());
-    
     this.http.get<StudentProfile>('http://localhost:5000/api/students/profile', {
       headers: this.authService.getAuthHeaders()
     })
       .subscribe({
         next: (profile) => {
-          console.log('Student profile loaded successfully:', profile);
-          console.log('Grade:', profile.grade);
-          console.log('School:', profile.school);
-          console.log('Learning Goals:', profile.learningGoals);
-          console.log('Interests:', profile.interests);
           this.studentProfile = profile;
           this.populateProfileForm();
         },
         error: (error) => {
           console.error('Error loading student profile:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
           this.errorMessage = 'Failed to load student profile data';
           this.populateProfileForm();
         }
@@ -223,7 +190,6 @@ export class StudentAccountComponent implements OnInit {
     
     // Add user profile data if available
     if (this.userProfile) {
-      console.log('User profile data:', this.userProfile);
       formData.firstName = this.userProfile.firstName;
       formData.lastName = this.userProfile.lastName;
       formData.email = this.userProfile.email;
@@ -231,7 +197,6 @@ export class StudentAccountComponent implements OnInit {
     
     // Add student profile data if available
     if (this.studentProfile) {
-      console.log('Student profile data:', this.studentProfile);
       formData.grade = this.studentProfile.grade || '';
       formData.school = this.studentProfile.school || '';
       formData.learningGoals = this.studentProfile.learningGoals ? this.studentProfile.learningGoals.join(', ') : '';
@@ -239,12 +204,9 @@ export class StudentAccountComponent implements OnInit {
       formData.bio = this.studentProfile.bio || '';
     }
     
-    console.log('Form data to populate:', formData);
-    
     // Only patch the form if we have some data to populate
     if (Object.keys(formData).length > 0) {
       this.profileForm.patchValue(formData);
-      console.log('Form after patch:', this.profileForm.value);
     }
   }
 

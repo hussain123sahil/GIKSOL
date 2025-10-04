@@ -13,7 +13,6 @@ const router = express.Router();
 // Register - Send OTP for verification
 router.post('/register', async (req, res) => {
   try {
-    console.log('Registration request body:', req.body);
     const { 
       firstName, 
       lastName, 
@@ -34,8 +33,6 @@ router.post('/register', async (req, res) => {
       learningGoals,
       skills
     } = req.body;
-    
-    console.log('Extracted student fields:', { grade, school, learningGoals, skills });
 
     // Validate role
     if (role && !['student', 'mentor'].includes(role)) {
@@ -156,7 +153,6 @@ router.post('/verify-otp', async (req, res) => {
     let roleRecord = null;
     if (user.role === 'student') {
       const { grade, school, learningGoals, skills, bio } = pendingRegistration.registrationData || {};
-      console.log('Creating student with data:', { grade, school, learningGoals, skills, bio });
       roleRecord = new Student({
         user: user._id,
         grade: grade || 'Not specified',
@@ -170,7 +166,6 @@ router.post('/verify-otp', async (req, res) => {
         bio: bio || `Hi, I'm ${user.firstName} ${user.lastName}. I'm excited to start my learning journey!`
       });
       await roleRecord.save();
-      console.log('Student created successfully:', roleRecord);
     } else if (user.role === 'mentor') {
       const { company, position, experience, hourlyRate, expertise, bio, linkedinUrl } = pendingRegistration.registrationData || {};
       roleRecord = new Mentor({
