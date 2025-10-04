@@ -6,6 +6,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
 import { AuthService } from '../../services/auth';
 import { MentorAvailabilityService, AvailabilityData, DayAvailability, TimeSlot } from '../../services/mentor-availability.service';
+import { TimezoneService } from '../../services/timezone.service';
 
 interface Mentor {
   id: string;
@@ -66,12 +67,13 @@ export class BookingComponent implements OnInit {
     private http: HttpClient,
     private authService: AuthService,
     private availabilityService: MentorAvailabilityService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit(): void {
-    // Set minimum date to today
-    this.minDate = new Date().toISOString().split('T')[0];
+    // Set minimum date to today in IST
+    this.minDate = this.timezoneService.getDateStringIST();
     
     // Initialize with default time slots
     this.setDefaultTimeSlots();
@@ -296,7 +298,7 @@ export class BookingComponent implements OnInit {
         title: `Session with ${this.mentor.firstName} ${this.mentor.lastName}`,
         description: this.bookingDetails.notes || 'Mentoring session',
         sessionType: 'Video Call',
-        scheduledDate: new Date(`${this.bookingDetails.preferredDate}T${this.bookingDetails.preferredTime}`).toISOString(),
+        scheduledDate: this.timezoneService.createISOStringIST(`${this.bookingDetails.preferredDate}T${this.bookingDetails.preferredTime}`),
         duration: this.bookingDetails.sessionDuration,
         notes: this.bookingDetails.notes
       };

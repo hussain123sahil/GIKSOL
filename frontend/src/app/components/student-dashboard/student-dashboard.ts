@@ -6,6 +6,7 @@ import { AuthService, User } from '../../services/auth';
 import { DashboardService, Session, Connection, DashboardData } from '../../services/dashboard.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
+import { TimezoneService } from '../../services/timezone.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -40,7 +41,8 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   constructor(
     public router: Router,
     private authService: AuthService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +60,13 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
         role: 'student'
       };
     }
+    
+    // Test timezone service
+    console.log('🌍 Timezone Service Test:');
+    console.log('Current IST time:', this.timezoneService.getCurrentIST().toLocaleString());
+    console.log('Timezone display:', this.timezoneService.getTimezoneDisplay());
+    console.log('Timezone identifier:', this.timezoneService.getTimezone());
+    
     this.loadDashboardData();
 
     // Subscribe to navigation events to refresh data when returning to dashboard
@@ -141,12 +150,49 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   viewSession(sessionId: string): void { console.log('View session:', sessionId); }
   
   canCancelSession(session: Session): boolean {
-    const sessionDate = new Date(session.date);
-    const now = new Date();
-    const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
+    console.log('🔍 Checking cancellation for session:', session);
     
-    // Students can only cancel if session is scheduled/upcoming and it's more than 1 day before the session
-    return ['scheduled', 'upcoming'].includes(session.status) && now < oneDayBefore;
+    // Check if session is in a cancellable state
+    if (!['scheduled', 'upcoming'].includes(session.status)) {
+      console.log('❌ Session not in cancellable state:', session.status);
+      return false;
+    }
+
+    // Get the session date - it might be in 'date' or 'scheduledDate' property
+    const sessionDateString = session.scheduledDate || session.date;
+    console.log('📅 Session date string:', sessionDateString);
+    
+    if (!sessionDateString) {
+      console.log('❌ No session date found');
+      return false;
+    }
+
+    // Convert session date to IST for proper comparison
+    const sessionDate = new Date(sessionDateString);
+    const sessionDateIST = this.timezoneService.toIST(sessionDate);
+    
+    // Get current time in IST
+    const nowIST = this.timezoneService.getCurrentIST();
+    
+    // Calculate 24 hours before session in IST
+    const oneDayBefore = new Date(sessionDateIST.getTime() - (24 * 60 * 60 * 1000));
+    
+    // Students can only cancel if it's more than 24 hours before the session
+    const canCancel = nowIST < oneDayBefore;
+    
+    console.log('⏰ Cancellation check details:', {
+      sessionId: session.id,
+      sessionStatus: session.status,
+      sessionDateString: sessionDateString,
+      sessionDateIST: sessionDateIST.toLocaleString(),
+      nowIST: nowIST.toLocaleString(),
+      oneDayBefore: oneDayBefore.toLocaleString(),
+      canCancel,
+      timeDifferenceHours: (sessionDateIST.getTime() - nowIST.getTime()) / (1000 * 60 * 60),
+      timeDifferenceMinutes: (sessionDateIST.getTime() - nowIST.getTime()) / (1000 * 60)
+    });
+    
+    return canCancel;
   }
 
   cancelSession(session: Session): void {

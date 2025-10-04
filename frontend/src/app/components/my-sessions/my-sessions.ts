@@ -6,6 +6,7 @@ import { AuthService, User } from '../../services/auth';
 import { DashboardService, Session, DashboardData } from '../../services/dashboard.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
+import { TimezoneService } from '../../services/timezone.service';
 
 @Component({
   selector: 'app-my-sessions',
@@ -28,7 +29,8 @@ export class MySessionsComponent implements OnInit {
   constructor(
     public router: Router,
     private authService: AuthService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit(): void {
@@ -139,12 +141,39 @@ export class MySessionsComponent implements OnInit {
   }
 
   canCancelSession(session: Session): boolean {
-    const sessionDate = new Date(session.date);
-    const now = new Date();
-    const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
+    // Check if session is in a cancellable state
+    if (!['scheduled', 'upcoming'].includes(session.status)) {
+      return false;
+    }
+
+    // Get the session date - it might be in 'date' or 'scheduledDate' property
+    const sessionDateString = session.date || (session as any).scheduledDate;
+    if (!sessionDateString) {
+      return false;
+    }
+
+    // Convert session date to IST for proper comparison
+    const sessionDate = new Date(sessionDateString);
+    const sessionDateIST = this.timezoneService.toIST(sessionDate);
     
-    // Students can only cancel if session is scheduled/upcoming and it's more than 1 day before the session
-    return ['scheduled', 'upcoming'].includes(session.status) && now < oneDayBefore;
+    // Get current time in IST
+    const nowIST = this.timezoneService.getCurrentIST();
+    
+    // Calculate 24 hours before session in IST
+    const oneDayBefore = new Date(sessionDateIST.getTime() - (24 * 60 * 60 * 1000));
+    
+    // Students can only cancel if it's more than 24 hours before the session
+    const canCancel = nowIST < oneDayBefore;
+    
+    console.log('Cancellation check (My Sessions):', {
+      sessionDate: sessionDateIST.toLocaleString(),
+      now: nowIST.toLocaleString(),
+      oneDayBefore: oneDayBefore.toLocaleString(),
+      canCancel,
+      timeDifference: (sessionDateIST.getTime() - nowIST.getTime()) / (1000 * 60 * 60) // hours
+    });
+    
+    return canCancel;
   }
 
   cancelSession(session: Session): void {
