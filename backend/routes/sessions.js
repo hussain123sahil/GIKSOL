@@ -108,7 +108,9 @@ router.get('/dashboard/:studentId', async (req, res) => {
           mentorId: session.mentor._id,
           mentorName: `${session.mentor.firstName} ${session.mentor.lastName}`,
           mentorCompany: 'Tech Company', // We'll get this from Mentor model later
-          title: session.title,
+          title: session.status === 'cancelled' 
+            ? `Session with ${session.mentor.firstName} ${session.mentor.lastName}`
+            : session.title,
           date: formattedDate,
           time: formattedTime,
           scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
@@ -498,7 +500,9 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
           studentId: session.student._id,
           studentName: `${session.student.firstName} ${session.student.lastName}`,
           studentEmail: session.student.email,
-          title: session.title,
+          title: session.status === 'cancelled' 
+            ? `Session with ${session.student.firstName} ${session.student.lastName}`
+            : session.title,
           date: formattedDate,
           time: formattedTime,
           scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
@@ -673,6 +677,49 @@ router.put('/:id/cancel', async (req, res) => {
     session.cancellationReason = cancellationReason || 'No reason provided';
 
     await session.save();
+
+    // Populate session data for email
+    const populatedSession = await Session.findById(id)
+      .populate('student', 'firstName lastName email')
+      .populate('mentor', 'firstName lastName email');
+
+    // Send cancellation emails
+    try {
+      if (cancelledBy === 'student') {
+        // Student cancelled - send emails to both student and mentor
+        await emailService.sendStudentCancellationEmail(
+          populatedSession,
+          populatedSession.student.email,
+          `${populatedSession.student.firstName} ${populatedSession.student.lastName}`,
+          `${populatedSession.mentor.firstName} ${populatedSession.mentor.lastName}`
+        );
+
+        await emailService.sendMentorCancellationEmail(
+          populatedSession,
+          populatedSession.mentor.email,
+          `${populatedSession.mentor.firstName} ${populatedSession.mentor.lastName}`,
+          `${populatedSession.student.firstName} ${populatedSession.student.lastName}`
+        );
+      } else {
+        // Mentor cancelled - send emails to both student and mentor
+        await emailService.sendStudentMentorCancellationEmail(
+          populatedSession,
+          populatedSession.student.email,
+          `${populatedSession.student.firstName} ${populatedSession.student.lastName}`,
+          `${populatedSession.mentor.firstName} ${populatedSession.mentor.lastName}`
+        );
+
+        await emailService.sendMentorSelfCancellationEmail(
+          populatedSession,
+          populatedSession.mentor.email,
+          `${populatedSession.mentor.firstName} ${populatedSession.mentor.lastName}`,
+          `${populatedSession.student.firstName} ${populatedSession.student.lastName}`
+        );
+      }
+    } catch (emailError) {
+      console.error('Error sending cancellation emails:', emailError);
+      // Don't fail the cancellation if email fails
+    }
 
     res.json({
       message: 'Session cancelled successfully',
