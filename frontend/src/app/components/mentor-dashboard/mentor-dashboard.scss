@@ -5,6 +5,197 @@
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+// Cancelled Sessions Styling
+.dashboard-section {
+	margin-bottom: 48px;
+	
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 24px;
+}
+
+.section-title {
+	font-size: 1.8rem;
+	color: #333;
+	font-weight: 600;
+}
+
+.session-count {
+	background: #6b7280;
+	color: white;
+	padding: 5px 12px;
+	border-radius: 20px;
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.sessions-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 20px;
+}
+
+.session-card {
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	transition: all 0.3s ease;
+
+	&:hover {
+		transform: translateY(-5px);
+	}
+
+	&.cancelled-session {
+		border: 1px solid #d1d5db;
+		background-color: #f9fafb;
+	}
+}
+
+.session-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 15px 20px;
+	background-color: #6b7280;
+	color: white;
+	font-weight: bold;
+}
+
+.status-badge {
+	padding: 5px 10px;
+	border-radius: 5px;
+	font-size: 0.9rem;
+	font-weight: 500;
+
+	&.cancelled {
+		background-color: #f3f4f6;
+		color: #6b7280;
+	}
+}
+
+.cancelled-by-tag {
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 0.8rem;
+	font-weight: 500;
+
+	&.tag-student-cancel {
+		background-color: #dbeafe;
+		color: #1e40af;
+	}
+
+	&.tag-mentor-cancel {
+		background-color: #fef3c7;
+		color: #d97706;
+	}
+
+	&.tag-system-cancel {
+		background-color: #f3f4f6;
+		color: #6b7280;
+	}
+}
+
+.session-card-body {
+	padding: 20px;
+}
+
+.session-title {
+	font-size: 1.2rem;
+	font-weight: 600;
+	color: #1f2937;
+	margin: 0 0 15px 0;
+}
+
+.user-info {
+	margin-bottom: 15px;
+
+	.user-name {
+		font-weight: 600;
+		color: #374151;
+		margin: 0 0 5px 0;
+	}
+
+	.user-email {
+		color: #6b7280;
+		font-size: 0.9rem;
+		margin: 0;
+	}
+}
+
+.session-details {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin-bottom: 15px;
+}
+
+.detail-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.9rem;
+	color: #6b7280;
+}
+
+.detail-icon {
+	font-size: 1rem;
+}
+
+.detail-text {
+	font-weight: 500;
+}
+
+.cancellation-info {
+	background-color: #f9fafb;
+	padding: 12px;
+	border-radius: 8px;
+	border-left: 4px solid #d1d5db;
+
+	.cancellation-date {
+		font-size: 0.9rem;
+		color: #6b7280;
+		margin: 0 0 5px 0;
+		font-weight: 500;
+	}
+
+	.cancellation-reason {
+		font-size: 0.9rem;
+		color: #374151;
+		margin: 0;
+		font-style: italic;
+	}
+}
+
+.empty-state {
+	text-align: center;
+	padding: 40px;
+	background: #f8f9fa;
+	border-radius: 8px;
+
+	.empty-icon {
+		font-size: 3rem;
+		margin-bottom: 15px;
+	}
+
+	h3 {
+		color: #374151;
+		margin: 0 0 10px 0;
+	}
+
+	p {
+		color: #6b7280;
+		margin: 0;
+	}
+}
+
 .sidebar-pane { 
 	grid-column: 1 / 2; 
 }

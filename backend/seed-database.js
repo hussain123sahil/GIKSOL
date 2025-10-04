@@ -551,6 +551,35 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       studentFeedback: 'Great hands-on approach to learning hooks',
       mentorFeedback: 'Alex implemented the custom hook perfectly!',
       completedAt: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000)
+    },
+    // Add some cancelled sessions for testing
+    {
+      student: mainStudent._id,
+      mentor: users.find(u => u.firstName === 'David')._id,
+      title: 'Python Data Structures',
+      description: 'Advanced Python data structures and algorithms',
+      sessionType: 'Video Call',
+      scheduledDate: convertToIST(new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)), // 10 days ago
+      duration: 90,
+      status: 'cancelled',
+      notes: 'Session was cancelled due to scheduling conflict',
+      cancelledAt: convertToIST(new Date(now.getTime() - 11 * 24 * 60 * 60 * 1000)), // 11 days ago
+      cancelledBy: 'student',
+      cancellationReason: 'Had an emergency and couldn\'t attend the session'
+    },
+    {
+      student: mainStudent._id,
+      mentor: users.find(u => u.firstName === 'Jane')._id,
+      title: 'Advanced JavaScript Concepts',
+      description: 'Deep dive into advanced JavaScript patterns',
+      sessionType: 'Video Call',
+      scheduledDate: convertToIST(new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000)), // 5 days ago
+      duration: 60,
+      status: 'cancelled',
+      notes: 'Mentor had to cancel due to technical issues',
+      cancelledAt: convertToIST(new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000)), // 6 days ago
+      cancelledBy: 'mentor',
+      cancellationReason: 'Technical difficulties with video conferencing setup'
     }
   ];
 

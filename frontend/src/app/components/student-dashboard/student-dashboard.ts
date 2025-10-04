@@ -22,10 +22,12 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
+  cancelledSessions: Session[] = [];
   connections: Connection[] = [];
   quickStats = {
     upcomingSessions: 0,
     completedSessions: 0,
+    cancelledSessions: 0,
     totalConnections: 0,
     totalSessions: 0,
     averageRating: 0
@@ -60,12 +62,6 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
         role: 'student'
       };
     }
-    
-    // Test timezone service
-    console.log('🌍 Timezone Service Test:');
-    console.log('Current IST time:', this.timezoneService.getCurrentIST().toLocaleString());
-    console.log('Timezone display:', this.timezoneService.getTimezoneDisplay());
-    console.log('Timezone identifier:', this.timezoneService.getTimezone());
     
     this.loadDashboardData();
 
@@ -104,6 +100,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       next: (data: DashboardData) => {
         this.upcomingSessions = data.upcomingSessions;
         this.completedSessions = data.completedSessions;
+        this.cancelledSessions = data.cancelledSessions || [];
         this.connections = data.connections;
         this.quickStats = data.quickStats;
         this.isLoading = false;
@@ -130,6 +127,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       { id: '3', mentorId: '3', mentorName: 'Sarah Wilson', mentorCompany: 'Amazon', date: '2024-03-10', time: '15:00', duration: 60, status: 'completed', sessionType: 'Video Call', notes: 'JavaScript fundamentals', rating: 5 },
       { id: '4', mentorId: '4', mentorName: 'Mike Chen', mentorCompany: 'Meta', date: '2024-03-08', time: '11:00', duration: 45, status: 'completed', sessionType: 'Video Call', notes: 'React best practices', rating: 4 }
     ];
+    this.cancelledSessions = [];
     this.connections = [
       { id: '1', mentorId: '1', mentorName: 'Jane Doe', mentorCompany: 'Google', status: 'accepted', requestedAt: '2024-01-10', respondedAt: '2024-01-11' },
       { id: '2', mentorId: '2', mentorName: 'John Smith', mentorCompany: 'Microsoft', status: 'accepted', requestedAt: '2024-01-12', respondedAt: '2024-01-13' },
@@ -140,30 +138,56 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     this.quickStats = {
       upcomingSessions: this.upcomingSessions.length,
       completedSessions: this.completedSessions.length,
+      cancelledSessions: this.cancelledSessions.length,
       totalConnections: this.connections.length,
-      totalSessions: this.upcomingSessions.length + this.completedSessions.length,
+      totalSessions: this.upcomingSessions.length + this.completedSessions.length + this.cancelledSessions.length,
       averageRating: 4.5
     };
+  }
+
+  getCurrentTime(): string {
+    return new Date().toLocaleString();
+  }
+
+  formatDate(dateString: string): string {
+    return this.timezoneService.formatDateIST(new Date(dateString));
+  }
+
+  formatTime(dateString: string): string {
+    return this.timezoneService.formatTimeIST(new Date(dateString));
+  }
+
+  getCancelledByTag(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return `👨‍🎓 Cancelled by ${session.cancelledByName || 'Student'}`;
+    } else if (session.cancelledBy === 'mentor') {
+      return `👨‍🏫 Cancelled by ${session.cancelledByName || 'Mentor'}`;
+    }
+    return `🤖 Cancelled by System`;
+  }
+
+  getCancelledByClass(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return 'tag-student-cancel';
+    } else if (session.cancelledBy === 'mentor') {
+      return 'tag-mentor-cancel';
+    }
+    return 'tag-system-cancel';
   }
 
   browseMentors(): void { this.router.navigate(['/mentors']); }
   viewSession(sessionId: string): void { console.log('View session:', sessionId); }
   
   canCancelSession(session: Session): boolean {
-    console.log('🔍 Checking cancellation for session:', session);
-    
     // Check if session is in a cancellable state
     if (!['scheduled', 'upcoming'].includes(session.status)) {
-      console.log('❌ Session not in cancellable state:', session.status);
       return false;
     }
 
     // Get the session date - it might be in 'date' or 'scheduledDate' property
     const sessionDateString = session.scheduledDate || session.date;
-    console.log('📅 Session date string:', sessionDateString);
     
     if (!sessionDateString) {
-      console.log('❌ No session date found');
       return false;
     }
 
@@ -178,21 +202,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     const oneDayBefore = new Date(sessionDateIST.getTime() - (24 * 60 * 60 * 1000));
     
     // Students can only cancel if it's more than 24 hours before the session
-    const canCancel = nowIST < oneDayBefore;
-    
-    console.log('⏰ Cancellation check details:', {
-      sessionId: session.id,
-      sessionStatus: session.status,
-      sessionDateString: sessionDateString,
-      sessionDateIST: sessionDateIST.toLocaleString(),
-      nowIST: nowIST.toLocaleString(),
-      oneDayBefore: oneDayBefore.toLocaleString(),
-      canCancel,
-      timeDifferenceHours: (sessionDateIST.getTime() - nowIST.getTime()) / (1000 * 60 * 60),
-      timeDifferenceMinutes: (sessionDateIST.getTime() - nowIST.getTime()) / (1000 * 60)
-    });
-    
-    return canCancel;
+    return nowIST < oneDayBefore;
   }
 
   cancelSession(session: Session): void {
@@ -241,19 +251,6 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   viewAllSessions(): void { console.log('View all sessions'); }
   viewSessionDetails(sessionId: string): void { console.log('View session details:', sessionId); }
   logout(): void { this.authService.logout(); }
-
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  }
-
-  formatTime(timeString: string): string {
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
-  }
 
   getStatusColor(status: string): string {
     switch (status) {

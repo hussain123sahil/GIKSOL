@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
-import { DashboardService } from '../../services/dashboard.service';
+import { DashboardService, Session } from '../../services/dashboard.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
 import { TimezoneService } from '../../services/timezone.service';
@@ -21,20 +21,6 @@ interface Mentee {
   lastSessionDate?: string;
 }
 
-interface Session {
-  id: string;
-  studentId: string;
-  studentName: string;
-  date: string;
-  time: string;
-  duration: number;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  sessionType: string;
-  notes?: string;
-  rating?: number;
-  meetingLink?: string;
-  title?: string;
-}
 
 interface ConnectionRequest {
   id: string;
@@ -84,6 +70,7 @@ export class MentorDashboardComponent implements OnInit {
   mentees: Mentee[] = [];
   upcomingSessions: Session[] = [];
   completedSessions: Session[] = [];
+  cancelledSessions: Session[] = [];
   connectionRequests: ConnectionRequest[] = [];
   quickStats: QuickStats = {
     activeMentees: 0,
@@ -115,6 +102,35 @@ export class MentorDashboardComponent implements OnInit {
       return;
     }
 
+    // Add test cancelled sessions for testing
+    this.cancelledSessions = [
+      {
+        id: 'test-mentor-1',
+        mentorId: 'mentor-1',
+        mentorName: 'Test Mentor',
+        mentorCompany: 'Test Company',
+        title: 'Test Cancelled Session (Mentor View)',
+        date: '2024-12-19',
+        time: '14:00',
+        scheduledDate: '2024-12-19T14:00:00.000Z',
+        duration: 60,
+        status: 'cancelled',
+        sessionType: 'Video Call',
+        notes: 'This is a test cancelled session from mentor view',
+        cancelledAt: '2024-12-18T10:00:00.000Z',
+        cancelledBy: 'student',
+        cancellationReason: 'Student had to cancel due to emergency',
+        cancelledByName: 'Alex Johnson',
+        student: {
+          firstName: 'Alex',
+          lastName: 'Johnson',
+          email: 'alex.johnson@example.com'
+        }
+      }
+    ];
+    
+    console.log('🎯 Mentor Dashboard - Added test cancelled sessions:', this.cancelledSessions);
+
     this.loadDashboardData();
   }
 
@@ -135,12 +151,15 @@ export class MentorDashboardComponent implements OnInit {
       headers: this.authService.getAuthHeaders()
     }).subscribe({
       next: (response: any) => {
-        console.log('Mentor dashboard response:', response);
-        console.log('Mentees data:', response.mentees);
+        console.log('📊 Mentor Dashboard Response:', response);
+        console.log('📊 Cancelled Sessions:', response.cancelledSessions);
+        console.log('📊 Quick Stats:', response.quickStats);
+        
         this.mentorInfo = response.mentor;
         this.quickStats = response.quickStats;
         this.upcomingSessions = response.upcomingSessions;
         this.completedSessions = response.completedSessions;
+        this.cancelledSessions = response.cancelledSessions || [];
         this.mentees = response.mentees || [];
         this.connectionRequests = response.connectionRequests;
         this.isLoading = false;
@@ -306,5 +325,23 @@ export class MentorDashboardComponent implements OnInit {
       case 'pending': return '#f39c12';
       default: return '#666';
     }
+  }
+
+  getCancelledByTag(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return `👨‍🎓 Cancelled by ${session.cancelledByName || 'Student'}`;
+    } else if (session.cancelledBy === 'mentor') {
+      return `👨‍🏫 Cancelled by ${session.cancelledByName || 'Mentor'}`;
+    }
+    return `🤖 Cancelled by System`;
+  }
+
+  getCancelledByClass(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return 'tag-student-cancel';
+    } else if (session.cancelledBy === 'mentor') {
+      return 'tag-mentor-cancel';
+    }
+    return 'tag-system-cancel';
   }
 }

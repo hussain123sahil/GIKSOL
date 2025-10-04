@@ -37,6 +37,207 @@
 	z-index: 1;
 }
 
+.dashboard-section {
+	margin-bottom: 48px;
+	
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
+
+// Cancelled Sessions Styling
+.section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.section-title {
+	font-size: 1.8rem;
+	color: #333;
+	font-weight: 600;
+}
+
+.session-count {
+	background: #6b7280;
+	color: white;
+	padding: 5px 12px;
+	border-radius: 20px;
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.sessions-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 20px;
+}
+
+.session-card {
+	background-color: #fff;
+	border-radius: 10px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	transition: transform 0.2s ease-in-out;
+
+	&:hover {
+		transform: translateY(-5px);
+	}
+
+	&.cancelled-session {
+		border: 1px solid #d1d5db;
+		background-color: #f9fafb;
+	}
+}
+
+.session-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 15px 20px;
+	background-color: #6b7280;
+	color: white;
+	font-weight: bold;
+}
+
+.status-badge {
+	padding: 5px 10px;
+	border-radius: 5px;
+	font-size: 0.9rem;
+
+	&.cancelled {
+		background-color: #c0392b;
+		color: white;
+	}
+}
+
+.cancelled-by-tag {
+	padding: 5px 10px;
+	border-radius: 5px;
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: #333;
+
+	&.tag-student-cancel {
+		background-color: #d4edda;
+		color: #155724;
+	}
+	&.tag-mentor-cancel {
+		background-color: #fff3cd;
+		color: #856404;
+	}
+	&.tag-system-cancel {
+		background-color: #e2e3e5;
+		color: #383d41;
+	}
+}
+
+.session-card-body {
+	padding: 20px;
+	flex-grow: 1;
+}
+
+.session-title {
+	font-size: 1.4rem;
+	margin-top: 0;
+	margin-bottom: 10px;
+	color: #333;
+}
+
+.user-info {
+	margin-bottom: 15px;
+}
+
+.user-name {
+	font-size: 1.1rem;
+	color: #555;
+	margin-bottom: 5px;
+}
+
+.user-company {
+	font-size: 0.9rem;
+	color: #777;
+	margin-bottom: 0;
+}
+
+.session-details {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.detail-item {
+	display: flex;
+	align-items: center;
+	font-size: 0.9rem;
+	color: #555;
+
+	.detail-icon {
+		margin-right: 8px;
+		font-size: 1.1rem;
+	}
+}
+
+.cancellation-info {
+	border-top: 1px solid #eee;
+	padding-top: 15px;
+	margin-top: 15px;
+	font-size: 0.9rem;
+	color: #666;
+
+	.cancellation-date {
+		font-weight: bold;
+		margin-bottom: 5px;
+	}
+	.cancellation-reason {
+		font-style: italic;
+	}
+}
+
+.empty-state {
+	text-align: center;
+	padding: 40px 20px;
+	background-color: #f8f8f8;
+	border-radius: 8px;
+	margin-top: 30px;
+	color: #666;
+
+	.empty-icon {
+		font-size: 3rem;
+		margin-bottom: 15px;
+		color: #ccc;
+	}
+
+	h3 {
+		font-size: 1.5rem;
+		margin-bottom: 10px;
+		color: #444;
+	}
+
+	p {
+		font-size: 1rem;
+		color: #777;
+	}
+}
+
+@media (max-width: 768px) {
+	.section-title {
+		font-size: 1.5rem;
+	}
+
+	.sessions-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.session-details {
+		grid-template-columns: 1fr;
+	}
+}
+
 .container {
 	max-width: 1400px;
 	margin: 0 auto;
