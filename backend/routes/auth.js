@@ -13,6 +13,7 @@ const router = express.Router();
 // Register - Send OTP for verification
 router.post('/register', async (req, res) => {
   try {
+    console.log('Registration request body:', req.body);
     const { 
       firstName, 
       lastName, 
@@ -30,8 +31,11 @@ router.post('/register', async (req, res) => {
       // Student fields
       grade,
       school,
-      learningGoals
+      learningGoals,
+      skills
     } = req.body;
+    
+    console.log('Extracted student fields:', { grade, school, learningGoals, skills });
 
     // Validate role
     if (role && !['student', 'mentor'].includes(role)) {
@@ -63,7 +67,8 @@ router.post('/register', async (req, res) => {
         linkedinUrl,
         grade,
         school,
-        learningGoals
+        learningGoals,
+        skills
       };
     } else {
       // Create new pending registration
@@ -83,7 +88,8 @@ router.post('/register', async (req, res) => {
           linkedinUrl,
           grade,
           school,
-          learningGoals
+          learningGoals,
+          skills
         }
       });
     }
@@ -149,20 +155,22 @@ router.post('/verify-otp', async (req, res) => {
     // Create role-specific record
     let roleRecord = null;
     if (user.role === 'student') {
-      const { grade, school, learningGoals } = pendingRegistration.registrationData || {};
+      const { grade, school, learningGoals, skills, bio } = pendingRegistration.registrationData || {};
+      console.log('Creating student with data:', { grade, school, learningGoals, skills, bio });
       roleRecord = new Student({
         user: user._id,
         grade: grade || 'Not specified',
         school: school || 'Not specified',
         learningGoals: learningGoals || ['Learn new skills', 'Career development'],
+        interests: skills || ['Technology', 'Programming'],
         currentLevel: 'beginner',
-        interests: ['Technology', 'Programming'],
         preferredLearningStyle: 'visual',
         timeCommitment: '1-2 hours/week',
         budget: { min: 0, max: 100 },
-        bio: `Hi, I'm ${user.firstName} ${user.lastName}. I'm excited to start my learning journey!`
+        bio: bio || `Hi, I'm ${user.firstName} ${user.lastName}. I'm excited to start my learning journey!`
       });
       await roleRecord.save();
+      console.log('Student created successfully:', roleRecord);
     } else if (user.role === 'mentor') {
       const { company, position, experience, hourlyRate, expertise, bio, linkedinUrl } = pendingRegistration.registrationData || {};
       roleRecord = new Mentor({

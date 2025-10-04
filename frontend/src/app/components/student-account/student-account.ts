@@ -23,7 +23,15 @@ interface StudentProfile {
   grade?: string;
   school?: string;
   learningGoals: string[];
-  skills: string[];
+  interests: string[];
+  bio?: string;
+  currentLevel?: string;
+  preferredLearningStyle?: string;
+  timeCommitment?: string;
+  budget?: {
+    min: number;
+    max: number;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -84,7 +92,7 @@ export class StudentAccountComponent implements OnInit {
       grade: ['', [Validators.required]],
       school: ['', [Validators.required]],
       learningGoals: ['', [Validators.required]],
-      skills: ['']
+      interests: ['']
     });
 
     this.passwordForm = this.fb.group({
@@ -98,6 +106,22 @@ export class StudentAccountComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserProfile();
     this.loadStudentProfile();
+    
+    // Debug: Check all students in database
+    this.debugCheckStudents();
+  }
+
+  // Debug method to check all students
+  debugCheckStudents(): void {
+    this.http.get('http://localhost:5000/api/students/debug/all')
+      .subscribe({
+        next: (response: any) => {
+          console.log('Debug - All students in database:', response);
+        },
+        error: (error) => {
+          console.error('Debug - Error fetching all students:', error);
+        }
+      });
   }
 
   // Password validation
@@ -115,13 +139,19 @@ export class StudentAccountComponent implements OnInit {
   // Load user profile data
   loadUserProfile(): void {
     this.isLoading = true;
+    console.log('Loading user profile...');
+    console.log('Current user:', this.authService.getCurrentUser());
+    console.log('Is authenticated:', this.authService.isAuthenticated());
+    console.log('Token:', this.authService.getToken());
+    
     this.http.get<UserProfile>('http://localhost:5000/api/auth/profile', {
       headers: this.authService.getAuthHeaders()
     })
       .subscribe({
         next: (profile) => {
+          console.log('User profile loaded:', profile);
           this.userProfile = profile;
-          this.populateProfileForm();
+          // Don't populate form here, wait for student profile
           this.isLoading = false;
         },
         error: (error) => {
@@ -134,35 +164,87 @@ export class StudentAccountComponent implements OnInit {
 
   // Load student profile data
   loadStudentProfile(): void {
-    this.http.get<StudentProfile>('http://localhost:5000/api/students/profile')
+    console.log('Loading student profile...');
+    console.log('Auth headers:', this.authService.getAuthHeaders());
+    
+    this.http.get<StudentProfile>('http://localhost:5000/api/students/profile', {
+      headers: this.authService.getAuthHeaders()
+    })
       .subscribe({
         next: (profile) => {
+          console.log('Student profile loaded successfully:', profile);
+          console.log('Grade:', profile.grade);
+          console.log('School:', profile.school);
+          console.log('Learning Goals:', profile.learningGoals);
+          console.log('Interests:', profile.interests);
           this.studentProfile = profile;
+          this.populateProfileForm();
         },
         error: (error) => {
           console.error('Error loading student profile:', error);
+          console.error('Error status:', error.status);
+          console.error('Error message:', error.message);
+          this.errorMessage = 'Failed to load student profile data';
+          this.populateProfileForm();
+        }
+      });
+  }
+
+  // Create student profile if it doesn't exist
+  createStudentProfile(): void {
+    const defaultStudentData = {
+      grade: '',
+      school: '',
+      learningGoals: [],
+      interests: [],
+      bio: ''
+    };
+
+    this.http.post('http://localhost:5000/api/students', defaultStudentData, {
+      headers: this.authService.getAuthHeaders()
+    })
+      .subscribe({
+        next: (response: any) => {
+          console.log('Student profile created:', response);
+          this.studentProfile = response.student;
+          this.populateProfileForm();
+        },
+        error: (error) => {
+          console.error('Error creating student profile:', error);
+          this.errorMessage = 'Failed to create student profile';
+          this.populateProfileForm();
         }
       });
   }
 
   // Populate profile form with loaded data
   populateProfileForm(): void {
+    const formData: any = {};
+    
+    // Add user profile data if available
     if (this.userProfile) {
-      this.profileForm.patchValue({
-        firstName: this.userProfile.firstName,
-        lastName: this.userProfile.lastName,
-        email: this.userProfile.email,
-        bio: this.userProfile.bio || ''
-      });
+      console.log('User profile data:', this.userProfile);
+      formData.firstName = this.userProfile.firstName;
+      formData.lastName = this.userProfile.lastName;
+      formData.email = this.userProfile.email;
     }
     
+    // Add student profile data if available
     if (this.studentProfile) {
-      this.profileForm.patchValue({
-        grade: this.studentProfile.grade || '',
-        school: this.studentProfile.school || '',
-        learningGoals: this.studentProfile.learningGoals ? this.studentProfile.learningGoals.join(', ') : '',
-        skills: this.studentProfile.skills ? this.studentProfile.skills.join(', ') : ''
-      });
+      console.log('Student profile data:', this.studentProfile);
+      formData.grade = this.studentProfile.grade || '';
+      formData.school = this.studentProfile.school || '';
+      formData.learningGoals = this.studentProfile.learningGoals ? this.studentProfile.learningGoals.join(', ') : '';
+      formData.interests = this.studentProfile.interests ? this.studentProfile.interests.join(', ') : '';
+      formData.bio = this.studentProfile.bio || '';
+    }
+    
+    console.log('Form data to populate:', formData);
+    
+    // Only patch the form if we have some data to populate
+    if (Object.keys(formData).length > 0) {
+      this.profileForm.patchValue(formData);
+      console.log('Form after patch:', this.profileForm.value);
     }
   }
 
@@ -183,15 +265,15 @@ export class StudentAccountComponent implements OnInit {
       const userProfileData = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
-        email: profileData.email,
-        bio: profileData.bio
+        email: profileData.email
       };
       
       const studentProfileData = {
         grade: profileData.grade,
         school: profileData.school,
         learningGoals: profileData.learningGoals ? profileData.learningGoals.split(',').map((goal: string) => goal.trim()).filter((goal: string) => goal) : [],
-        skills: profileData.skills ? profileData.skills.split(',').map((skill: string) => skill.trim()).filter((skill: string) => skill) : []
+        interests: profileData.interests ? profileData.interests.split(',').map((interest: string) => interest.trim()).filter((interest: string) => interest) : [],
+        bio: profileData.bio
       };
       
       // Update user profile

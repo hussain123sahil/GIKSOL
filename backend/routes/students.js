@@ -8,10 +8,18 @@ const router = express.Router();
 // Get student profile
 router.get('/profile', auth, requireRole(['student']), async (req, res) => {
   try {
+    console.log('Fetching student profile for user:', req.user._id);
+    console.log('User role:', req.user.role);
+    
     const student = await Student.findOne({ user: req.user._id })
       .populate('user', 'firstName lastName email profilePicture');
     
+    console.log('Student profile found:', student);
+    console.log('Student grade:', student?.grade);
+    console.log('Student school:', student?.school);
+    
     if (!student) {
+      console.log('No student profile found, returning 404');
       return res.status(404).json({ message: 'Student profile not found' });
     }
 
@@ -92,6 +100,36 @@ router.get('/', auth, requireRole(['admin']), async (req, res) => {
     res.json(students);
   } catch (error) {
     console.error('Get students error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Test endpoint to check all students (for debugging)
+router.get('/debug/all', async (req, res) => {
+  try {
+    console.log('Fetching all students for debugging...');
+    const students = await Student.find({})
+      .populate('user', 'firstName lastName email role')
+      .sort({ createdAt: -1 });
+
+    console.log('All students found:', students.length);
+    students.forEach((student, index) => {
+      console.log(`Student ${index + 1}:`, {
+        id: student._id,
+        user: student.user,
+        grade: student.grade,
+        school: student.school,
+        learningGoals: student.learningGoals,
+        interests: student.interests
+      });
+    });
+
+    res.json({
+      count: students.length,
+      students: students
+    });
+  } catch (error) {
+    console.error('Debug get students error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
