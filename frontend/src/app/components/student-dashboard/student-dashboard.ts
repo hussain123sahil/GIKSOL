@@ -48,20 +48,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Get user from localStorage like the booking component does
-    this.currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    if (!this.currentUser || !this.currentUser.id) {
-      console.log('No user found, using mock user for development');
-      // For development, create a mock user instead of redirecting
-      this.currentUser = {
-        id: '68d2c326ac49758f6e269b4e',
-        firstName: 'Alex',
-        lastName: 'Johnson',
-        email: 'alex.johnson@example.com',
-        role: 'student'
-      };
-    }
+    this.loadUserData();
     
     this.loadDashboardData();
 
@@ -81,8 +68,33 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Load user data from API
+  loadUserData(): void {
+    // First try to get user from localStorage for immediate display
+    const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (cachedUser && cachedUser.id) {
+      this.currentUser = cachedUser;
+    }
+
+    // Then fetch fresh user data from API
+    this.authService.fetchCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+      },
+      error: (error) => {
+        console.error('Error loading user data:', error);
+        // Fallback to mock user for development
+        if (!this.currentUser || !this.currentUser.id) {
+          console.error('No user found and API failed. Please log in again.');
+          this.currentUser = null;
+        }
+      }
+    });
+  }
+
   // Method to refresh dashboard data
   refreshDashboard(): void {
+    this.loadUserData();
     this.loadDashboardData();
   }
 

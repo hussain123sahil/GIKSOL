@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 export interface User {
@@ -85,6 +85,38 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  // Fetch fresh user data from API
+  fetchCurrentUser(): Observable<User> {
+    return this.http.get<any>(`${this.apiUrl}/auth/profile`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap(user => {
+        // Convert backend user format to frontend User format
+        const frontendUser: User = {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          profilePicture: user.profilePicture
+        };
+        
+        // Update the current user subject with fresh data
+        this.currentUserSubject.next(frontendUser);
+        // Update localStorage
+        localStorage.setItem('user', JSON.stringify(frontendUser));
+      }),
+      map(user => ({
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture
+      }))
+    );
   }
 
   isAuthenticated(): boolean {

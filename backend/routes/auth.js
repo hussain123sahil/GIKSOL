@@ -30,7 +30,8 @@ router.post('/register', async (req, res) => {
       // Student fields
       grade,
       school,
-      learningGoals
+      learningGoals,
+      skills
     } = req.body;
 
     // Validate role
@@ -63,7 +64,8 @@ router.post('/register', async (req, res) => {
         linkedinUrl,
         grade,
         school,
-        learningGoals
+        learningGoals,
+        skills
       };
     } else {
       // Create new pending registration
@@ -83,7 +85,8 @@ router.post('/register', async (req, res) => {
           linkedinUrl,
           grade,
           school,
-          learningGoals
+          learningGoals,
+          skills
         }
       });
     }
@@ -149,18 +152,18 @@ router.post('/verify-otp', async (req, res) => {
     // Create role-specific record
     let roleRecord = null;
     if (user.role === 'student') {
-      const { grade, school, learningGoals } = pendingRegistration.registrationData || {};
+      const { grade, school, learningGoals, skills, bio } = pendingRegistration.registrationData || {};
       roleRecord = new Student({
         user: user._id,
         grade: grade || 'Not specified',
         school: school || 'Not specified',
         learningGoals: learningGoals || ['Learn new skills', 'Career development'],
+        interests: skills || ['Technology', 'Programming'],
         currentLevel: 'beginner',
-        interests: ['Technology', 'Programming'],
         preferredLearningStyle: 'visual',
         timeCommitment: '1-2 hours/week',
         budget: { min: 0, max: 100 },
-        bio: `Hi, I'm ${user.firstName} ${user.lastName}. I'm excited to start my learning journey!`
+        bio: bio || `Hi, I'm ${user.firstName} ${user.lastName}. I'm excited to start my learning journey!`
       });
       await roleRecord.save();
     } else if (user.role === 'mentor') {
@@ -502,6 +505,95 @@ router.get('/check-user/:email', async (req, res) => {
       res.status(404).json({ exists: false, message: 'User not found' });
     }
   } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get user profile
+router.get('/profile', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update user profile
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, dateOfBirth, gender, bio, location, website, linkedinUrl, githubUrl } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user fields
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.email = email || user.email;
+    user.phone = phone || user.phone;
+    user.dateOfBirth = dateOfBirth || user.dateOfBirth;
+    user.gender = gender || user.gender;
+    user.bio = bio || user.bio;
+    user.location = location || user.location;
+    user.website = website || user.website;
+    user.linkedinUrl = linkedinUrl || user.linkedinUrl;
+    user.githubUrl = githubUrl || user.githubUrl;
+
+    await user.save();
+    res.json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Change password
+router.put('/change-password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+    
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete account
+router.delete('/account', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Delete user and related data
+    await User.findByIdAndDelete(userId);
+    await Student.findOneAndDelete({ user: userId });
+    await Mentor.findOneAndDelete({ user: userId });
+    
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete account error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
