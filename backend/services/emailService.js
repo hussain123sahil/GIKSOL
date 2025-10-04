@@ -1,4 +1,5 @@
 const dotenv = require('dotenv');
+const config = require('../config/config');
 dotenv.config();
 
 let nodemailer;
@@ -195,16 +196,18 @@ class EmailService {
 
   // Student email template
   getStudentEmailTemplate(sessionData, studentName, meetLink) {
-    const sessionDate = new Date(sessionData.scheduledDate).toLocaleDateString('en-US', {
+    const sessionDate = new Date(sessionData.scheduledDate).toLocaleDateString('en-IN', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: config.timezone.default
     });
     
-    const sessionTime = new Date(sessionData.scheduledDate).toLocaleTimeString('en-US', {
+    const sessionTime = new Date(sessionData.scheduledDate).toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: config.timezone.default,
       timeZoneName: 'short'
     });
 
@@ -279,16 +282,18 @@ class EmailService {
 
   // Mentor email template
   getMentorEmailTemplate(sessionData, mentorName, meetLink) {
-    const sessionDate = new Date(sessionData.scheduledDate).toLocaleDateString('en-US', {
+    const sessionDate = new Date(sessionData.scheduledDate).toLocaleDateString('en-IN', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: config.timezone.default
     });
     
-    const sessionTime = new Date(sessionData.scheduledDate).toLocaleTimeString('en-US', {
+    const sessionTime = new Date(sessionData.scheduledDate).toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: config.timezone.default,
       timeZoneName: 'short'
     });
 

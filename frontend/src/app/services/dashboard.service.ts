@@ -10,6 +10,7 @@ export interface Session {
   title?: string;
   date: string;
   time: string;
+  scheduledDate?: string; // Add scheduledDate for cancellation logic
   duration: number;
   status: 'upcoming' | 'completed' | 'cancelled' | 'scheduled' | 'in-progress' | 'no-show';
   sessionType: string;

@@ -5,10 +5,20 @@ const Mentor = require('../models/Mentor');
 const Student = require('../models/Student');
 const Connection = require('../models/Connection');
 const emailService = require('../services/emailService');
+const config = require('../config/config');
 
 const { auth } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Utility function to convert date to IST
+function convertToIST(dateString) {
+  const date = new Date(dateString);
+  // Convert to IST by adjusting for timezone offset
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const utc = date.getTime() + (date.getTimezoneOffset() * 60 * 1000);
+  return new Date(utc + istOffset);
+}
 
 // Dashboard route (no auth required - just reading data)
 router.get('/dashboard/:studentId', async (req, res) => {
@@ -82,6 +92,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
           title: session.title,
           date: formattedDate,
           time: formattedTime,
+          scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
           duration: session.duration,
           status: session.status,
           sessionType: session.sessionType,
@@ -152,7 +163,7 @@ router.post('/', async (req, res) => {
       title,
       description,
       sessionType,
-      scheduledDate: new Date(scheduledDate),
+      scheduledDate: convertToIST(scheduledDate),
       duration: duration || 60,
       notes,
       status: 'scheduled',
@@ -445,6 +456,7 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
           title: session.title,
           date: formattedDate,
           time: formattedTime,
+          scheduledDate: session.scheduledDate, // Add original scheduledDate for cancellation logic
           duration: session.duration,
           status: session.status,
           sessionType: session.sessionType,
@@ -579,8 +591,9 @@ router.put('/:id/cancel', async (req, res) => {
       });
     }
 
-    const sessionDate = new Date(session.scheduledDate);
-    const now = new Date();
+    // Convert to IST for proper timezone handling
+    const sessionDate = convertToIST(session.scheduledDate);
+    const now = convertToIST(new Date());
 
     // Different cancellation rules for mentors vs students
     if (cancelledBy === 'mentor') {
@@ -591,11 +604,11 @@ router.put('/:id/cancel', async (req, res) => {
         });
       }
     } else {
-      // Students can only cancel at least 1 day before
+      // Students can only cancel at least 24 hours before
       const oneDayBefore = new Date(sessionDate.getTime() - (24 * 60 * 60 * 1000));
       if (now >= oneDayBefore) {
         return res.status(400).json({ 
-          message: 'Sessions can only be cancelled at least 1 day before the scheduled date' 
+          message: 'Sessions can only be cancelled at least 24 hours before the scheduled date' 
         });
       }
     }

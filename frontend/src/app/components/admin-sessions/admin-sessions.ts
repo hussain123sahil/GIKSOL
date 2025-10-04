@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth';
 import { AdminService, Session } from '../../services/admin.service';
 import { AdminSidebarComponent } from '../admin-sidebar/admin-sidebar';
+import { TimezoneService } from '../../services/timezone.service';
 
 @Component({
   selector: 'app-admin-sessions',
@@ -57,7 +58,8 @@ export class AdminSessionsComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private adminService: AdminService,
-    private router: Router
+    private router: Router,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit(): void {
@@ -152,7 +154,7 @@ export class AdminSessionsComponent implements OnInit {
 
     const sessionData = {
       ...this.sessionForm,
-      scheduledDate: new Date(this.sessionForm.scheduledDate).toISOString()
+      scheduledDate: this.timezoneService.createISOStringIST(this.sessionForm.scheduledDate)
     };
 
     if (this.isEditing && this.selectedSession) {

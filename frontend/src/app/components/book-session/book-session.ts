@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { TimezoneService } from '../../services/timezone.service';
 
 interface Mentor {
   _id: string;
@@ -56,14 +57,15 @@ export class BookSessionComponent implements OnInit {
 
   constructor(
     public router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit(): void {
     console.log('BookSessionComponent initialized');
     try {
-      // Set minimum date to today
-      this.minDate = new Date().toISOString().split('T')[0];
+      // Set minimum date to today in IST
+      this.minDate = this.timezoneService.getDateStringIST();
       
       // Set default date to today
       this.filters.preferredDate = this.minDate;

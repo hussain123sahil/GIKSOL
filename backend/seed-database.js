@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const config = require('./config/config');
 
 // Load environment variables
 dotenv.config();
@@ -10,6 +11,15 @@ const Student = require('./models/Student');
 const Mentor = require('./models/Mentor');
 const Session = require('./models/Session');
 const Connection = require('./models/Connection');
+
+// Utility function to convert date to IST
+function convertToIST(dateString) {
+  const date = new Date(dateString);
+  // Convert to IST by adjusting for timezone offset
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const utc = date.getTime() + (date.getTimezoneOffset() * 60 * 1000);
+  return new Date(utc + istOffset);
+}
 
 const connectDB = async () => {
   try {
@@ -451,7 +461,7 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       title: 'JavaScript Fundamentals Review',
       description: 'Deep dive into JavaScript ES6+ features and best practices',
       sessionType: 'Video Call',
-      scheduledDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+      scheduledDate: convertToIST(new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)), // 2 days from now
       duration: 60,
       status: 'scheduled',
       notes: 'Focus on async/await and promises',
@@ -463,7 +473,7 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       title: 'Career Planning Session',
       description: 'Discuss career goals and create a roadmap for growth',
       sessionType: 'Video Call',
-      scheduledDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+      scheduledDate: convertToIST(new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000)), // 5 days from now
       duration: 90,
       status: 'scheduled',
       notes: 'Prepare resume and portfolio review',
@@ -475,7 +485,7 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       title: 'React Component Architecture',
       description: 'Learn about React component patterns and state management',
       sessionType: 'Video Call',
-      scheduledDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      scheduledDate: convertToIST(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)), // 7 days from now
       duration: 75,
       status: 'scheduled',
       notes: 'Bring your current React project for review',
@@ -488,7 +498,7 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       title: 'Node.js Backend Development',
       description: 'Building REST APIs with Node.js and Express',
       sessionType: 'Video Call',
-      scheduledDate: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      scheduledDate: convertToIST(new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)), // 3 days ago
       duration: 90,
       status: 'completed',
       notes: 'Great session on middleware and error handling',
@@ -503,7 +513,7 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       title: 'JavaScript Interview Prep',
       description: 'Practice coding challenges and interview techniques',
       sessionType: 'Video Call',
-      scheduledDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      scheduledDate: convertToIST(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)), // 7 days ago
       duration: 60,
       status: 'completed',
       notes: 'Focused on data structures and algorithms',
@@ -518,7 +528,7 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       title: 'System Design Basics',
       description: 'Introduction to scalable system design principles',
       sessionType: 'Video Call',
-      scheduledDate: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
+      scheduledDate: convertToIST(new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)), // 14 days ago
       duration: 120,
       status: 'completed',
       notes: 'Covered load balancing and database design',
@@ -533,7 +543,7 @@ const createSessions = async (users, studentProfiles, mentorProfiles) => {
       title: 'React Hooks Deep Dive',
       description: 'Understanding useState, useEffect, and custom hooks',
       sessionType: 'Video Call',
-      scheduledDate: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000), // 21 days ago
+      scheduledDate: convertToIST(new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000)), // 21 days ago
       duration: 75,
       status: 'completed',
       notes: 'Built a custom hook for API calls',

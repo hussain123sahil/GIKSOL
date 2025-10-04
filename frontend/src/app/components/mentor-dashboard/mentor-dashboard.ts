@@ -6,6 +6,7 @@ import { AuthService, User } from '../../services/auth';
 import { DashboardService } from '../../services/dashboard.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
+import { TimezoneService } from '../../services/timezone.service';
 
 interface Mentee {
   id: string;
@@ -102,7 +103,8 @@ export class MentorDashboardComponent implements OnInit {
     private authService: AuthService,
     public router: Router,
     private http: HttpClient,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit(): void {
@@ -190,9 +192,35 @@ export class MentorDashboardComponent implements OnInit {
   }
 
   canCancelSession(session: Session): boolean {
-    const sessionDate = new Date(session.date);
-    const now = new Date();
-    return ['scheduled', 'upcoming'].includes(session.status) && now < sessionDate;
+    // Check if session is in a cancellable state
+    if (!['scheduled', 'upcoming'].includes(session.status)) {
+      return false;
+    }
+
+    // Get the session date - it might be in 'date' or 'scheduledDate' property
+    const sessionDateString = session.date || (session as any).scheduledDate;
+    if (!sessionDateString) {
+      return false;
+    }
+
+    // Convert session date to IST for proper comparison
+    const sessionDate = new Date(sessionDateString);
+    const sessionDateIST = this.timezoneService.toIST(sessionDate);
+    
+    // Get current time in IST
+    const nowIST = this.timezoneService.getCurrentIST();
+    
+    // Mentors can cancel anytime before the session starts
+    const canCancel = nowIST < sessionDateIST;
+    
+    console.log('Mentor cancellation check:', {
+      sessionDate: sessionDateIST.toLocaleString(),
+      now: nowIST.toLocaleString(),
+      canCancel,
+      timeDifference: (sessionDateIST.getTime() - nowIST.getTime()) / (1000 * 60 * 60) // hours
+    });
+    
+    return canCancel;
   }
 
   cancelSession(session: Session): void {
