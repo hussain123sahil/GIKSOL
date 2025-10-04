@@ -5,6 +5,26 @@ const { auth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
+
+// Helper function to convert time string to minutes
+function timeToMinutes(timeString) {
+  try {
+    if (!timeString || typeof timeString !== 'string') {
+      console.error('Invalid timeString:', timeString);
+      return 0;
+    }
+    const [hours, minutes] = timeString.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) {
+      console.error('Invalid time format:', timeString);
+      return 0;
+    }
+    return hours * 60 + minutes;
+  } catch (error) {
+    console.error('Error in timeToMinutes:', error, 'for timeString:', timeString);
+    return 0;
+  }
+}
+
 // Get all mentors
 router.get('/', async (req, res) => {
   try {
@@ -41,6 +61,97 @@ router.get('/', async (req, res) => {
     res.json(mentors);
   } catch (error) {
     console.error('Get mentors error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Filter mentors by availability (date and time) - MUST be before /:id route
+router.get('/available', async (req, res) => {
+  try {
+    const { date, time, duration = 60 } = req.query;
+    
+    if (!date || !time) {
+      return res.status(400).json({ message: 'Date and time are required' });
+    }
+
+    // Parse the date to get day of week
+    const requestedDate = new Date(date);
+    const dayOfWeek = requestedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    
+    // Parse time to get start and end times
+    const [hours, minutes] = time.split(':').map(Number);
+    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    // Calculate end time based on duration
+    const endMinutes = hours * 60 + minutes + parseInt(duration);
+    const endHours = Math.floor(endMinutes / 60);
+    const endMins = endMinutes % 60;
+    const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+
+    // Find mentors available on the requested day
+    const mentors = await Mentor.find({
+      isAvailable: true,
+      [`availability.${dayOfWeek}.isAvailable`]: true
+    })
+    .populate('user', 'firstName lastName email profilePicture')
+    .sort({ rating: -1, totalSessions: -1 });
+
+    // Client-side filtering for time slots
+    let filteredMentors = [];
+    
+    try {
+      filteredMentors = mentors.filter(mentor => {
+        try {
+          const dayAvailability = mentor.availability[dayOfWeek];
+          
+          if (!dayAvailability || !dayAvailability.isAvailable) {
+            return false;
+          }
+          
+          if (!dayAvailability.timeSlots || dayAvailability.timeSlots.length === 0) {
+            return false;
+          }
+          
+          return dayAvailability.timeSlots.some(slot => {
+            try {
+              if (!slot.isActive) {
+                return false;
+              }
+              
+              // Validate slot has required properties
+              if (!slot.startTime || !slot.endTime) {
+                return false;
+              }
+              
+              // Convert time strings to minutes for easier comparison
+              const slotStartMinutes = timeToMinutes(slot.startTime);
+              const slotEndMinutes = timeToMinutes(slot.endTime);
+              const requestStartMinutes = timeToMinutes(startTime);
+              const requestEndMinutes = timeToMinutes(endTime);
+              
+              // Check if conversion was successful
+              if (slotStartMinutes === 0 || slotEndMinutes === 0 || requestStartMinutes === 0 || requestEndMinutes === 0) {
+                return false;
+              }
+              
+              // Check if the requested time falls within the slot
+              return requestStartMinutes >= slotStartMinutes && requestEndMinutes <= slotEndMinutes;
+            } catch (error) {
+              return false;
+            }
+          });
+        } catch (error) {
+          return false;
+        }
+      });
+    } catch (error) {
+      // Fallback: return all mentors if filtering fails
+      filteredMentors = mentors;
+    }
+
+    res.json(filteredMentors);
+  } catch (error) {
+    console.error('Filter mentors by availability error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -141,50 +252,6 @@ router.get('/search/expertise', async (req, res) => {
     res.json(mentors);
   } catch (error) {
     console.error('Search mentors error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Filter mentors by availability (date and time)
-router.get('/available', async (req, res) => {
-  try {
-    const { date, time, duration = 60 } = req.query;
-    
-    if (!date || !time) {
-      return res.status(400).json({ message: 'Date and time are required' });
-    }
-
-    // Parse the date to get day of week
-    const requestedDate = new Date(date);
-    const dayOfWeek = requestedDate.toLocaleLowerCase('en-US', { weekday: 'long' });
-    
-    // Parse time to get start and end times
-    const [hours, minutes] = time.split(':').map(Number);
-    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    
-    // Calculate end time based on duration
-    const endMinutes = hours * 60 + minutes + parseInt(duration);
-    const endHours = Math.floor(endMinutes / 60);
-    const endMins = endMinutes % 60;
-    const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-
-    // Find mentors available on the requested day and time
-    const mentors = await Mentor.find({
-      isAvailable: true,
-      [`availability.${dayOfWeek}.available`]: true,
-      $expr: {
-        $and: [
-          { $gte: [startTime, `$availability.${dayOfWeek}.start`] },
-          { $lte: [endTime, `$availability.${dayOfWeek}.end`] }
-        ]
-      }
-    })
-    .populate('user', 'firstName lastName email profilePicture')
-    .sort({ rating: -1, totalSessions: -1 });
-
-    res.json(mentors);
-  } catch (error) {
-    console.error('Filter mentors by availability error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

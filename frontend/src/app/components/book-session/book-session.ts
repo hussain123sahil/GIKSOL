@@ -107,10 +107,9 @@ export class BookSessionComponent implements OnInit {
       duration: this.filters.sessionDuration.toString()
     };
 
-    this.http.get<Mentor[]>('http://localhost:3000/api/mentors/available', { params })
+    this.http.get<Mentor[]>('http://localhost:5000/api/mentors/available', { params })
       .subscribe({
         next: (mentors) => {
-          console.log('Mentors found:', mentors);
           this.availableMentors = mentors;
           this.isSearching = false;
         },
@@ -118,7 +117,6 @@ export class BookSessionComponent implements OnInit {
           console.error('Error searching mentors:', error);
           this.availableMentors = [];
           this.isSearching = false;
-          // Don't redirect on error, just show empty state
         }
       });
   }
@@ -166,10 +164,25 @@ export class BookSessionComponent implements OnInit {
     return date.toLocaleDateString('en-US', { weekday: 'long' });
   }
 
-  getMentorAvatar(firstName: string, lastName: string): string {
-    // Generate avatar URL based on name initials
+  getMentorAvatar(mentor: any): string {
+    // Use actual profile picture if available, otherwise generate initials-based avatar
+    if (mentor.user?.profilePicture) {
+      return mentor.user.profilePicture;
+    }
+    
+    // Fallback to initials-based avatar
+    const firstName = mentor.user?.firstName || '';
+    const lastName = mentor.user?.lastName || '';
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     return `https://ui-avatars.com/api/?name=${initials}&background=1976d2&color=fff&size=150`;
+  }
+
+  onImageError(event: any, mentor: any): void {
+    // If the profile picture fails to load, fall back to initials-based avatar
+    const firstName = mentor.user?.firstName || '';
+    const lastName = mentor.user?.lastName || '';
+    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    event.target.src = `https://ui-avatars.com/api/?name=${initials}&background=1976d2&color=fff&size=150`;
   }
 
   clearFilters(): void {
