@@ -1,14 +1,14 @@
-<div class="booking-container">
-  <!-- Header -->
-  <header class="page-header">
-    <div class="container">
-      <div class="header-content">
-        <button class="btn btn-secondary" (click)="goToMentors()">← Back to Mentors</button>
-        <h1>Book Your Session</h1>
-        <div></div>
+<div class="booking-shell">
+  <app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
+  <div class="booking-container main-pane">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="container">
+        <div class="header-content">
+          <h1>Book Your Session</h1>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loading-state">
@@ -195,5 +195,6 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
 </div>
