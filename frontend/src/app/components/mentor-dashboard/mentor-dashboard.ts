@@ -326,4 +326,22 @@ export class MentorDashboardComponent implements OnInit {
       default: return '#666';
     }
   }
+
+  getCancelledByTag(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return `👨‍🎓 Cancelled by ${session.cancelledByName || 'Student'}`;
+    } else if (session.cancelledBy === 'mentor') {
+      return `👨‍🏫 Cancelled by ${session.cancelledByName || 'Mentor'}`;
+    }
+    return `🤖 Cancelled by System`;
+  }
+
+  getCancelledByClass(session: Session): string {
+    if (session.cancelledBy === 'student') {
+      return 'tag-student-cancel';
+    } else if (session.cancelledBy === 'mentor') {
+      return 'tag-mentor-cancel';
+    }
+    return 'tag-system-cancel';
+  }
 }

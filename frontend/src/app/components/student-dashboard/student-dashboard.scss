@@ -60,7 +60,7 @@
 }
 
 .session-count {
-	background: #e74c3c;
+	background: #6b7280;
 	color: white;
 	padding: 5px 12px;
 	border-radius: 20px;
@@ -88,8 +88,8 @@
 	}
 
 	&.cancelled-session {
-		border: 1px solid #e74c3c;
-		background-color: #fef0ef;
+		border: 1px solid #d1d5db;
+		background-color: #f9fafb;
 	}
 }
 
@@ -98,7 +98,7 @@
 	justify-content: space-between;
 	align-items: center;
 	padding: 15px 20px;
-	background-color: #e74c3c;
+	background-color: #6b7280;
 	color: white;
 	font-weight: bold;
 }

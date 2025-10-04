@@ -268,26 +268,65 @@
 				<div class="dashboard-section">
 					<div class="section-header">
 						<h2 class="section-title">Cancelled Sessions</h2>
+						<div class="session-count" *ngIf="cancelledSessions.length > 0">
+							{{ cancelledSessions.length }} session{{ cancelledSessions.length !== 1 ? 's' : '' }}
+						</div>
 					</div>
 					
-					<div *ngIf="cancelledSessions && cancelledSessions.length > 0; else noCancelledSessions">
-						<div class="sessions-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-							<div class="session-card" *ngFor="let session of cancelledSessions" style="background: #fff; border: 1px solid #e74c3c; border-radius: 10px; padding: 20px;">
-								<h3>{{ session.title || 'Mentoring Session' }}</h3>
-								<p><strong>Student:</strong> {{ session.student?.firstName }} {{ session.student?.lastName }}</p>
-								<p><strong>Email:</strong> {{ session.student?.email }}</p>
-								<p><strong>Date:</strong> {{ session.date }}</p>
-								<p><strong>Time:</strong> {{ session.time }}</p>
-								<p><strong>Status:</strong> {{ session.status }}</p>
-								<p><strong>Cancelled By:</strong> {{ session.cancelledByName || session.cancelledBy }}</p>
-								<p><strong>Reason:</strong> {{ session.cancellationReason }}</p>
+					<div class="sessions-grid" *ngIf="cancelledSessions.length > 0; else noCancelledSessions">
+						<div class="session-card cancelled-session" *ngFor="let session of cancelledSessions">
+							<!-- Session Header -->
+							<div class="session-card-header">
+								<div class="session-status">
+									<span class="status-badge cancelled">Cancelled</span>
+								</div>
+								<div class="cancelled-by-tag" [ngClass]="getCancelledByClass(session)">
+									{{ getCancelledByTag(session) }}
+								</div>
+							</div>
+							
+							<!-- Session Body -->
+							<div class="session-card-body">
+								<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
+								
+								<!-- Student Info for Mentors -->
+								<div class="user-info">
+									<p class="user-name">{{ session.student?.firstName }} {{ session.student?.lastName }}</p>
+									<p class="user-email">{{ session.student?.email }}</p>
+								</div>
+								
+								<!-- Session Details -->
+								<div class="session-details">
+									<div class="detail-item">
+										<span class="detail-icon">📅</span>
+										<span class="detail-text">{{ formatDate(session.scheduledDate || session.date) }}</span>
+									</div>
+									<div class="detail-item">
+										<span class="detail-icon">🕐</span>
+										<span class="detail-text">{{ formatTime(session.scheduledDate || session.date) }}</span>
+									</div>
+									<div class="detail-item">
+										<span class="detail-icon">⏱️</span>
+										<span class="detail-text">{{ session.duration }} min</span>
+									</div>
+									<div class="detail-item">
+										<span class="detail-icon">💻</span>
+										<span class="detail-text">{{ session.sessionType }}</span>
+									</div>
+								</div>
+								
+								<!-- Cancellation Info -->
+								<div class="cancellation-info">
+									<p class="cancellation-date">Cancelled on: {{ formatDate(session.cancelledAt!) }} at {{ formatTime(session.cancelledAt!) }}</p>
+									<p class="cancellation-reason" *ngIf="session.cancellationReason">Reason: {{ session.cancellationReason }}</p>
+								</div>
 							</div>
 						</div>
 					</div>
 					
 					<ng-template #noCancelledSessions>
-						<div class="empty-state" style="text-align: center; padding: 40px; background: #f8f8f8; border-radius: 8px;">
-							<div style="font-size: 3rem; margin-bottom: 15px;">🚫</div>
+						<div class="empty-state">
+							<div class="empty-icon">🚫</div>
 							<h3>No cancelled sessions</h3>
 							<p>Any sessions that are cancelled will appear here.</p>
 						</div>
