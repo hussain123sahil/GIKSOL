@@ -165,8 +165,21 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     return this.timezoneService.formatDateIST(new Date(dateString));
   }
 
-  formatTime(dateString: string): string {
-    return this.timezoneService.formatTimeIST(new Date(dateString));
+  formatTime(timeString: string): string {
+    // If it's already a formatted time string (HH:MM), convert to am/pm format
+    if (timeString && timeString.match(/^\d{2}:\d{2}$/)) {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'pm' : 'am';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm} IST`;
+    }
+    // If it's a date string, format it using timezone service
+    if (timeString && (timeString.includes('T') || timeString.includes('-'))) {
+      return this.timezoneService.formatTimeIST(new Date(timeString));
+    }
+    // Fallback for other formats
+    return timeString || 'Invalid Time';
   }
 
   getCancelledByTag(session: Session): string {
@@ -187,8 +200,18 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     return 'tag-system-cancel';
   }
 
-  browseMentors(): void { this.router.navigate(['/mentors']); }
-  viewSession(sessionId: string): void { console.log('View session:', sessionId); }
+  browseMentors(): void { this.router.navigate(['/book-session']); }
+  viewSession(sessionId: string): void { 
+    // Find the session by ID
+    const session = this.upcomingSessions.find(s => s.id === sessionId);
+    if (session && session.meetingLink) {
+      // Open the meeting link in a new tab
+      window.open(session.meetingLink, '_blank');
+    } else {
+      console.error('Session not found or no meeting link available');
+      alert('Meeting link not available for this session');
+    }
+  }
   
   canCancelSession(session: Session): boolean {
     // Check if session is in a cancellable state
