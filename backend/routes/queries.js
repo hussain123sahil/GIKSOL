@@ -26,6 +26,9 @@ router.post('/submit', async (req, res) => {
       });
     }
 
+    // Determine source based on referer or explicit source parameter
+    const source = req.body.source || (req.get('Referer') && req.get('Referer').includes('/student-help') ? 'student-help' : 'general-contact');
+    
     // Create new query
     const query = new Query({
       firstName,
@@ -35,7 +38,7 @@ router.post('/submit', async (req, res) => {
       subject,
       message,
       newsletter: newsletter || false,
-      source: 'student-help',
+      source: source,
       userAgent: req.get('User-Agent') || '',
       ipAddress: req.ip || req.connection.remoteAddress || ''
     });

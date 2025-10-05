@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-help-center',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './help-center.html',
   styleUrls: ['./help-center.scss']
 })
@@ -78,6 +79,8 @@ export class HelpCenterComponent {
     }
   ];
 
+  constructor(private http: HttpClient) {}
+
   toggleFaq(index: number): void {
     this.faqs[index].expanded = !this.faqs[index].expanded;
   }
@@ -88,26 +91,32 @@ export class HelpCenterComponent {
     this.isSubmitting = true;
     this.submitMessage = '';
     
-    // Simulate form submission
-    setTimeout(() => {
-      console.log('Form submitted:', this.contactFormData);
-      
-      // Simulate success response
-      this.submitSuccess = true;
-      this.submitMessage = 'Thank you for your message! We have received your inquiry and will get back to you within 24 hours.';
-      
-      this.isSubmitting = false;
-      
-      // Clear the success message after 5 seconds
-      setTimeout(() => {
-        this.submitMessage = '';
-      }, 5000);
-      
-    }, 2000);
+    // Submit form to backend
+    this.http.post('http://localhost:5000/api/queries/submit', this.contactFormData)
+      .subscribe({
+        next: (response: any) => {
+          this.isSubmitting = false;
+          this.submitSuccess = true;
+          this.submitMessage = response.message || 'Thank you for your message! We\'ll get back to you within 24 hours.';
+          
+          // Reset form after successful submission
+          setTimeout(() => {
+            this.resetForm();
+          }, 3000);
+        },
+        error: (error) => {
+          console.error('Error submitting query:', error);
+          this.isSubmitting = false;
+          this.submitSuccess = false;
+          this.submitMessage = error.error?.message || 'Failed to submit your message. Please try again later.';
+        }
+      });
   }
 
-  resetForm(form: NgForm): void {
-    form.resetForm();
+  resetForm(form?: NgForm): void {
+    if (form) {
+      form.resetForm();
+    }
     this.contactFormData = {
       firstName: '',
       lastName: '',
@@ -118,5 +127,6 @@ export class HelpCenterComponent {
       newsletter: false
     };
     this.submitMessage = '';
+    this.submitSuccess = false;
   }
 }
