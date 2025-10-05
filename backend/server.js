@@ -28,6 +28,7 @@ app.use('/api/students', require('./routes/students'));
 app.use('/api/connections', require('./routes/connections'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/sessions', require('./routes/sessions'));
+app.use('/api/queries', require('./routes/queries'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/mentor-availability', require('./routes/mentor-availability'));
 

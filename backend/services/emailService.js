@@ -750,6 +750,132 @@ class EmailService {
     </html>
     `;
   }
+
+  // Send query confirmation email to user
+  async sendQueryConfirmationEmail(userEmail, userName, queryData) {
+    if (!this.transporter) {
+      console.warn('Email service not available. Query confirmation email not sent.');
+      return false;
+    }
+
+    try {
+      const subject = 'Query Received - GikSol Support';
+      const html = this.getQueryConfirmationEmailTemplate(userName, queryData);
+
+      const mailOptions = {
+        from: `"GikSol Support" <${process.env.EMAIL_USER}>`,
+        to: userEmail,
+        subject: subject,
+        html: html,
+        attachments: [
+          {
+            filename: 'logo_giksol2.png',
+            path: path.join(__dirname, '../../frontend/public/logo_giksol2.png'),
+            cid: 'giksol-logo'
+          }
+        ]
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Query confirmation email sent to:', userEmail);
+      return result;
+    } catch (error) {
+      console.error('❌ Error sending query confirmation email:', error);
+      return false;
+    }
+  }
+
+  // Query confirmation email template
+  getQueryConfirmationEmailTemplate(userName, queryData) {
+    const subjectMap = {
+      'general': 'General Inquiry',
+      'technical': 'Technical Support',
+      'billing': 'Billing Question',
+      'mentor': 'Mentor Connection',
+      'session': 'Session Booking',
+      'profile': 'Profile Issues',
+      'feedback': 'Feedback',
+      'other': 'Other'
+    };
+
+    const formattedSubject = subjectMap[queryData.subject] || queryData.subject;
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Query Received - GikSol</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .query-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1976d2; }
+            .highlight { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+            .btn { display: inline-block; background: #1976d2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>✅ Query Received</h1>
+                <p>Thank you for contacting GikSol Support</p>
+            </div>
+            
+            <div class="content">
+                <h2>Hello ${userName}!</h2>
+                <p>We have received your query and want to thank you for reaching out to us. Our support team will review your message and get back to you as soon as possible.</p>
+                
+                <div class="query-info">
+                    <h3>📋 Your Query Details</h3>
+                    <p><strong>Subject:</strong> ${formattedSubject}</p>
+                    <p><strong>Submitted on:</strong> ${currentDate}</p>
+                    <p><strong>Query ID:</strong> #${queryData._id ? queryData._id.toString().slice(-8) : 'N/A'}</p>
+                </div>
+
+                <div class="highlight">
+                    <h3>⏰ What happens next?</h3>
+                    <ul>
+                        <li><strong>Within 24 hours:</strong> Our support team will review your query</li>
+                        <li><strong>Priority handling:</strong> Your query will be handled based on its priority level</li>
+                        <li><strong>Response:</strong> You'll receive a detailed response via email</li>
+                        <li><strong>Follow-up:</strong> If needed, we may ask for additional information</li>
+                    </ul>
+                </div>
+
+                <p><strong>Your message:</strong></p>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0; font-style: italic;">
+                    "${queryData.message}"
+                </div>
+
+                <p>If you have any urgent concerns or need immediate assistance, please don't hesitate to contact us directly.</p>
+                
+                <p>Thank you for choosing GikSol for your learning journey!</p>
+                
+                <div style="text-align: left; margin: 10px 0 0px 0;">
+                    <img src="cid:giksol-logo" alt="GikSol Logo" style="width: 60px; height: 60px; object-fit: contain;">
+                </div>
+                
+                <p>Best regards,<br><strong>GikSol Support Team</strong></p>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated confirmation. Please do not reply to this email.</p>
+                <p>© 2025 GikSol. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+  }
 }
 
 module.exports = new EmailService();
