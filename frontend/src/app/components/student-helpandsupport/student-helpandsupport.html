@@ -1,0 +1,251 @@
+<!-- Student Help and Support Page with Sidebar -->
+<div class="student-help-shell">
+  <app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
+  <div class="student-help-container main-pane">
+    <!-- Hero Section -->
+    <section class="help-hero">
+      <div class="container">
+        <div class="help-hero-content">
+          <h1>Help & Support</h1>
+          <p class="hero-subtitle">Get the support you need to make the most of your GikSol student experience</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Information Section -->
+    <section class="section contact-info-section">
+      <div class="container">
+        <h2 class="section-title">Get in Touch</h2>
+        <p class="section-subtitle">We're here to help! Reach out to us through any of these channels</p>
+        
+        <div class="contact-grid">
+          <div class="contact-card">
+            <div class="contact-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#1976d2" stroke-width="2"/>
+                <polyline points="22,6 12,13 2,6" stroke="#1976d2" stroke-width="2"/>
+              </svg>
+            </div>
+            <h3>Email Support</h3>
+            <p>Get detailed help via email</p>
+            <a href="mailto:support@giksol.com" class="contact-link">support@giksol.com</a>
+            <span class="response-time">Response within 24 hours</span>
+          </div>
+          
+          <div class="contact-card">
+            <div class="contact-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="#1976d2" stroke-width="2"/>
+              </svg>
+            </div>
+            <h3>Phone Support</h3>
+            <p>Speak directly with our team</p>
+            <a href="tel:+15551234567" class="contact-link">+1 (555) 123-4567</a>
+            <span class="response-time">Mon-Fri, 9 AM - 6 PM EST</span>
+          </div>
+          
+          <div class="contact-card">
+            <div class="contact-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="#1976d2" stroke-width="2"/>
+                <circle cx="12" cy="10" r="3" stroke="#1976d2" stroke-width="2"/>
+              </svg>
+            </div>
+            <h3>Office Address</h3>
+            <p>Visit our headquarters</p>
+            <address class="contact-link">123 Learning Street<br>Education City, EC 12345<br>United States</address>
+            <span class="response-time">By appointment only</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section class="section contact-form-section">
+      <div class="container">
+        <div class="form-container">
+          <div class="form-header">
+            <h2>Send us a Message</h2>
+            <p>Have a specific question or need personalized assistance? Fill out the form below and we'll get back to you as soon as possible.</p>
+          </div>
+          
+          <form class="contact-form" (ngSubmit)="onSubmit()" #contactForm="ngForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstName">First Name *</label>
+                <input 
+                  type="text" 
+                  id="firstName" 
+                  name="firstName" 
+                  [(ngModel)]="contactFormData.firstName" 
+                  required 
+                  class="form-input"
+                  placeholder="Enter your first name">
+              </div>
+              
+              <div class="form-group">
+                <label for="lastName">Last Name *</label>
+                <input 
+                  type="text" 
+                  id="lastName" 
+                  name="lastName" 
+                  [(ngModel)]="contactFormData.lastName" 
+                  required 
+                  class="form-input"
+                  placeholder="Enter your last name">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  name="email" 
+                  [(ngModel)]="contactFormData.email" 
+                  required 
+                  email 
+                  class="form-input"
+                  placeholder="Enter your email address">
+              </div>
+              
+              <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input 
+                  type="tel" 
+                  id="phone" 
+                  name="phone" 
+                  [(ngModel)]="contactFormData.phone" 
+                  class="form-input"
+                  placeholder="Enter your phone number">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="subject">Subject *</label>
+              <select 
+                id="subject" 
+                name="subject" 
+                [(ngModel)]="contactFormData.subject" 
+                required 
+                class="form-select">
+                <option value="">Select a subject</option>
+                <option value="general">General Inquiry</option>
+                <option value="technical">Technical Support</option>
+                <option value="billing">Billing Question</option>
+                <option value="mentor">Mentor Connection</option>
+                <option value="session">Session Booking</option>
+                <option value="profile">Profile Issues</option>
+                <option value="feedback">Feedback</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="message">Message *</label>
+              <textarea 
+                id="message" 
+                name="message" 
+                [(ngModel)]="contactFormData.message" 
+                required 
+                rows="6" 
+                class="form-textarea"
+                placeholder="Please describe your question or concern in detail..."></textarea>
+            </div>
+            
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  name="newsletter" 
+                  [(ngModel)]="contactFormData.newsletter" 
+                  class="form-checkbox">
+                <span class="checkmark"></span>
+                I would like to receive updates and newsletters from GikSol
+              </label>
+            </div>
+            
+            <div class="form-actions">
+              <button 
+                type="submit" 
+                class="btn btn-primary" 
+                [disabled]="!contactForm.valid || isSubmitting">
+                <span *ngIf="!isSubmitting">Send Message</span>
+                <span *ngIf="isSubmitting">Sending...</span>
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-secondary" 
+                (click)="resetForm(contactForm)">
+                Reset Form
+              </button>
+            </div>
+          </form>
+          
+          <div *ngIf="submitMessage" class="submit-message" [class.success]="submitSuccess" [class.error]="!submitSuccess">
+            {{ submitMessage }}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section faq-section">
+      <div class="container">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Find quick answers to common questions about our platform</p>
+        
+        <div class="faq-container">
+          <div class="faq-item" *ngFor="let faq of faqs; let i = index">
+            <div class="faq-question" (click)="toggleFaq(i)">
+              <span>{{ faq.question }}</span>
+              <span class="faq-toggle">{{ faq.expanded ? '−' : '+' }}</span>
+            </div>
+            <div class="faq-answer" [class.active]="faq.expanded">
+              {{ faq.answer }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Additional Help Section -->
+    <section class="section additional-help-section">
+      <div class="container">
+        <h2 class="section-title">Still Need Help?</h2>
+        <p class="section-subtitle">Explore these additional resources</p>
+        
+        <div class="help-resources">
+          <div class="resource-card">
+            <div class="resource-icon">📚</div>
+            <h3>Student Guide</h3>
+            <p>Comprehensive guide to using all features of the GikSol platform as a student</p>
+            <a href="#" class="resource-link">Read Guide</a>
+          </div>
+          
+          <div class="resource-card">
+            <div class="resource-icon">🎥</div>
+            <h3>Video Tutorials</h3>
+            <p>Step-by-step video tutorials for common student tasks and features</p>
+            <a href="#" class="resource-link">Watch Videos</a>
+          </div>
+          
+          <div class="resource-card">
+            <div class="resource-icon">💬</div>
+            <h3>Student Community</h3>
+            <p>Connect with other students and get help from the community</p>
+            <a href="#" class="resource-link">Join Community</a>
+          </div>
+          
+          <div class="resource-card">
+            <div class="resource-icon">📞</div>
+            <h3>Live Chat</h3>
+            <p>Get instant help from our support team via live chat</p>
+            <a href="#" class="resource-link">Start Chat</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

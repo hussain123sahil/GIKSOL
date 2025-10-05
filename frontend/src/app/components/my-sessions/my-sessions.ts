@@ -137,7 +137,7 @@ export class MySessionsComponent implements OnInit {
 
   // Navigation methods
   browseMentors(): void {
-    this.router.navigate(['/mentors']);
+    this.router.navigate(['/book-session']);
   }
 
   viewAllSessions(): void {

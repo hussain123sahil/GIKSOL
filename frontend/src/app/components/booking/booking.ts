@@ -7,6 +7,7 @@ import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
 import { AuthService } from '../../services/auth';
 import { MentorAvailabilityService, AvailabilityData, DayAvailability, TimeSlot } from '../../services/mentor-availability.service';
 import { TimezoneService } from '../../services/timezone.service';
+import { SidebarComponent } from '../sidebar/sidebar';
 
 interface Mentor {
   id: string;
@@ -38,7 +39,7 @@ interface TimeOption {
 @Component({
   selector: 'app-booking',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, SidebarComponent],
   templateUrl: './booking.html',
   styleUrls: ['./booking.scss']
 })
@@ -62,7 +63,7 @@ export class BookingComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
+    public router: Router,
     private mentorService: MentorService,
     private http: HttpClient,
     private authService: AuthService,

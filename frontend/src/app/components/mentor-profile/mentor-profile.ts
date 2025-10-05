@@ -7,6 +7,7 @@ import { AuthService, User } from '../../services/auth';
 import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
 import { MentorAvailabilityService } from '../../services/mentor-availability.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
+import { SidebarComponent } from '../sidebar/sidebar';
 
 interface Mentor {
   id: string;
@@ -46,7 +47,7 @@ interface Mentor {
 @Component({
   selector: 'app-mentor-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, MentorSidebarComponent],
+  imports: [CommonModule, FormsModule, MentorSidebarComponent, SidebarComponent],
   templateUrl: './mentor-profile.html',
   styleUrls: ['./mentor-profile.scss']
 })

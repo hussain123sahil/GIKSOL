@@ -156,9 +156,11 @@
 </div>
 
 <!-- Public Profile (Viewing Other Mentors) -->
-<div class="mentor-profile-container" *ngIf="!isOwnProfile">
-  <div class="profile-content">
-    <div class="container">
+<div class="mentor-profile-shell" *ngIf="!isOwnProfile">
+  <app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
+  <div class="mentor-profile-container main-pane">
+    <div class="profile-content">
+      <div class="container">
       <!-- Loading State -->
       <div *ngIf="isLoading" class="loading-state">
         <div class="loading-spinner"></div>
@@ -169,14 +171,6 @@
       <div *ngIf="!isLoading && mentor" class="linkedin-profile">
         <!-- Profile Header -->
         <div class="profile-header">
-          <div class="back-button-container">
-						<button class="back-button" (click)="goBack()">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<path d="M19 12H5M12 19l-7-7 7-7"/>
-							</svg>
-							Back To Mentors
-						</button>
-					</div>
           <div class="cover-photo"></div>
           <div class="profile-info">
             <div class="profile-avatar">
@@ -307,5 +301,6 @@
 
       </div>
     </div>
+  </div>
   </div>
 </div>
