@@ -1,6 +1,7 @@
 const express = require('express');
 const Query = require('../models/Query');
 const { auth, requireRole } = require('../middleware/auth');
+const emailService = require('../services/emailService');
 
 const router = express.Router();
 
@@ -49,9 +50,22 @@ router.post('/submit', async (req, res) => {
       priority: query.priority
     });
 
+    // Send confirmation email to user
+    try {
+      await emailService.sendQueryConfirmationEmail(
+        query.email,
+        query.fullName,
+        query
+      );
+      console.log('✅ Query confirmation email sent to:', query.email);
+    } catch (emailError) {
+      console.error('❌ Error sending confirmation email:', emailError);
+      // Don't fail the query submission if email fails
+    }
+
     res.status(201).json({
       success: true,
-      message: 'Your query has been submitted successfully. We\'ll get back to you within 24 hours.',
+      message: 'Your query has been submitted successfully. We\'ll get back to you within 24 hours. A confirmation email has been sent to your email address.',
       queryId: query._id
     });
 
