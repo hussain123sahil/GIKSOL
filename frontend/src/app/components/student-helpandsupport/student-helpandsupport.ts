@@ -2,12 +2,13 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { SidebarComponent } from '../sidebar/sidebar';
 
 @Component({
   selector: 'app-student-helpandsupport',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, SidebarComponent],
   templateUrl: './student-helpandsupport.html',
   styleUrls: ['./student-helpandsupport.scss']
 })
@@ -80,7 +81,10 @@ export class StudentHelpAndSupportComponent {
     }
   ];
 
-  constructor(public router: Router) {}
+  constructor(
+    public router: Router,
+    private http: HttpClient
+  ) {}
 
   onSubmit() {
     if (this.isSubmitting) return;
@@ -88,17 +92,26 @@ export class StudentHelpAndSupportComponent {
     this.isSubmitting = true;
     this.submitMessage = '';
     
-    // Simulate form submission
-    setTimeout(() => {
-      this.isSubmitting = false;
-      this.submitSuccess = true;
-      this.submitMessage = 'Thank you for your message! We\'ll get back to you within 24 hours.';
-      
-      // Reset form after successful submission
-      setTimeout(() => {
-        this.resetForm();
-      }, 3000);
-    }, 2000);
+    // Submit form to backend
+    this.http.post('http://localhost:5000/api/queries/submit', this.contactFormData)
+      .subscribe({
+        next: (response: any) => {
+          this.isSubmitting = false;
+          this.submitSuccess = true;
+          this.submitMessage = response.message || 'Thank you for your message! We\'ll get back to you within 24 hours.';
+          
+          // Reset form after successful submission
+          setTimeout(() => {
+            this.resetForm();
+          }, 3000);
+        },
+        error: (error) => {
+          console.error('Error submitting query:', error);
+          this.isSubmitting = false;
+          this.submitSuccess = false;
+          this.submitMessage = error.error?.message || 'Failed to submit your message. Please try again later.';
+        }
+      });
   }
 
   resetForm(form?: NgForm) {
