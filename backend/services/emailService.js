@@ -766,7 +766,14 @@ class EmailService {
         from: `"GikSol Support" <${process.env.EMAIL_USER}>`,
         to: userEmail,
         subject: subject,
-        html: html
+        html: html,
+        attachments: [
+          {
+            filename: 'logo_giksol2.png',
+            path: path.join(__dirname, '../../frontend/public/logo_giksol2.png'),
+            cid: 'giksol-logo'
+          }
+        ]
       };
 
       const result = await this.transporter.sendMail(mailOptions);
@@ -852,6 +859,10 @@ class EmailService {
                 <p>If you have any urgent concerns or need immediate assistance, please don't hesitate to contact us directly.</p>
                 
                 <p>Thank you for choosing GikSol for your learning journey!</p>
+                
+                <div style="text-align: left; margin: 10px 0 0px 0;">
+                    <img src="cid:giksol-logo" alt="GikSol Logo" style="width: 60px; height: 60px; object-fit: contain;">
+                </div>
                 
                 <p>Best regards,<br><strong>GikSol Support Team</strong></p>
             </div>
