@@ -205,9 +205,32 @@ export class MentorDashboardComponent implements OnInit {
   }
 
   startSession(sessionId: string): void {
-    // Implement start session logic
-    console.log('Start session:', sessionId);
-    // Navigate to session or open meeting link
+    const session = this.upcomingSessions.find(s => s.id === sessionId);
+    if (!session) {
+      console.error('Session not found');
+      return;
+    }
+
+    if (!session.meetingLink) {
+      alert('Meeting link not available for this session');
+      return;
+    }
+
+    // Mark session as in-progress, then open the meeting link
+    this.dashboardService.updateSessionStatus(sessionId, 'in-progress').subscribe({
+      next: () => {
+        // Optimistically update local state so UI reflects in-progress immediately
+        this.upcomingSessions = this.upcomingSessions.map(s =>
+          s.id === sessionId ? { ...s, status: 'in-progress' } : s
+        );
+        // Open meeting link
+        window.open(session.meetingLink as string, '_blank');
+      },
+      error: (error) => {
+        console.error('Failed to start session:', error);
+        alert('Failed to start session. Please try again.');
+      }
+    });
   }
 
   canCancelSession(session: Session): boolean {

@@ -106,7 +106,6 @@ export class DashboardService {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-
     return this.http.put(`${this.apiUrl}/sessions/${sessionId}/status`, {
       status,
       ...data
