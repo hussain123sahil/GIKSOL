@@ -97,6 +97,16 @@ router.get('/dashboard/:studentId', async (req, res) => {
     };
 
     // Format sessions for frontend
+    // Get mentor company information for all sessions
+    const mentors = await Mentor.find({ user: { $in: mentorIds } })
+      .select('user company')
+      .lean();
+    
+    const mentorCompanyMap = {};
+    mentors.forEach(mentor => {
+      mentorCompanyMap[mentor.user.toString()] = mentor.company;
+    });
+
     const formatSessions = (sessions) => {
       return sessions.map(session => {
         const scheduledDate = new Date(session.scheduledDate);
@@ -107,7 +117,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
           id: session._id,
           mentorId: session.mentor._id,
           mentorName: `${session.mentor.firstName} ${session.mentor.lastName}`,
-          mentorCompany: 'Tech Company', // We'll get this from Mentor model later
+          mentorCompany: mentorCompanyMap[session.mentor._id] || 'Not specified',
           title: session.status === 'cancelled' 
             ? `Session with ${session.mentor.firstName} ${session.mentor.lastName}`
             : session.title,
@@ -147,7 +157,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
         id: conn._id,
         mentorId: conn._id,
         mentorName: `${conn.firstName} ${conn.lastName}`,
-        mentorCompany: 'Tech Company', // We'll get this from Mentor model later
+        mentorCompany: mentorCompanyMap[conn._id] || 'Not specified',
         status: 'accepted',
         requestedAt: new Date().toISOString(),
         respondedAt: new Date().toISOString()
