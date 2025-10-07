@@ -46,6 +46,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   hoverRating = 0;
   currentFeedback = '';
   isSubmittingRating = false;
+  isUpdateRating = false;
 
   // Toast state
   showToast = false;
@@ -277,6 +278,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     this.currentRating = session.rating || 0;
     this.currentFeedback = '';
     this.hoverRating = 0;
+    this.isUpdateRating = !!session.rating;
     this.showRateModal = true;
   }
 
@@ -313,7 +315,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
         this.isSubmittingRating = false;
         this.closeRateModal();
         // Show success toast
-        this.toastMessage = 'Feedback submitted successfully';
+        this.toastMessage = this.isUpdateRating ? 'Feedback updated successfully' : 'Feedback submitted successfully';
         this.showToast = true;
         setTimeout(() => this.showToast = false, 3000);
       },
