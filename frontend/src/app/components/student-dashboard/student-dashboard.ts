@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
@@ -12,7 +13,7 @@ import { filter } from 'rxjs/operators';
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, SidebarComponent, CancelSessionModalComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, SidebarComponent, CancelSessionModalComponent],
   templateUrl: './student-dashboard.html',
   styleUrls: ['./student-dashboard.scss']
 })
@@ -37,6 +38,14 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   showCancelModal = false;
   sessionToCancel: Session | null = null;
   isCancelling = false;
+
+  // Rating modal state
+  showRateModal = false;
+  sessionToRate: Session | null = null;
+  currentRating = 0;
+  hoverRating = 0;
+  currentFeedback = '';
+  isSubmittingRating = false;
 
   private navigationSubscription: any;
 
@@ -259,7 +268,51 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     this.sessionToCancel = null;
   }
   
-  rateSession(sessionId: string): void { console.log('Rate session:', sessionId); }
+  rateSession(session: Session): void {
+    this.sessionToRate = session;
+    this.currentRating = session.rating || 0;
+    this.currentFeedback = '';
+    this.hoverRating = 0;
+    this.showRateModal = true;
+  }
+
+  closeRateModal(): void {
+    this.showRateModal = false;
+    this.sessionToRate = null;
+    this.currentRating = 0;
+    this.currentFeedback = '';
+    this.hoverRating = 0;
+  }
+
+  setRating(value: number): void {
+    this.currentRating = value;
+  }
+
+  submitRating(): void {
+    if (!this.sessionToRate || this.currentRating === 0 || this.isSubmittingRating) return;
+    this.isSubmittingRating = true;
+
+    this.dashboardService.updateSessionStatus(this.sessionToRate.id, 'completed', {
+      rating: this.currentRating,
+      feedback: this.currentFeedback
+    }).subscribe({
+      next: (resp) => {
+        // Update local completedSessions list
+        const updated = resp.session;
+        this.completedSessions = this.completedSessions.map(s => s.id === updated._id || s.id === updated.id ? {
+          ...s,
+          rating: this.currentRating
+        } : s);
+        this.isSubmittingRating = false;
+        this.closeRateModal();
+      },
+      error: (error) => {
+        console.error('Error submitting rating:', error);
+        this.isSubmittingRating = false;
+        alert(error.error?.message || 'Failed to submit rating. Please try again.');
+      }
+    });
+  }
   viewAllSessions(): void { console.log('View all sessions'); }
   viewSessionDetails(sessionId: string): void { console.log('View session details:', sessionId); }
   logout(): void { this.authService.logout(); }

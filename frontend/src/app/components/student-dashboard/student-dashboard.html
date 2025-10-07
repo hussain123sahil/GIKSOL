@@ -157,7 +157,7 @@
 							</div>
 							
 							<div class="past-session-footer">
-								<button class="btn btn-outline btn-sm" (click)="rateSession(session.id)">
+								<button class="btn btn-outline btn-sm" (click)="rateSession(session)">
 									<span class="btn-icon">⭐</span>
 									Rate Session
 								</button>
@@ -244,6 +244,40 @@
 			</div>
 		</div>
 	</div>
+</div>
+
+<!-- Rate Session Modal -->
+<div class="modal-overlay" *ngIf="showRateModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Rate Session</h3>
+      <button class="close-btn" (click)="closeRateModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="rating-stars">
+        <button class="star"
+                *ngFor="let s of [1,2,3,4,5]"
+                [class.active]="(hoverRating || currentRating) >= s"
+                (click)="setRating(s)"
+                (mouseenter)="hoverRating = s"
+                (mouseleave)="hoverRating = 0">
+          {{ (hoverRating || currentRating) >= s ? '★' : '☆' }}
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="feedback">Feedback (optional)</label>
+        <textarea id="feedback" [(ngModel)]="currentFeedback" rows="4" placeholder="Share your experience..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeRateModal()">Cancel</button>
+      <button class="btn btn-primary" [disabled]="isSubmittingRating || currentRating === 0" (click)="submitRating()">
+        <span *ngIf="!isSubmittingRating">Submit</span>
+        <span *ngIf="isSubmittingRating">Submitting...</span>
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- Cancel Session Modal -->
