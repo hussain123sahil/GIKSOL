@@ -33,19 +33,41 @@ router.get('/dashboard/:studentId', async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Get upcoming sessions
-    const upcomingSessions = await Session.find({
+    // Get all scheduled/upcoming sessions (we will split into upcoming vs recent using end-buffer logic)
+    const pendingSessions = await Session.find({
       student: studentId,
       status: { $in: ['scheduled', 'upcoming'] },
-      scheduledDate: { $gte: new Date() },
       isActive: true
     })
     .populate('mentor', 'firstName lastName email profilePicture')
     .sort({ scheduledDate: 1 })
-    .lean(); // Use lean() to get plain objects
+    .lean();
 
-    // Get completed sessions
-    const completedSessions = await Session.find({
+    // Compute upcoming vs recent using scheduledDate + duration + 10 minutes buffer
+    const now = new Date();
+    const upcomingSessions = [];
+    const recentlyEndedSessions = [];
+    for (const s of pendingSessions) {
+      const scheduled = new Date(s.scheduledDate);
+      const endWithBuffer = new Date(scheduled.getTime() + (s.duration + 10) * 60 * 1000);
+      if (endWithBuffer >= now) {
+        upcomingSessions.push(s);
+      } else {
+        recentlyEndedSessions.push(s);
+      }
+    }
+
+    // Auto-mark recently ended sessions as completed
+    if (recentlyEndedSessions.length > 0) {
+      const recentlyEndedIds = recentlyEndedSessions.map(s => s._id);
+      await Session.updateMany(
+        { _id: { $in: recentlyEndedIds } },
+        { $set: { status: 'completed', completedAt: new Date() } }
+      );
+    }
+
+    // Get completed sessions (explicitly completed)
+    const completedSessionsExplicit = await Session.find({
       student: studentId,
       status: 'completed',
       isActive: true
@@ -54,6 +76,11 @@ router.get('/dashboard/:studentId', async (req, res) => {
     .sort({ scheduledDate: -1 })
     .limit(10)
     .lean(); // Use lean() to get plain objects
+
+    // Merge explicitly completed with recently ended but not marked completed
+    const completedSessions = [...recentlyEndedSessions, ...completedSessionsExplicit]
+      .sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate))
+      .slice(0, 10);
 
     // Get cancelled sessions
     const cancelledSessions = await Session.find({
