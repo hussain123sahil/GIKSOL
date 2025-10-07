@@ -36,7 +36,7 @@ router.get('/dashboard/:studentId', async (req, res) => {
     // Get all scheduled/upcoming sessions (we will split into upcoming vs recent using end-buffer logic)
     const pendingSessions = await Session.find({
       student: studentId,
-      status: { $in: ['scheduled', 'upcoming'] },
+      status: { $in: ['scheduled', 'upcoming', 'in-progress'] },
       isActive: true
     })
     .populate('mentor', 'firstName lastName email profilePicture')
@@ -441,8 +441,7 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
     // Get upcoming sessions
     const upcomingSessions = await Session.find({
       mentor: userId,
-      status: { $in: ['scheduled', 'upcoming'] },
-      scheduledDate: { $gte: new Date() },
+      status: { $in: ['scheduled', 'upcoming', 'in-progress'] },
       isActive: true
     })
     .populate('student', 'firstName lastName email profilePicture')

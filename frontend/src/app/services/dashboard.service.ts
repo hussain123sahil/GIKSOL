@@ -101,10 +101,15 @@ export class DashboardService {
     cancelledBy?: string;
     cancellationReason?: string;
   }): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
     return this.http.put(`${this.apiUrl}/sessions/${sessionId}/status`, {
       status,
       ...data
-    });
+    }, { headers });
   }
 
   getStudentSessions(studentId: string, status?: string, limit?: number, page?: number): Observable<any> {
