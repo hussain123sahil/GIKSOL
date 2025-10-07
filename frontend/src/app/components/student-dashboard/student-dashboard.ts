@@ -47,6 +47,10 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   currentFeedback = '';
   isSubmittingRating = false;
 
+  // Toast state
+  showToast = false;
+  toastMessage = '';
+
   private navigationSubscription: any;
 
   constructor(
@@ -284,6 +288,10 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     this.hoverRating = 0;
   }
 
+  hideToast(): void {
+    this.showToast = false;
+  }
+
   setRating(value: number): void {
     this.currentRating = value;
   }
@@ -299,12 +307,15 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       next: (resp) => {
         // Update local completedSessions list
         const updated = resp.session;
-        this.completedSessions = this.completedSessions.map(s => s.id === updated._id || s.id === updated.id ? {
-          ...s,
-          rating: this.currentRating
-        } : s);
+        this.completedSessions = this.completedSessions.map(s => s.id === (updated._id || updated.id) ? { ...s, rating: this.currentRating } : s);
+        // Also update in upcomingSessions if present there (defensive)
+        this.upcomingSessions = this.upcomingSessions.map(s => s.id === (updated._id || updated.id) ? { ...s, rating: this.currentRating } : s);
         this.isSubmittingRating = false;
         this.closeRateModal();
+        // Show success toast
+        this.toastMessage = 'Feedback submitted successfully';
+        this.showToast = true;
+        setTimeout(() => this.showToast = false, 3000);
       },
       error: (error) => {
         console.error('Error submitting rating:', error);

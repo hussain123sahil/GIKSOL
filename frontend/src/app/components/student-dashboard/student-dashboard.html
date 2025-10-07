@@ -1,6 +1,12 @@
 <div class="student-dashboard-shell">
 	<app-sidebar class="sidebar-pane" (navigate)="router.navigate([$event])"></app-sidebar>
 	<div class="student-dashboard-container main-pane">
+		<!-- Success Toast -->
+		<div class="toast toast-success" *ngIf="showToast">
+			<span class="toast-icon">✔</span>
+			<span class="toast-message">{{ toastMessage }}</span>
+			<button class="toast-close" (click)="hideToast()">×</button>
+		</div>
 		<div class="dashboard-content">
 			<div class="container">
 				<h1 class="page-title">Welcome back, {{ currentUser?.firstName || 'Alex' }}!</h1>
@@ -159,7 +165,7 @@
 							<div class="past-session-footer">
 								<button class="btn btn-outline btn-sm" (click)="rateSession(session)">
 									<span class="btn-icon">⭐</span>
-									Rate Session
+									{{ session.rating ? 'Update Rating' : 'Rate Session' }}
 								</button>
 							</div>
 						</div>
