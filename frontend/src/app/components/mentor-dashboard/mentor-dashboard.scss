@@ -614,27 +614,35 @@
 }
 
 .session-card-footer {
-	padding: 16px 24px 24px 24px;
-	display: flex;
-	gap: 12px;
-	background: #f8fafc;
+    padding: 16px 24px 24px 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    background: #f8fafc;
+
+    .start-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 200px;
+    }
 }
 
 .start-session-info {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 8px 12px;
-	background: #fff3cd;
-	border: 1px solid #ffeaa7;
-	border-radius: 6px;
-	margin: 8px 0;
-	
-	.info-text {
-		font-size: 0.9rem;
-		color: #856404;
-		font-weight: 500;
-	}
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fff8e1;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+
+    .info-text {
+        font-size: 0.9rem;
+        color: #8d6e00;
+        font-weight: 600;
+    }
 }
 
 .btn-disabled {

@@ -150,15 +150,15 @@
 							</div>
 							
 							<div class="session-card-footer">
-								<button class="btn btn-primary btn-sm" (click)="startSession(session.id)" *ngIf="session.meetingLink" [disabled]="!canStartSession(session)" [class.btn-disabled]="!canStartSession(session)">
-									<span class="btn-icon">🎥</span>
-									Start Session
-								</button>
-							<div *ngIf="session.meetingLink && !canStartSession(session)" class="start-session-info">
-								<span class="info-text">
-									⏰ Available in {{ getTimeUntilStartable(session) }}
-								</span>
-							</div>
+								<div class="start-actions">
+									<button class="btn btn-primary btn-sm" (click)="startSession(session.id)" *ngIf="session.meetingLink" [disabled]="!canStartSession(session)" [class.btn-disabled]="!canStartSession(session)">
+										<span class="btn-icon">🎥</span>
+										Start Session
+									</button>
+									<div *ngIf="session.meetingLink && !canStartSession(session)" class="start-session-info">
+										<span class="info-text">⏰ Available in {{ getTimeUntilStartable(session) }}</span>
+									</div>
+								</div>
 								<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
 									<span class="btn-icon">❌</span>
 									Cancel
