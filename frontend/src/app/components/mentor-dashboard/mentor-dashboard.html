@@ -54,59 +54,7 @@
 							</div>
 						</div>
 					</div>
-				</div>
-
-				<!-- Cancelled Sessions Section -->
-				<div class="cancelled-sessions-section" *ngIf="cancelledSessions.length > 0">
-					<div class="section-header">
-						<h2 class="section-title">Cancelled Sessions</h2>
-					</div>
-					
-					<div class="sessions-grid">
-						<div class="session-card cancelled" *ngFor="let session of cancelledSessions">
-							<div class="session-card-header">
-								<div class="student-avatar">
-									{{ session.studentName.charAt(0) }}
-								</div>
-								<div class="session-status-badge cancelled">
-									<span class="status-dot cancelled"></span>
-									Cancelled
-								</div>
-							</div>
-							
-							<div class="session-card-body">
-								<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
-								<p class="student-name">{{ session.studentName }}</p>
-								<p class="student-email">{{ session.studentEmail }}</p>
-								
-								<div class="session-details">
-									<div class="session-date">
-										<span class="date-icon">📅</span>
-										{{ formatDate(session.date) }}
-									</div>
-									<div class="session-time">
-										<span class="time-icon">🕐</span>
-										{{ formatTime(session.time) }}
-									</div>
-									<div class="session-duration">
-										<span class="duration-icon">⏱️</span>
-										{{ session.duration }} min
-									</div>
-								</div>
-								
-								<div class="cancellation-info" *ngIf="session.cancelledAt">
-									<div class="cancellation-date">
-										<span class="cancel-icon">❌</span>
-										Cancelled {{ formatDate(session.cancelledAt) }}
-									</div>
-									<div class="cancellation-reason" *ngIf="session.cancellationReason">
-										<strong>Reason:</strong> {{ session.cancellationReason }}
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+				</div>				
 
 				<!-- Upcoming Sessions Section -->
 				<div class="upcoming-sessions-section">
