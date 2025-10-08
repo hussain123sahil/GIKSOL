@@ -158,8 +158,8 @@
 								<h4 class="past-session-title">{{ session.title || 'Mentoring Session' }}</h4>
 								<p class="past-mentor-name">{{ session.mentorName }}</p>
 								<p class="past-mentor-company">{{ session.mentorCompany }}</p>
-								<div class="past-session-date">{{ formatDate(session.date) }}</div>
-								<div class="past-session-type">{{ session.sessionType }}</div>
+								<div class="past-session-date">{{ formatDate(session.date) }} • {{ formatTime(session.time) }}</div>
+								<div class="past-session-type">{{ session.sessionType }} • {{ session.duration }} min</div>
 							</div>
 							
 							<div class="past-session-footer">

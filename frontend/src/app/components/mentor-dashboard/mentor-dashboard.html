@@ -47,61 +47,14 @@
 							</div>
 						</div>
 						<div class="quick-stat-card">
-							<div class="stat-icon">📬</div>
+							<div class="stat-icon">❌</div>
 							<div class="stat-content">
-								<div class="stat-title">Pending Requests</div>
-								<div class="stat-value">{{ quickStats.pendingRequests }}</div>
+								<div class="stat-title">Cancelled Sessions</div>
+								<div class="stat-value">{{ quickStats.cancelledSessions }}</div>
 							</div>
 						</div>
 					</div>
-				</div>
-
-				<!-- Pending Requests Section -->
-				<div class="pending-requests-section" *ngIf="connectionRequests.length > 0">
-					<div class="section-header">
-						<h2 class="section-title">Pending Connection Requests</h2>
-					</div>
-					
-					<div class="requests-grid">
-						<div class="request-card" *ngFor="let request of connectionRequests">
-							<div class="request-card-header">
-								<div class="student-avatar">
-									{{ request.studentName.charAt(0) }}
-								</div>
-								<div class="request-status-badge">
-									<span class="status-dot pending"></span>
-									Pending
-								</div>
-							</div>
-							
-							<div class="request-card-body">
-								<h3 class="student-name">{{ request.studentName }}</h3>
-								<p class="student-email">{{ request.studentEmail }}</p>
-								<p class="student-school">{{ request.school }}</p>
-								
-								<div class="request-message">
-									<p>{{ request.requestMessage }}</p>
-								</div>
-								
-								<div class="request-date">
-									<span class="date-icon">📅</span>
-									Requested {{ formatDate(request.requestedAt) }}
-								</div>
-							</div>
-							
-							<div class="request-card-footer">
-								<button class="btn btn-primary btn-sm" (click)="acceptRequest(request.id)">
-									<span class="btn-icon">✅</span>
-									Accept
-								</button>
-								<button class="btn btn-outline btn-sm" (click)="rejectRequest(request.id)">
-									<span class="btn-icon">❌</span>
-									Decline
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
+				</div>				
 
 				<!-- Upcoming Sessions Section -->
 				<div class="upcoming-sessions-section">

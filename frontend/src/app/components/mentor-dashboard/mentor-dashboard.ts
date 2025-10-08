@@ -37,7 +37,7 @@ interface QuickStats {
   activeMentees: number;
   upcomingSessions: number;
   completedSessions: number;
-  pendingRequests: number;
+  cancelledSessions: number;
   totalSessions: number;
   averageRating: number;
 }
@@ -79,7 +79,7 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     activeMentees: 0,
     upcomingSessions: 0,
     completedSessions: 0,
-    pendingRequests: 0,
+    cancelledSessions: 0,
     totalSessions: 0,
     averageRating: 0
   };
