@@ -359,3 +359,13 @@
 	(cancel)="onCancelModalCancel()"
 	(success)="onCancelModalSuccess()">
 </app-cancel-session-modal>
+
+<!-- Add Note Modal -->
+<app-add-note-modal
+	*ngIf="showNoteModal"
+	[session]="noteModalSession"
+	[isSaving]="isSavingNote"
+	(save)="onNoteModalSave($event)"
+	(cancel)="onNoteModalCancel()"
+	(success)="onNoteModalCancel()">
+</app-add-note-modal>

@@ -55,15 +55,18 @@ interface MentorInfo {
   totalSessions: number;
 }
 
+import { AddNoteModalComponent } from '../add-note-modal/add-note-modal';
+
 @Component({
   selector: 'app-mentor-dashboard',
   standalone: true,
-  imports: [CommonModule, MentorSidebarComponent, CancelSessionModalComponent],
+  imports: [CommonModule, MentorSidebarComponent, CancelSessionModalComponent, AddNoteModalComponent],
   templateUrl: './mentor-dashboard.html',
   styleUrls: ['./mentor-dashboard.scss']
 })
 export class MentorDashboardComponent implements OnInit, OnDestroy {
   @ViewChild(CancelSessionModalComponent) cancelModal!: CancelSessionModalComponent;
+  @ViewChild(AddNoteModalComponent) noteModal?: AddNoteModalComponent;
   
   currentUser: User | null = null;
   mentorInfo: MentorInfo | null = null;
@@ -430,25 +433,44 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
   }
 
   addNote(session: Session): void {
-    // For now, we'll use a simple prompt. Later this can be replaced with a proper modal
-    const currentNote = session.notes || '';
-    const newNote = prompt('Add a note for this session (visible to the student):', currentNote);
-    
-    if (newNote !== null && newNote !== currentNote) {
-      // Update the session note via API
-      this.dashboardService.updateSessionNote(session.id, newNote).subscribe({
-        next: (response) => {
-          console.log('Note updated successfully:', response);
-          // Update the local session object
-          session.notes = newNote;
-        },
-        error: (error) => {
-          console.error('Failed to update note:', error);
-          alert('Failed to update note. Please try again.');
-        }
-      });
-    }
+    this.noteModalSession = session;
+    this.showNoteModal = true;
   }
+
+  // Add Note modal state
+  showNoteModal = false;
+  noteModalSession: Session | null = null;
+  isSavingNote = false;
+
+  onNoteModalCancel(): void {
+    this.showNoteModal = false;
+    this.noteModalSession = null;
+  }
+
+  onNoteModalSave(event: { sessionId: string; note: string }): void {
+    this.isSavingNote = true;
+    this.dashboardService.updateSessionNote(event.sessionId, event.note).subscribe({
+      next: () => {
+        // Update local model
+        const target = this.upcomingSessions.find(s => s.id === event.sessionId) ||
+                       this.completedSessions.find(s => s.id === event.sessionId) ||
+                       this.cancelledSessions.find(s => s.id === event.sessionId);
+        if (target) target.notes = event.note;
+
+        // Show success feedback on modal
+        this.noteModal?.showSuccess();
+      },
+      error: (error) => {
+        console.error('Failed to update note:', error);
+        alert('Failed to update note. Please try again.');
+        this.isSavingNote = false;
+      },
+      complete: () => {
+        this.isSavingNote = false;
+      }
+    });
+  }
+
 
   viewSessionDetails(sessionId: string): void {
     // Implement view session details logic
