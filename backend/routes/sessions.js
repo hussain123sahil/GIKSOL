@@ -536,6 +536,12 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
           studentId: session.student._id,
           studentName: `${session.student.firstName} ${session.student.lastName}`,
           studentEmail: session.student.email,
+          // Add full student object for frontend
+          student: {
+            firstName: session.student.firstName,
+            lastName: session.student.lastName,
+            email: session.student.email
+          },
           title: session.status === 'cancelled' 
             ? `Session with ${session.student.firstName} ${session.student.lastName}`
             : session.title,

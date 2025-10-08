@@ -470,6 +470,30 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Get student name from session data with fallback
+   */
+  getStudentName(session: Session): string {
+    // Debug logging to see what data we have
+    console.log('Session data for student name:', {
+      sessionId: session.id,
+      student: session.student,
+      hasStudent: !!session.student,
+      firstName: session.student?.firstName,
+      lastName: session.student?.lastName
+    });
+
+    // Check if student data exists
+    if (session.student?.firstName && session.student?.lastName) {
+      return `${session.student.firstName} ${session.student.lastName}`;
+    } else if (session.student?.firstName) {
+      return session.student.firstName;
+    } else {
+      // Fallback to studentName if available
+      return session.studentName || 'Student';
+    }
+  }
+
+  /**
    * Check for in-progress sessions that should be auto-completed
    * Sessions are auto-completed 10 minutes after their scheduled end time
    */
