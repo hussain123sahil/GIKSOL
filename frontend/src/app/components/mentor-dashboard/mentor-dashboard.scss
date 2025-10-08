@@ -620,6 +620,29 @@
 	background: #f8fafc;
 }
 
+.start-session-info {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 12px;
+	background: #fff3cd;
+	border: 1px solid #ffeaa7;
+	border-radius: 6px;
+	margin: 8px 0;
+	
+	.info-text {
+		font-size: 0.9rem;
+		color: #856404;
+		font-weight: 500;
+	}
+}
+
+.btn-disabled {
+	opacity: 0.5 !important;
+	cursor: not-allowed !important;
+	pointer-events: none !important;
+}
+
 /* Recent Sessions Section */
 .recent-sessions-section {
 	margin-bottom: 48px;

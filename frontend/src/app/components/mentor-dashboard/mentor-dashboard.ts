@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -62,7 +62,7 @@ interface MentorInfo {
   templateUrl: './mentor-dashboard.html',
   styleUrls: ['./mentor-dashboard.scss']
 })
-export class MentorDashboardComponent implements OnInit {
+export class MentorDashboardComponent implements OnInit, OnDestroy {
   @ViewChild(CancelSessionModalComponent) cancelModal!: CancelSessionModalComponent;
   
   currentUser: User | null = null;
@@ -85,6 +85,11 @@ export class MentorDashboardComponent implements OnInit {
   showCancelModal = false;
   sessionToCancel: Session | null = null;
   isCancelling = false;
+  // Tracked clock in IST to allow time-based UI enablement
+  nowIST: Date = new Date();
+  private timeUpdateInterval: any;
+  // Force disable all sessions for testing
+  forceDisableAllSessions = true;
 
   constructor(
     private authService: AuthService,
@@ -132,6 +137,20 @@ export class MentorDashboardComponent implements OnInit {
     console.log('🎯 Mentor Dashboard - Added test cancelled sessions:', this.cancelledSessions);
 
     this.loadDashboardData();
+
+    // Initialize current time
+    this.nowIST = this.timezoneService.getCurrentIST();
+
+    // Refresh current time periodically so the Start button enables at the right moment
+    this.timeUpdateInterval = setInterval(() => {
+      this.nowIST = this.timezoneService.getCurrentIST();
+    }, 30000); // update every 30s
+  }
+
+  ngOnDestroy(): void {
+    if (this.timeUpdateInterval) {
+      clearInterval(this.timeUpdateInterval);
+    }
   }
 
   loadDashboardData(): void {
@@ -231,6 +250,93 @@ export class MentorDashboardComponent implements OnInit {
         alert('Failed to start session. Please try again.');
       }
     });
+  }
+
+  /**
+   * Determine if Start Session should be enabled.
+   * Enabled when current time is within 10 minutes before the scheduled start (or later),
+   * and the session is still in a startable state.
+   */
+  canStartSession(session: Session): boolean {
+    // FORCE DISABLE FOR TESTING
+    if (this.forceDisableAllSessions) {
+      console.log('🔴 FORCE DISABLED - All sessions disabled for testing');
+      return false;
+    }
+    
+    // Must be a startable status
+    const startableStatuses = ['scheduled', 'upcoming'];
+    if (!startableStatuses.includes(session.status)) {
+      console.log('❌ Session not in startable status:', session.status);
+      return false;
+    }
+
+    // Resolve scheduled datetime
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      // Parse date and time more carefully
+      const dateStr = session.date; // Should be in YYYY-MM-DD format
+      const timeStr = session.time; // Should be in HH:MM format
+      
+      // Create a proper ISO string for the scheduled time
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
+    }
+    
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      console.log('❌ Invalid scheduled date:', { sessionDate: session.date, sessionTime: session.time, scheduledDate: session.scheduledDate });
+      return false;
+    }
+
+    const scheduledIST = this.timezoneService.toIST(scheduled!);
+    const now = this.nowIST; // already IST
+
+    // Enable if now >= scheduled - 10 minutes
+    const tenMinutesMs = 10 * 60 * 1000;
+    const canStart = now.getTime() >= (scheduledIST.getTime() - tenMinutesMs);
+    
+    // Debug logging
+    console.log('🔍 Start Session Check:', {
+      sessionId: session.id,
+      sessionDate: session.date,
+      sessionTime: session.time,
+      scheduledDate: session.scheduledDate,
+      scheduledIST: scheduledIST.toLocaleString(),
+      nowIST: now.toLocaleString(),
+      timeDiffMinutes: (scheduledIST.getTime() - now.getTime()) / (1000 * 60),
+      canStart,
+      sessionStatus: session.status
+    });
+    
+    return canStart;
+  }
+
+  /**
+   * Get time remaining until session can be started (in minutes)
+   */
+  getTimeUntilStartable(session: Session): number {
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
+    }
+    
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      return -1;
+    }
+
+    const scheduledIST = this.timezoneService.toIST(scheduled!);
+    const now = this.nowIST;
+    const tenMinutesMs = 10 * 60 * 1000;
+    const timeUntilStartable = (scheduledIST.getTime() - tenMinutesMs) - now.getTime();
+    
+    return Math.ceil(timeUntilStartable / (1000 * 60)); // Return minutes
   }
 
   canCancelSession(session: Session): boolean {
@@ -366,5 +472,11 @@ export class MentorDashboardComponent implements OnInit {
       return 'tag-mentor-cancel';
     }
     return 'tag-system-cancel';
+  }
+
+  // Method to toggle force disable for testing
+  toggleForceDisable(): void {
+    this.forceDisableAllSessions = !this.forceDisableAllSessions;
+    console.log('🔄 Force disable toggled:', this.forceDisableAllSessions);
   }
 }
