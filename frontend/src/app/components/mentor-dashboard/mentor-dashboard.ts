@@ -311,7 +311,7 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
   /**
    * Get time remaining until session can be started (in minutes)
    */
-  getTimeUntilStartable(session: Session): number {
+  getTimeUntilStartable(session: Session): string {
     let scheduled: Date | null = null;
     if (session.scheduledDate) {
       scheduled = new Date(session.scheduledDate);
@@ -323,7 +323,7 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     }
     
     if (!scheduled || isNaN(scheduled.getTime())) {
-      return -1;
+      return '0 minutes';
     }
 
     const scheduledIST = this.timezoneService.toIST(scheduled!);
@@ -331,7 +331,29 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     const tenMinutesMs = 10 * 60 * 1000;
     const timeUntilStartable = (scheduledIST.getTime() - tenMinutesMs) - now.getTime();
     
-    return Math.ceil(timeUntilStartable / (1000 * 60)); // Return minutes
+    if (timeUntilStartable <= 0) {
+      return '0 minutes';
+    }
+    
+    const totalMinutes = Math.ceil(timeUntilStartable / (1000 * 60));
+    const days = Math.floor(totalMinutes / (24 * 60));
+    const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+    const minutes = totalMinutes % 60;
+    
+    let result = '';
+    if (days > 0) {
+      result += `${days} day${days > 1 ? 's' : ''}`;
+    }
+    if (hours > 0) {
+      if (result) result += ', ';
+      result += `${hours} hour${hours > 1 ? 's' : ''}`;
+    }
+    if (minutes > 0 || result === '') {
+      if (result) result += ', ';
+      result += `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    }
+    
+    return result;
   }
 
   canCancelSession(session: Session): boolean {

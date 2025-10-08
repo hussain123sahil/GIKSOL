@@ -17,6 +17,10 @@ export interface Session {
   notes?: string;
   rating?: number;
   meetingLink?: string;
+  // Student details
+  studentId?: string;
+  studentName?: string;
+  studentEmail?: string;
   // User details for cancelled sessions
   student?: {
     firstName: string;

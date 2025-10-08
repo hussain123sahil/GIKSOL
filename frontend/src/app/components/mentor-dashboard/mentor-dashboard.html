@@ -154,11 +154,11 @@
 									<span class="btn-icon">🎥</span>
 									Start Session
 								</button>
-								<div *ngIf="session.meetingLink && !canStartSession(session)" class="start-session-info">
-									<span class="info-text">
-										⏰ Available in {{ getTimeUntilStartable(session) }} minutes
-									</span>
-								</div>
+							<div *ngIf="session.meetingLink && !canStartSession(session)" class="start-session-info">
+								<span class="info-text">
+									⏰ Available in {{ getTimeUntilStartable(session) }}
+								</span>
+							</div>
 								<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
 									<span class="btn-icon">❌</span>
 									Cancel
