@@ -47,57 +47,62 @@
 							</div>
 						</div>
 						<div class="quick-stat-card">
-							<div class="stat-icon">📬</div>
+							<div class="stat-icon">❌</div>
 							<div class="stat-content">
-								<div class="stat-title">Pending Requests</div>
-								<div class="stat-value">{{ quickStats.pendingRequests }}</div>
+								<div class="stat-title">Cancelled Sessions</div>
+								<div class="stat-value">{{ quickStats.cancelledSessions }}</div>
 							</div>
 						</div>
 					</div>
 				</div>
 
-				<!-- Pending Requests Section -->
-				<div class="pending-requests-section" *ngIf="connectionRequests.length > 0">
+				<!-- Cancelled Sessions Section -->
+				<div class="cancelled-sessions-section" *ngIf="cancelledSessions.length > 0">
 					<div class="section-header">
-						<h2 class="section-title">Pending Connection Requests</h2>
+						<h2 class="section-title">Cancelled Sessions</h2>
 					</div>
 					
-					<div class="requests-grid">
-						<div class="request-card" *ngFor="let request of connectionRequests">
-							<div class="request-card-header">
+					<div class="sessions-grid">
+						<div class="session-card cancelled" *ngFor="let session of cancelledSessions">
+							<div class="session-card-header">
 								<div class="student-avatar">
-									{{ request.studentName.charAt(0) }}
+									{{ session.studentName.charAt(0) }}
 								</div>
-								<div class="request-status-badge">
-									<span class="status-dot pending"></span>
-									Pending
-								</div>
-							</div>
-							
-							<div class="request-card-body">
-								<h3 class="student-name">{{ request.studentName }}</h3>
-								<p class="student-email">{{ request.studentEmail }}</p>
-								<p class="student-school">{{ request.school }}</p>
-								
-								<div class="request-message">
-									<p>{{ request.requestMessage }}</p>
-								</div>
-								
-								<div class="request-date">
-									<span class="date-icon">📅</span>
-									Requested {{ formatDate(request.requestedAt) }}
+								<div class="session-status-badge cancelled">
+									<span class="status-dot cancelled"></span>
+									Cancelled
 								</div>
 							</div>
 							
-							<div class="request-card-footer">
-								<button class="btn btn-primary btn-sm" (click)="acceptRequest(request.id)">
-									<span class="btn-icon">✅</span>
-									Accept
-								</button>
-								<button class="btn btn-outline btn-sm" (click)="rejectRequest(request.id)">
-									<span class="btn-icon">❌</span>
-									Decline
-								</button>
+							<div class="session-card-body">
+								<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
+								<p class="student-name">{{ session.studentName }}</p>
+								<p class="student-email">{{ session.studentEmail }}</p>
+								
+								<div class="session-details">
+									<div class="session-date">
+										<span class="date-icon">📅</span>
+										{{ formatDate(session.date) }}
+									</div>
+									<div class="session-time">
+										<span class="time-icon">🕐</span>
+										{{ formatTime(session.time) }}
+									</div>
+									<div class="session-duration">
+										<span class="duration-icon">⏱️</span>
+										{{ session.duration }} min
+									</div>
+								</div>
+								
+								<div class="cancellation-info" *ngIf="session.cancelledAt">
+									<div class="cancellation-date">
+										<span class="cancel-icon">❌</span>
+										Cancelled {{ formatDate(session.cancelledAt) }}
+									</div>
+									<div class="cancellation-reason" *ngIf="session.cancellationReason">
+										<strong>Reason:</strong> {{ session.cancellationReason }}
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
