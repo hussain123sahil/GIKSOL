@@ -429,6 +429,27 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     this.sessionToCancel = null;
   }
 
+  addNote(session: Session): void {
+    // For now, we'll use a simple prompt. Later this can be replaced with a proper modal
+    const currentNote = session.notes || '';
+    const newNote = prompt('Add a note for this session (visible to the student):', currentNote);
+    
+    if (newNote !== null && newNote !== currentNote) {
+      // Update the session note via API
+      this.dashboardService.updateSessionNote(session.id, newNote).subscribe({
+        next: (response) => {
+          console.log('Note updated successfully:', response);
+          // Update the local session object
+          session.notes = newNote;
+        },
+        error: (error) => {
+          console.error('Failed to update note:', error);
+          alert('Failed to update note. Please try again.');
+        }
+      });
+    }
+  }
+
   viewSessionDetails(sessionId: string): void {
     // Implement view session details logic
     console.log('View session details:', sessionId);

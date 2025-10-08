@@ -141,4 +141,17 @@ export class DashboardService {
       cancellationReason: cancellationReason || 'No reason provided'
     }, { headers });
   }
+
+  updateSessionNote(sessionId: string, note: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.put(`${this.apiUrl}/sessions/${sessionId}/note`, 
+      { note }, 
+      { headers }
+    );
+  }
 }

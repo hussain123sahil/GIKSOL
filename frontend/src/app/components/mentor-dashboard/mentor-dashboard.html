@@ -159,10 +159,16 @@
 										<span class="info-text">⏰ Available in {{ getTimeUntilStartable(session) }}</span>
 									</div>
 								</div>
-								<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
-									<span class="btn-icon">❌</span>
-									Cancel
-								</button>
+								<div class="action-buttons">
+									<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
+										<span class="btn-icon">❌</span>
+										Cancel
+									</button>
+									<button class="btn btn-outline btn-sm" (click)="addNote(session)">
+										<span class="btn-icon">📝</span>
+										{{ session.notes ? 'Edit Note' : 'Add Note' }}
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>

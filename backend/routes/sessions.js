@@ -774,6 +774,36 @@ router.put('/:id/cancel', async (req, res) => {
   }
 });
 
+// Update session note
+router.put('/:id/note', async (req, res) => {
+  try {
+    const sessionId = req.params.id;
+    const { note } = req.body;
+
+    // Check if session exists
+    const session = await Session.findById(sessionId);
+    
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Update the session note
+    session.notes = note;
+    await session.save();
+
+    res.json({
+      message: 'Session note updated successfully',
+      session: {
+        id: session._id,
+        notes: session.notes
+      }
+    });
+  } catch (error) {
+    console.error('Update session note error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Delete a session
 router.delete('/:id', async (req, res) => {
   try {
