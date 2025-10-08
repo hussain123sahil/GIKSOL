@@ -52,6 +52,10 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   showToast = false;
   toastMessage = '';
 
+  // Tracked clock in IST to allow time-based UI enablement
+  nowIST: Date = new Date();
+  private timeUpdateInterval: any;
+
   private navigationSubscription: any;
 
   constructor(
@@ -66,6 +70,12 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     
     this.loadDashboardData();
 
+    // Initialize IST time and set up periodic updates
+    this.nowIST = this.timezoneService.getCurrentIST();
+    this.timeUpdateInterval = setInterval(() => {
+      this.nowIST = this.timezoneService.getCurrentIST();
+    }, 30000); // update every 30s
+
     // Subscribe to navigation events to refresh data when returning to dashboard
     this.navigationSubscription = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -79,6 +89,9 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.navigationSubscription) {
       this.navigationSubscription.unsubscribe();
+    }
+    if (this.timeUpdateInterval) {
+      clearInterval(this.timeUpdateInterval);
     }
   }
 
@@ -233,25 +246,49 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    // Get the session date - it might be in 'date' or 'scheduledDate' property
-    const sessionDateString = session.scheduledDate || session.date;
+    // Get the session date - prioritize scheduledDate, fallback to date
+    let sessionDateString = session.scheduledDate || session.date;
     
     if (!sessionDateString) {
       return false;
     }
 
+    // If we have both date and time, combine them for proper parsing
+    if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      sessionDateString = isoString;
+    }
+
     // Convert session date to IST for proper comparison
     const sessionDate = new Date(sessionDateString);
+    if (isNaN(sessionDate.getTime())) {
+      return false;
+    }
+    
     const sessionDateIST = this.timezoneService.toIST(sessionDate);
     
     // Get current time in IST
-    const nowIST = this.timezoneService.getCurrentIST();
+    const nowIST = this.nowIST;
     
     // Calculate 24 hours before session in IST
     const oneDayBefore = new Date(sessionDateIST.getTime() - (24 * 60 * 60 * 1000));
     
     // Students can only cancel if it's more than 24 hours before the session
-    return nowIST < oneDayBefore;
+    const canCancel = nowIST < oneDayBefore;
+    
+    console.log('Student cancellation check:', {
+      sessionId: session.id,
+      sessionDate: sessionDateIST.toLocaleString(),
+      now: nowIST.toLocaleString(),
+      oneDayBefore: oneDayBefore.toLocaleString(),
+      canCancel,
+      hoursUntilSession: (sessionDateIST.getTime() - nowIST.getTime()) / (1000 * 60 * 60),
+      hoursUntil24HourLimit: (oneDayBefore.getTime() - nowIST.getTime()) / (1000 * 60 * 60)
+    });
+    
+    return canCancel;
   }
 
   cancelSession(session: Session): void {

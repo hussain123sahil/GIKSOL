@@ -122,8 +122,8 @@
 							</div>
 							
 							<div class="session-card-body">
-								<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
-								<p class="student-name">{{ session.student?.firstName }} {{ session.student?.lastName }}</p>
+								<h3 class="session-title">Session with {{ getStudentName(session) }}</h3>
+								<p class="student-name">{{ getStudentName(session) }}</p>
 								
 								<div class="session-details">
 									<div class="detail-item">
@@ -150,14 +150,25 @@
 							</div>
 							
 							<div class="session-card-footer">
-								<button class="btn btn-primary btn-sm" (click)="startSession(session.id)" *ngIf="session.meetingLink">
-									<span class="btn-icon">🎥</span>
-									Start Session
-								</button>
-								<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
-									<span class="btn-icon">❌</span>
-									Cancel
-								</button>
+								<div class="start-actions">
+									<button class="btn btn-primary btn-sm" (click)="startSession(session.id)" *ngIf="session.meetingLink" [disabled]="!canStartSession(session)" [class.btn-disabled]="!canStartSession(session)">
+										<span class="btn-icon">🎥</span>
+										Start Session
+									</button>
+									<div *ngIf="session.meetingLink && !canStartSession(session)" class="start-session-info">
+										<span class="info-text">⏰ Available in {{ getTimeUntilStartable(session) }}</span>
+									</div>
+								</div>
+								<div class="action-buttons">
+									<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
+										<span class="btn-icon">❌</span>
+										Cancel
+									</button>
+									<button class="btn btn-outline btn-sm" (click)="addNote(session)">
+										<span class="btn-icon">📝</span>
+										{{ session.notes ? 'Edit Note' : 'Add Note' }}
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -190,8 +201,8 @@
 							</div>
 							
 							<div class="past-session-body">
-								<h4 class="past-session-title">{{ session.title || 'Mentoring Session' }}</h4>
-								<p class="past-student-name">{{ session.student?.firstName }} {{ session.student?.lastName }}</p>
+								<h4 class="past-session-title">Session with {{ getStudentName(session) }}</h4>
+								<p class="past-student-name">{{ getStudentName(session) }}</p>
 								<div class="past-session-date">{{ formatDate(session.date) }}</div>
 								<div class="past-session-type">{{ session.sessionType }}</div>
 							</div>
@@ -287,7 +298,7 @@
 							
 							<!-- Session Body -->
 							<div class="session-card-body">
-								<h3 class="session-title">{{ session.title }}</h3>
+								<h3 class="session-title">Session with {{ getStudentName(session) }}</h3>
 								
 								<!-- Student Info for Mentors -->
 								<div class="user-info">
@@ -348,3 +359,13 @@
 	(cancel)="onCancelModalCancel()"
 	(success)="onCancelModalSuccess()">
 </app-cancel-session-modal>
+
+<!-- Add Note Modal -->
+<app-add-note-modal
+	*ngIf="showNoteModal"
+	[session]="noteModalSession"
+	[isSaving]="isSavingNote"
+	(save)="onNoteModalSave($event)"
+	(cancel)="onNoteModalCancel()"
+	(success)="onNoteModalCancel()">
+</app-add-note-modal>

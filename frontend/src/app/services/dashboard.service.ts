@@ -17,6 +17,10 @@ export interface Session {
   notes?: string;
   rating?: number;
   meetingLink?: string;
+  // Student details
+  studentId?: string;
+  studentName?: string;
+  studentEmail?: string;
   // User details for cancelled sessions
   student?: {
     firstName: string;
@@ -136,5 +140,18 @@ export class DashboardService {
       cancelledBy,
       cancellationReason: cancellationReason || 'No reason provided'
     }, { headers });
+  }
+
+  updateSessionNote(sessionId: string, note: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.put(`${this.apiUrl}/sessions/${sessionId}/note`, 
+      { note }, 
+      { headers }
+    );
   }
 }

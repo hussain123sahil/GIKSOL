@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -55,15 +55,18 @@ interface MentorInfo {
   totalSessions: number;
 }
 
+import { AddNoteModalComponent } from '../add-note-modal/add-note-modal';
+
 @Component({
   selector: 'app-mentor-dashboard',
   standalone: true,
-  imports: [CommonModule, MentorSidebarComponent, CancelSessionModalComponent],
+  imports: [CommonModule, MentorSidebarComponent, CancelSessionModalComponent, AddNoteModalComponent],
   templateUrl: './mentor-dashboard.html',
   styleUrls: ['./mentor-dashboard.scss']
 })
-export class MentorDashboardComponent implements OnInit {
+export class MentorDashboardComponent implements OnInit, OnDestroy {
   @ViewChild(CancelSessionModalComponent) cancelModal!: CancelSessionModalComponent;
+  @ViewChild(AddNoteModalComponent) noteModal?: AddNoteModalComponent;
   
   currentUser: User | null = null;
   mentorInfo: MentorInfo | null = null;
@@ -85,6 +88,9 @@ export class MentorDashboardComponent implements OnInit {
   showCancelModal = false;
   sessionToCancel: Session | null = null;
   isCancelling = false;
+  // Tracked clock in IST to allow time-based UI enablement
+  nowIST: Date = new Date();
+  private timeUpdateInterval: any;
 
   constructor(
     private authService: AuthService,
@@ -132,6 +138,22 @@ export class MentorDashboardComponent implements OnInit {
     console.log('🎯 Mentor Dashboard - Added test cancelled sessions:', this.cancelledSessions);
 
     this.loadDashboardData();
+
+    // Initialize current time
+    this.nowIST = this.timezoneService.getCurrentIST();
+
+    // Refresh current time periodically so the Start button enables at the right moment
+    this.timeUpdateInterval = setInterval(() => {
+      this.nowIST = this.timezoneService.getCurrentIST();
+      // Check for sessions that need to be auto-completed
+      this.checkAndAutoCompleteSessions();
+    }, 30000); // update every 30s
+  }
+
+  ngOnDestroy(): void {
+    if (this.timeUpdateInterval) {
+      clearInterval(this.timeUpdateInterval);
+    }
   }
 
   loadDashboardData(): void {
@@ -233,29 +255,149 @@ export class MentorDashboardComponent implements OnInit {
     });
   }
 
+  /**
+   * Determine if Start Session should be enabled.
+   * Enabled when current time is within 10 minutes before the scheduled start (or later),
+   * and the session is still in a startable state.
+   */
+  canStartSession(session: Session): boolean {
+    // Must be a startable status
+    const startableStatuses = ['scheduled', 'upcoming', 'in-progress'];
+    if (!startableStatuses.includes(session.status)) {
+      console.log('❌ Session not in startable status:', session.status);
+      return false;
+    }
+
+    // Resolve scheduled datetime
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      // Parse date and time more carefully
+      const dateStr = session.date; // Should be in YYYY-MM-DD format
+      const timeStr = session.time; // Should be in HH:MM format
+      
+      // Create a proper ISO string for the scheduled time
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
+    }
+    
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      console.log('❌ Invalid scheduled date:', { sessionDate: session.date, sessionTime: session.time, scheduledDate: session.scheduledDate });
+      return false;
+    }
+
+    const scheduledIST = this.timezoneService.toIST(scheduled!);
+    const now = this.nowIST; // already IST
+
+    // Enable if now >= scheduled - 10 minutes
+    const tenMinutesMs = 10 * 60 * 1000;
+    const canStart = now.getTime() >= (scheduledIST.getTime() - tenMinutesMs);
+    
+    // Debug logging
+    console.log('🔍 Start Session Check:', {
+      sessionId: session.id,
+      sessionDate: session.date,
+      sessionTime: session.time,
+      scheduledDate: session.scheduledDate,
+      scheduledIST: scheduledIST.toLocaleString(),
+      nowIST: now.toLocaleString(),
+      timeDiffMinutes: (scheduledIST.getTime() - now.getTime()) / (1000 * 60),
+      tenMinutesBefore: new Date(scheduledIST.getTime() - (10 * 60 * 1000)).toLocaleString(),
+      canStart,
+      sessionStatus: session.status
+    });
+    
+    return canStart;
+  }
+
+  /**
+   * Get time remaining until session can be started (in minutes)
+   */
+  getTimeUntilStartable(session: Session): string {
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
+    }
+    
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      return '0 minutes';
+    }
+
+    const scheduledIST = this.timezoneService.toIST(scheduled!);
+    const now = this.nowIST;
+    const tenMinutesMs = 10 * 60 * 1000;
+    const timeUntilStartable = (scheduledIST.getTime() - tenMinutesMs) - now.getTime();
+    
+    if (timeUntilStartable <= 0) {
+      return '0 minutes';
+    }
+    
+    const totalMinutes = Math.ceil(timeUntilStartable / (1000 * 60));
+    const days = Math.floor(totalMinutes / (24 * 60));
+    const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+    const minutes = totalMinutes % 60;
+    
+    let result = '';
+    if (days > 0) {
+      result += `${days} day${days > 1 ? 's' : ''}`;
+    }
+    if (hours > 0) {
+      if (result) result += ', ';
+      result += `${hours} hour${hours > 1 ? 's' : ''}`;
+    }
+    if (minutes > 0 || result === '') {
+      if (result) result += ', ';
+      result += `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    }
+    
+    return result;
+  }
+
   canCancelSession(session: Session): boolean {
     // Check if session is in a cancellable state
+    // Mentors can only cancel scheduled and upcoming sessions
     if (!['scheduled', 'upcoming'].includes(session.status)) {
       return false;
     }
 
-    // Get the session date - it might be in 'date' or 'scheduledDate' property
-    const sessionDateString = session.date || (session as any).scheduledDate;
+    // Get the session date - prioritize scheduledDate, fallback to date
+    let sessionDateString = session.scheduledDate || session.date;
+    
     if (!sessionDateString) {
       return false;
     }
 
+    // If we have both date and time, combine them for proper parsing
+    if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      sessionDateString = isoString;
+    }
+
     // Convert session date to IST for proper comparison
     const sessionDate = new Date(sessionDateString);
+    if (isNaN(sessionDate.getTime())) {
+      return false;
+    }
+    
     const sessionDateIST = this.timezoneService.toIST(sessionDate);
     
     // Get current time in IST
-    const nowIST = this.timezoneService.getCurrentIST();
+    const nowIST = this.nowIST;
     
     // Mentors can cancel anytime before the session starts
     const canCancel = nowIST < sessionDateIST;
     
     console.log('Mentor cancellation check:', {
+      sessionId: session.id,
+      sessionStatus: session.status,
       sessionDate: sessionDateIST.toLocaleString(),
       now: nowIST.toLocaleString(),
       canCancel,
@@ -305,6 +447,46 @@ export class MentorDashboardComponent implements OnInit {
     this.showCancelModal = false;
     this.sessionToCancel = null;
   }
+
+  addNote(session: Session): void {
+    this.noteModalSession = session;
+    this.showNoteModal = true;
+  }
+
+  // Add Note modal state
+  showNoteModal = false;
+  noteModalSession: Session | null = null;
+  isSavingNote = false;
+
+  onNoteModalCancel(): void {
+    this.showNoteModal = false;
+    this.noteModalSession = null;
+  }
+
+  onNoteModalSave(event: { sessionId: string; note: string }): void {
+    this.isSavingNote = true;
+    this.dashboardService.updateSessionNote(event.sessionId, event.note).subscribe({
+      next: () => {
+        // Update local model
+        const target = this.upcomingSessions.find(s => s.id === event.sessionId) ||
+                       this.completedSessions.find(s => s.id === event.sessionId) ||
+                       this.cancelledSessions.find(s => s.id === event.sessionId);
+        if (target) target.notes = event.note;
+
+        // Show success feedback on modal
+        this.noteModal?.showSuccess();
+      },
+      error: (error) => {
+        console.error('Failed to update note:', error);
+        alert('Failed to update note. Please try again.');
+        this.isSavingNote = false;
+      },
+      complete: () => {
+        this.isSavingNote = false;
+      }
+    });
+  }
+
 
   viewSessionDetails(sessionId: string): void {
     // Implement view session details logic
@@ -367,4 +549,101 @@ export class MentorDashboardComponent implements OnInit {
     }
     return 'tag-system-cancel';
   }
+
+  /**
+   * Get student name from session data with fallback
+   */
+  getStudentName(session: Session): string {
+    // Debug logging to see what data we have
+    console.log('Session data for student name:', {
+      sessionId: session.id,
+      student: session.student,
+      hasStudent: !!session.student,
+      firstName: session.student?.firstName,
+      lastName: session.student?.lastName
+    });
+
+    // Check if student data exists
+    if (session.student?.firstName && session.student?.lastName) {
+      return `${session.student.firstName} ${session.student.lastName}`;
+    } else if (session.student?.firstName) {
+      return session.student.firstName;
+    } else {
+      // Fallback to studentName if available
+      return session.studentName || 'Student';
+    }
+  }
+
+  /**
+   * Check for in-progress sessions that should be auto-completed
+   * Sessions are auto-completed 10 minutes after their scheduled end time
+   */
+  checkAndAutoCompleteSessions(): void {
+    const now = this.nowIST;
+    const tenMinutesMs = 10 * 60 * 1000;
+    
+    // Check all upcoming sessions for sessions that need completion
+    this.upcomingSessions.forEach(session => {
+      if (session.status === 'in-progress' || session.status === 'scheduled') {
+        // Calculate session end time
+        const sessionEndTime = this.getSessionEndTime(session);
+        if (sessionEndTime) {
+          const sessionEndTimeIST = this.timezoneService.toIST(sessionEndTime);
+          const autoCompleteTime = new Date(sessionEndTimeIST.getTime() + tenMinutesMs);
+          
+          // If current time is past the auto-complete time, mark as completed
+          if (now.getTime() >= autoCompleteTime.getTime()) {
+            console.log('🔄 Auto-completing session:', session.id, 'at', now.toLocaleString());
+            this.autoCompleteSession(session);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Get the end time of a session based on its start time and duration
+   */
+  getSessionEndTime(session: Session): Date | null {
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
+    }
+    
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      return null;
+    }
+
+    // Add duration to get end time
+    const endTime = new Date(scheduled.getTime() + (session.duration * 60 * 1000));
+    return endTime;
+  }
+
+  /**
+   * Auto-complete a session by updating its status to completed
+   */
+  autoCompleteSession(session: Session): void {
+    this.dashboardService.updateSessionStatus(session.id, 'completed').subscribe({
+      next: (response) => {
+        console.log('✅ Session auto-completed:', session.id);
+        // Remove from upcoming sessions
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== session.id);
+        // Add to completed sessions
+        this.completedSessions.unshift({ ...session, status: 'completed' });
+        // Update quick stats
+        this.quickStats.upcomingSessions = this.upcomingSessions.length;
+        this.quickStats.completedSessions = this.completedSessions.length;
+      },
+      error: (error) => {
+        console.error('❌ Failed to auto-complete session:', error);
+      }
+    });
+  }
+
+
 }
