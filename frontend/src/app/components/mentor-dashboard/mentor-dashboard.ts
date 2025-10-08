@@ -142,6 +142,8 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     // Refresh current time periodically so the Start button enables at the right moment
     this.timeUpdateInterval = setInterval(() => {
       this.nowIST = this.timezoneService.getCurrentIST();
+      // Check for sessions that need to be auto-completed
+      this.checkAndAutoCompleteSessions();
     }, 30000); // update every 30s
   }
 
@@ -466,5 +468,77 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     }
     return 'tag-system-cancel';
   }
+
+  /**
+   * Check for in-progress sessions that should be auto-completed
+   * Sessions are auto-completed 10 minutes after their scheduled end time
+   */
+  checkAndAutoCompleteSessions(): void {
+    const now = this.nowIST;
+    const tenMinutesMs = 10 * 60 * 1000;
+    
+    // Check all upcoming sessions for sessions that need completion
+    this.upcomingSessions.forEach(session => {
+      if (session.status === 'in-progress' || session.status === 'scheduled') {
+        // Calculate session end time
+        const sessionEndTime = this.getSessionEndTime(session);
+        if (sessionEndTime) {
+          const sessionEndTimeIST = this.timezoneService.toIST(sessionEndTime);
+          const autoCompleteTime = new Date(sessionEndTimeIST.getTime() + tenMinutesMs);
+          
+          // If current time is past the auto-complete time, mark as completed
+          if (now.getTime() >= autoCompleteTime.getTime()) {
+            console.log('🔄 Auto-completing session:', session.id, 'at', now.toLocaleString());
+            this.autoCompleteSession(session);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Get the end time of a session based on its start time and duration
+   */
+  getSessionEndTime(session: Session): Date | null {
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
+    }
+    
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      return null;
+    }
+
+    // Add duration to get end time
+    const endTime = new Date(scheduled.getTime() + (session.duration * 60 * 1000));
+    return endTime;
+  }
+
+  /**
+   * Auto-complete a session by updating its status to completed
+   */
+  autoCompleteSession(session: Session): void {
+    this.dashboardService.updateSessionStatus(session.id, 'completed').subscribe({
+      next: (response) => {
+        console.log('✅ Session auto-completed:', session.id);
+        // Remove from upcoming sessions
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== session.id);
+        // Add to completed sessions
+        this.completedSessions.unshift({ ...session, status: 'completed' });
+        // Update quick stats
+        this.quickStats.upcomingSessions = this.upcomingSessions.length;
+        this.quickStats.completedSessions = this.completedSessions.length;
+      },
+      error: (error) => {
+        console.error('❌ Failed to auto-complete session:', error);
+      }
+    });
+  }
+
 
 }
