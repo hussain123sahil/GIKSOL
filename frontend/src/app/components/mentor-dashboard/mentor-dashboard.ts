@@ -361,27 +361,43 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
 
   canCancelSession(session: Session): boolean {
     // Check if session is in a cancellable state
+    // Mentors can only cancel scheduled and upcoming sessions
     if (!['scheduled', 'upcoming'].includes(session.status)) {
       return false;
     }
 
-    // Get the session date - it might be in 'date' or 'scheduledDate' property
-    const sessionDateString = session.date || (session as any).scheduledDate;
+    // Get the session date - prioritize scheduledDate, fallback to date
+    let sessionDateString = session.scheduledDate || session.date;
+    
     if (!sessionDateString) {
       return false;
     }
 
+    // If we have both date and time, combine them for proper parsing
+    if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      sessionDateString = isoString;
+    }
+
     // Convert session date to IST for proper comparison
     const sessionDate = new Date(sessionDateString);
+    if (isNaN(sessionDate.getTime())) {
+      return false;
+    }
+    
     const sessionDateIST = this.timezoneService.toIST(sessionDate);
     
     // Get current time in IST
-    const nowIST = this.timezoneService.getCurrentIST();
+    const nowIST = this.nowIST;
     
     // Mentors can cancel anytime before the session starts
     const canCancel = nowIST < sessionDateIST;
     
     console.log('Mentor cancellation check:', {
+      sessionId: session.id,
+      sessionStatus: session.status,
       sessionDate: sessionDateIST.toLocaleString(),
       now: nowIST.toLocaleString(),
       canCancel,
