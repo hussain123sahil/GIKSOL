@@ -88,8 +88,6 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
   // Tracked clock in IST to allow time-based UI enablement
   nowIST: Date = new Date();
   private timeUpdateInterval: any;
-  // Force disable all sessions for testing
-  forceDisableAllSessions = true;
 
   constructor(
     private authService: AuthService,
@@ -258,14 +256,8 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
    * and the session is still in a startable state.
    */
   canStartSession(session: Session): boolean {
-    // FORCE DISABLE FOR TESTING
-    if (this.forceDisableAllSessions) {
-      console.log('🔴 FORCE DISABLED - All sessions disabled for testing');
-      return false;
-    }
-    
     // Must be a startable status
-    const startableStatuses = ['scheduled', 'upcoming'];
+    const startableStatuses = ['scheduled', 'upcoming', 'in-progress'];
     if (!startableStatuses.includes(session.status)) {
       console.log('❌ Session not in startable status:', session.status);
       return false;
@@ -306,6 +298,7 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
       scheduledIST: scheduledIST.toLocaleString(),
       nowIST: now.toLocaleString(),
       timeDiffMinutes: (scheduledIST.getTime() - now.getTime()) / (1000 * 60),
+      tenMinutesBefore: new Date(scheduledIST.getTime() - (10 * 60 * 1000)).toLocaleString(),
       canStart,
       sessionStatus: session.status
     });
@@ -474,9 +467,4 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     return 'tag-system-cancel';
   }
 
-  // Method to toggle force disable for testing
-  toggleForceDisable(): void {
-    this.forceDisableAllSessions = !this.forceDisableAllSessions;
-    console.log('🔄 Force disable toggled:', this.forceDisableAllSessions);
-  }
 }
