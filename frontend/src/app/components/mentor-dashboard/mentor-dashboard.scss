@@ -334,9 +334,12 @@
 .stat-icon {
 	font-size: 32px;
 	margin-bottom: 16px;
+	text-align: center;
 }
 
 .stat-content {
+	text-align: center;
+	
 	.stat-title {
 		color: #64748b;
 		font-size: 14px;
@@ -648,6 +651,11 @@
         flex-direction: column;
         gap: 8px;
         align-items: flex-end;
+        
+        .btn {
+            min-width: 120px;
+            justify-content: center;
+        }
     }
 }
 
