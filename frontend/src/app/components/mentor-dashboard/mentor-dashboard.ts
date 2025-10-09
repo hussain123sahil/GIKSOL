@@ -522,6 +522,28 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     return `${displayHour}:${minutes} ${ampm}`;
   }
 
+  /**
+   * Build a formatted date-time string like:
+   * "Thursday 9 October, 2025 • 2:00 pm IST"
+   * using date (YYYY-MM-DD) and time (HH:mm) fields from the API
+   */
+  formatDateTimeIST(dateString: string, timeString: string): string {
+    const date = new Date(`${dateString}T00:00:00`);
+    const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' });
+    const day = date.getDate();
+    const month = date.toLocaleDateString('en-GB', { month: 'long' });
+    const year = date.getFullYear();
+
+    const [hoursStr, minutes] = timeString.split(':');
+    const hours = parseInt(hoursStr, 10);
+    const isPM = hours >= 12;
+    const displayHour = hours % 12 || 12;
+    const ampmLower = isPM ? 'pm' : 'am';
+    const timePart = `${displayHour}:${minutes} ${ampmLower} IST`;
+
+    return `${weekday} ${day} ${month}, ${year} • ${timePart}`;
+  }
+
   getStatusColor(status: string): string {
     switch (status) {
       case 'upcoming': return '#1976d2';

@@ -156,8 +156,8 @@
 							<div class="past-session-body">
 								<h4 class="past-session-title">Session with {{ getStudentName(session) }}</h4>
 								<p class="past-student-name">{{ getStudentName(session) }}</p>
-								<div class="past-session-date">{{ formatDate(session.date) }}</div>
-								<div class="past-session-type">{{ session.sessionType }}</div>
+							<div class="past-session-date">{{ formatDateTimeIST(session.date, session.time) }}</div>
+							<div class="past-session-type">{{ (session.sessionType || 'Video Call').toUpperCase() }} • {{ (session.duration || 0) }} MIN</div>
 							</div>
 							
 							<div class="past-session-footer">
