@@ -602,21 +602,75 @@ router.get('/mentor-dashboard/:userId', async (req, res) => {
       studentSessionsMap.get(studentId).sessions.push(session);
     });
 
-    // Format all mentees (from connections + from sessions)
-    const allMentees = [
-      ...formatMentees(activeConnections),
-      ...Array.from(studentSessionsMap.values()).map(({ student, sessions }) => ({
-        id: `session-${student._id}`, // Use a different ID format for session-based mentees
+    // Build quick lookup maps for totals and dates
+    const totalSessionsMap = new Map();
+    const lastSessionDateMap = new Map();
+    const firstSessionDateMap = new Map();
+    Array.from(studentSessionsMap.entries()).forEach(([sid, { sessions }]) => {
+      const sorted = sessions.slice().sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+      totalSessionsMap.set(sid, sessions.length);
+      firstSessionDateMap.set(sid, sorted[0]?.createdAt || sorted[0]?.scheduledDate || null);
+      lastSessionDateMap.set(sid, sorted[sorted.length - 1]?.scheduledDate || null);
+    });
+
+    // Collect all student userIds we need Student profiles for (from connections and sessions)
+    const connectionStudentUserIds = activeConnections.map(conn => conn.student._id.toString());
+    const sessionStudentUserIds = Array.from(studentSessionsMap.keys());
+    const allStudentUserIds = Array.from(new Set([...connectionStudentUserIds, ...sessionStudentUserIds]));
+
+    // Fetch Student model profiles to get school/grade/learningGoals
+    const studentProfiles = await Student.find({ user: { $in: allStudentUserIds } })
+      .select('user school grade learningGoals')
+      .lean();
+    const studentProfileMap = new Map(studentProfiles.map(p => [p.user.toString(), p]));
+
+    // Helper to attach profile fields with sensible fallbacks
+    const withProfile = (studentUserId, base) => {
+      const profile = studentProfileMap.get(studentUserId.toString());
+      return {
+        ...base,
+        school: profile?.school || 'Not specified',
+        grade: profile?.grade || 'Not specified',
+        learningGoals: Array.isArray(profile?.learningGoals) && profile.learningGoals.length > 0
+          ? profile.learningGoals
+          : ['General Mentoring']
+      };
+    };
+
+    // Enrich connections with totals/dates if any sessions exist
+    const enrichedConnections = activeConnections.map(connection => {
+      const sid = connection.student._id.toString();
+      const base = {
+        id: connection._id,
+        studentId: connection.student._id,
+        studentName: `${connection.student.firstName} ${connection.student.lastName}`,
+        studentEmail: connection.student.email,
+        joinedDate: connection.createdAt,
+        totalSessions: totalSessionsMap.get(sid) || 0,
+        lastSessionDate: lastSessionDateMap.get(sid) || null
+      };
+      return withProfile(sid, base);
+    });
+
+    // Build mentees from session groups, using session-derived dates
+    const menteesFromSessions = Array.from(studentSessionsMap.values()).map(({ student }) => {
+      const sid = student._id.toString();
+      const base = {
+        id: `session-${sid}`,
         studentId: student._id,
         studentName: `${student.firstName} ${student.lastName}`,
         studentEmail: student.email,
-        school: 'University',
-        grade: 'Undergraduate',
-        learningGoals: ['Programming', 'Career Guidance'],
-        joinedDate: sessions[0].createdAt, // Use first session date
-        totalSessions: sessions.length,
-        lastSessionDate: sessions.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate))[0].scheduledDate
-      }))
+        joinedDate: firstSessionDateMap.get(sid) || new Date(),
+        totalSessions: totalSessionsMap.get(sid) || 0,
+        lastSessionDate: lastSessionDateMap.get(sid) || null
+      };
+      return withProfile(sid, base);
+    });
+
+    // Format all mentees (from connections + from sessions)
+    const allMentees = [
+      ...enrichedConnections,
+      ...menteesFromSessions
     ];
 
     // Remove duplicates based on studentId

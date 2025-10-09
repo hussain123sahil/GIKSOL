@@ -792,22 +792,23 @@
 
 .mentees-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-	gap: 24px;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 20px;
 }
 
 .mentee-card {
 	background: white;
 	border-radius: 20px;
-	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-	border: 1px solid #e2e8f0;
+	box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.08);
+	border: 1px solid #e5e7eb;
 	transition: all 0.3s ease;
 	overflow: hidden;
 	position: relative;
 
 	&:hover {
-		transform: translateY(-6px);
-		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+		transform: translateY(-4px);
+		box-shadow: 0 16px 30px -12px rgba(0, 0, 0, 0.12);
+		border-color: #d1d5db;
 	}
 }
 
@@ -815,8 +816,8 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 24px 24px 16px 24px;
-	background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+	padding: 20px 20px 12px 20px;
+	background: #f8fafc;
 }
 
 .mentee-avatar {
@@ -861,7 +862,7 @@
 }
 
 .mentee-card-body {
-	padding: 0 24px 16px 24px;
+	padding: 0 20px 16px 20px;
 }
 
 .mentee-name {
@@ -893,25 +894,25 @@
 }
 
 .goal-tag {
-	background: #e0e7ff;
-	color: #3730a3;
-	padding: 4px 12px;
-	border-radius: 20px;
-	font-size: 12px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .mentee-card-footer {
-	padding: 16px 24px 24px 24px;
-	background: #f8fafc;
+	padding: 16px 20px 20px 20px;
+	background: #f9fafb;
 }
 
 .mentee-stats {
-	display: flex;
-	justify-content: space-around;
-	gap: 16px;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 12px;
 }
 
 .stat {
