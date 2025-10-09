@@ -91,6 +91,12 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
   // Tracked clock in IST to allow time-based UI enablement
   nowIST: Date = new Date();
   private timeUpdateInterval: any;
+  
+  // Show all toggles for different sections
+  showAllUpcoming = false;
+  showAllRecent = false;
+  showAllCancelled = false;
+  showAllMentees = false;
 
   constructor(
     private authService: AuthService,
@@ -503,6 +509,33 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  toggleShowAll(section: 'upcoming' | 'recent' | 'cancelled' | 'mentees'): void {
+    switch (section) {
+      case 'upcoming':
+        this.showAllUpcoming = !this.showAllUpcoming;
+        break;
+      case 'recent':
+        this.showAllRecent = !this.showAllRecent;
+        break;
+      case 'cancelled':
+        this.showAllCancelled = !this.showAllCancelled;
+        break;
+      case 'mentees':
+        this.showAllMentees = !this.showAllMentees;
+        break;
+    }
+  }
+
+  getDisplayedSessions(sessions: Session[], showAll: boolean): Session[] {
+    if (showAll) return sessions;
+    return sessions.slice(0, 3); // Show only first 3 sessions
+  }
+
+  getDisplayedMentees(mentees: any[], showAll: boolean): any[] {
+    if (showAll) return mentees;
+    return mentees.slice(0, 3); // Show only first 3 mentees
   }
 
   formatDate(dateString: string): string {
