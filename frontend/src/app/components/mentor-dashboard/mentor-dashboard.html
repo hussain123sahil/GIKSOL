@@ -60,10 +60,13 @@
 				<div class="upcoming-sessions-section">
 					<div class="section-header">
 						<h2 class="section-title">Upcoming Sessions</h2>
+						<button class="btn btn-outline btn-sm" (click)="toggleShowAll('upcoming')" *ngIf="upcomingSessions.length > 3">
+							{{ showAllUpcoming ? 'Show Less' : 'Show All' }}
+						</button>
 					</div>
 					
 					<div class="upcoming-sessions-grid" *ngIf="upcomingSessions.length > 0">
-						<div class="session-card" *ngFor="let session of upcomingSessions">
+						<div class="session-card" *ngFor="let session of getDisplayedSessions(upcomingSessions, showAllUpcoming)">
 							<div class="session-card-header">
 								<div class="student-avatar">
 									{{ (session.student?.firstName || 'S').charAt(0) }}
@@ -137,10 +140,13 @@
 				<div class="recent-sessions-section">
 					<div class="section-header">
 						<h2 class="section-title">Recent Sessions</h2>
+						<button class="btn btn-outline btn-sm" (click)="toggleShowAll('recent')" *ngIf="completedSessions.length > 3">
+							{{ showAllRecent ? 'Show Less' : 'Show All' }}
+						</button>
 					</div>
 					
 					<div class="recent-sessions-grid" *ngIf="completedSessions.length > 0">
-						<div class="past-session-card" *ngFor="let session of completedSessions">
+						<div class="past-session-card" *ngFor="let session of getDisplayedSessions(completedSessions, showAllRecent)">
 							<div class="past-session-header">
 								<div class="past-avatar">
 									{{ (session.student?.firstName || 'S').charAt(0) }}
@@ -156,16 +162,9 @@
 							<div class="past-session-body">
 								<h4 class="past-session-title">Session with {{ getStudentName(session) }}</h4>
 								<p class="past-student-name">{{ getStudentName(session) }}</p>
-								<div class="past-session-date">{{ formatDate(session.date) }}</div>
-								<div class="past-session-type">{{ session.sessionType }}</div>
-							</div>
-							
-							<div class="past-session-footer">
-								<button class="btn btn-outline btn-sm" (click)="viewSessionDetails(session.id)">
-									<span class="btn-icon">👁️</span>
-									View Details
-								</button>
-							</div>
+							<div class="past-session-date">{{ formatDateTimeIST(session.date, session.time) }}</div>
+							<div class="past-session-type">{{ (session.sessionType || 'Video Call').toUpperCase() }} • {{ (session.duration || 0) }} MIN</div>
+						</div>
 						</div>
 					</div>
 					
@@ -180,10 +179,13 @@
 				<div class="active-mentees-section">
 					<div class="section-header">
 						<h2 class="section-title">Active Mentees</h2>
+						<button class="btn btn-outline btn-sm" (click)="toggleShowAll('mentees')" *ngIf="mentees.length > 3">
+							{{ showAllMentees ? 'Show Less' : 'Show All' }}
+						</button>
 					</div>
 					
 					<div class="mentees-grid" *ngIf="mentees.length > 0">
-						<div class="mentee-card" *ngFor="let mentee of mentees">
+						<div class="mentee-card" *ngFor="let mentee of getDisplayedMentees(mentees, showAllMentees)">
 							<div class="mentee-card-header">
 								<div class="mentee-avatar">
 									{{ mentee.studentName.charAt(0) }}
@@ -196,9 +198,8 @@
 							
 							<div class="mentee-card-body">
 								<h3 class="mentee-name">{{ mentee.studentName }}</h3>
-								<p class="mentee-email">{{ mentee.studentEmail }}</p>
 								<p class="mentee-school">{{ mentee.school }} • {{ mentee.grade }}</p>
-								
+								<div class="learning-goals-label">Learning Goals</div>
 								<div class="learning-goals">
 									<span class="goal-tag" *ngFor="let goal of mentee.learningGoals">
 										{{ goal }}
@@ -209,11 +210,11 @@
 							<div class="mentee-card-footer">
 								<div class="mentee-stats">
 									<div class="stat">
-										<span class="stat-number">{{ mentee.totalSessions }}</span>
+										<span class="stat-number">{{ mentee.totalSessions || 0 }}</span>
 										<span class="stat-label">Sessions</span>
 									</div>
 									<div class="stat">
-										<span class="stat-number">{{ formatDate(mentee.joinedDate) }}</span>
+										<span class="stat-number">{{ mentee.joinedDate ? formatDate(mentee.joinedDate) : '—' }}</span>
 										<span class="stat-label">Joined</span>
 									</div>
 								</div>
@@ -232,13 +233,13 @@
 				<div class="dashboard-section">
 					<div class="section-header">
 						<h2 class="section-title">Cancelled Sessions</h2>
-						<div class="session-count" *ngIf="cancelledSessions.length > 0">
-							{{ cancelledSessions.length }} session{{ cancelledSessions.length !== 1 ? 's' : '' }}
-						</div>
+						<button class="btn btn-outline btn-sm" (click)="toggleShowAll('cancelled')" *ngIf="cancelledSessions.length > 3">
+							{{ showAllCancelled ? 'Show Less' : 'Show All' }}
+						</button>
 					</div>
 					
 					<div class="sessions-grid" *ngIf="cancelledSessions.length > 0; else noCancelledSessions">
-						<div class="session-card cancelled-session" *ngFor="let session of cancelledSessions">
+						<div class="session-card cancelled-session" *ngFor="let session of getDisplayedSessions(cancelledSessions, showAllCancelled)">
 							<!-- Session Header -->
 							<div class="session-card-header">
 								<div class="session-status">
@@ -256,7 +257,6 @@
 								<!-- Student Info for Mentors -->
 								<div class="user-info">
 									<p class="user-name">{{ session.student?.firstName }} {{ session.student?.lastName }}</p>
-									<p class="user-email">{{ session.student?.email }}</p>
 								</div>
 								
 								<!-- Session Details -->
