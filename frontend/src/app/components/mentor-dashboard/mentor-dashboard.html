@@ -158,14 +158,7 @@
 								<p class="past-student-name">{{ getStudentName(session) }}</p>
 							<div class="past-session-date">{{ formatDateTimeIST(session.date, session.time) }}</div>
 							<div class="past-session-type">{{ (session.sessionType || 'Video Call').toUpperCase() }} • {{ (session.duration || 0) }} MIN</div>
-							</div>
-							
-							<div class="past-session-footer">
-								<button class="btn btn-outline btn-sm" (click)="viewSessionDetails(session.id)">
-									<span class="btn-icon">👁️</span>
-									View Details
-								</button>
-							</div>
+						</div>
 						</div>
 					</div>
 					
