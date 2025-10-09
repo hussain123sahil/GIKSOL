@@ -804,6 +804,8 @@
 	transition: all 0.3s ease;
 	overflow: hidden;
 	position: relative;
+	display: flex;
+	flex-direction: column;
 
 	&:hover {
 		transform: translateY(-4px);
@@ -863,6 +865,7 @@
 
 .mentee-card-body {
 	padding: 0 20px 16px 20px;
+	flex: 1 1 auto;
 }
 
 .mentee-name {
@@ -891,6 +894,15 @@
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-bottom: 16px;
+}
+
+.learning-goals-label {
+	color: #64748b;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.6px;
+	margin: 8px 0 6px 0;
 }
 
 .goal-tag {

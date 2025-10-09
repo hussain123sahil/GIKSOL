@@ -190,7 +190,7 @@
 							<div class="mentee-card-body">
 								<h3 class="mentee-name">{{ mentee.studentName }}</h3>
 								<p class="mentee-school">{{ mentee.school }} • {{ mentee.grade }}</p>
-								
+								<div class="learning-goals-label">Learning Goals</div>
 								<div class="learning-goals">
 									<span class="goal-tag" *ngFor="let goal of mentee.learningGoals">
 										{{ goal }}
@@ -201,11 +201,11 @@
 							<div class="mentee-card-footer">
 								<div class="mentee-stats">
 									<div class="stat">
-										<span class="stat-number">{{ mentee.totalSessions }}</span>
+										<span class="stat-number">{{ mentee.totalSessions || 0 }}</span>
 										<span class="stat-label">Sessions</span>
 									</div>
 									<div class="stat">
-										<span class="stat-number">{{ formatDate(mentee.joinedDate) }}</span>
+										<span class="stat-number">{{ mentee.joinedDate ? formatDate(mentee.joinedDate) : '—' }}</span>
 										<span class="stat-label">Joined</span>
 									</div>
 								</div>
