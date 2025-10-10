@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -41,7 +41,7 @@ export interface MentorProfile {
   templateUrl: './edit-mentor-profile-modal.html',
   styleUrls: ['./edit-mentor-profile-modal.scss']
 })
-export class EditMentorProfileModalComponent {
+export class EditMentorProfileModalComponent implements OnChanges {
   @Input() isVisible = false;
   @Input() profileData: MentorProfile = {
     id: '',
@@ -66,6 +66,13 @@ export class EditMentorProfileModalComponent {
   newExpertise = '';
   isSubmitting = false;
 
+  ngOnChanges(): void {
+    // Reset submitting state when modal becomes visible
+    if (this.isVisible) {
+      this.isSubmitting = false;
+    }
+  }
+
   onOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) {
       this.onClose();
@@ -73,6 +80,7 @@ export class EditMentorProfileModalComponent {
   }
 
   onClose(): void {
+    this.isSubmitting = false; // Reset submitting state when closing
     this.close.emit();
   }
 

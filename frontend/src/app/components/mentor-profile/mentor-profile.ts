@@ -420,7 +420,7 @@ export class MentorProfileComponent implements OnInit {
         experienceData = [{
           company: this.mentor.company,
           position: this.mentor.position,
-          startDate: '',
+          startDate: '2020-01-01', // Provide a default start date
           endDate: '',
           description: ''
         }];
