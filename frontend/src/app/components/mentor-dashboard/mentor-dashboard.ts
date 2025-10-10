@@ -7,6 +7,7 @@ import { DashboardService, Session } from '../../services/dashboard.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
 import { TimezoneService } from '../../services/timezone.service';
+import { SessionStateService } from '../../services/session-state.service';
 
 interface Mentee {
   id: string;
@@ -103,7 +104,8 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     public router: Router,
     private http: HttpClient,
     private dashboardService: DashboardService,
-    private timezoneService: TimezoneService
+    private timezoneService: TimezoneService,
+    private sessionStateService: SessionStateService
   ) {}
 
   ngOnInit(): void {
@@ -154,11 +156,45 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
       // Check for sessions that need to be auto-completed
       this.checkAndAutoCompleteSessions();
     }, 30000); // update every 30s
+    
+    // Listen for session updates from other components
+    this.sessionStateService.getSessionUpdates().subscribe(update => {
+      if (update) {
+        this.handleSessionUpdate(update.action, update.session);
+      }
+    });
   }
 
   ngOnDestroy(): void {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
+    }
+  }
+
+  // Handle session updates from other components
+  handleSessionUpdate(action: string, session: Session): void {
+    switch (action) {
+      case 'start':
+        // Update session status to in-progress
+        this.upcomingSessions = this.upcomingSessions.map(s =>
+          s.id === session.id ? { ...s, status: 'in-progress' } : s
+        );
+        break;
+      case 'cancel':
+        // Remove cancelled session from upcoming sessions
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== session.id);
+        // Update quick stats
+        this.quickStats.upcomingSessions = this.upcomingSessions.length;
+        break;
+      case 'note-update':
+        // Update session notes
+        const target = this.upcomingSessions.find(s => s.id === session.id) ||
+                       this.completedSessions.find(s => s.id === session.id) ||
+                       this.cancelledSessions.find(s => s.id === session.id);
+        if (target) {
+          target.notes = session.notes;
+        }
+        break;
     }
   }
 
@@ -248,9 +284,14 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     this.dashboardService.updateSessionStatus(sessionId, 'in-progress').subscribe({
       next: () => {
         // Optimistically update local state so UI reflects in-progress immediately
+        const updatedSession = { ...session, status: 'in-progress' as const };
         this.upcomingSessions = this.upcomingSessions.map(s =>
-          s.id === sessionId ? { ...s, status: 'in-progress' } : s
+          s.id === sessionId ? updatedSession : s
         );
+        
+        // Emit session update for synchronization
+        this.sessionStateService.updateSession('start', updatedSession);
+        
         // Open meeting link
         window.open(session.meetingLink as string, '_blank');
       },
@@ -427,6 +468,13 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
     this.dashboardService.cancelSession(event.session.id, 'mentor', event.reason).subscribe({
       next: (response) => {
         console.log('Session cancelled successfully:', response);
+        
+        // Create cancelled session object for synchronization
+        const cancelledSession = { ...event.session, status: 'cancelled' as const };
+        
+        // Emit session update for synchronization
+        this.sessionStateService.updateSession('cancel', cancelledSession);
+        
         // Remove the cancelled session from the list
         this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== event.session.id);
         // Update quick stats
@@ -477,7 +525,12 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
         const target = this.upcomingSessions.find(s => s.id === event.sessionId) ||
                        this.completedSessions.find(s => s.id === event.sessionId) ||
                        this.cancelledSessions.find(s => s.id === event.sessionId);
-        if (target) target.notes = event.note;
+        if (target) {
+          target.notes = event.note;
+          
+          // Emit session update for synchronization
+          this.sessionStateService.updateSession('note-update', target);
+        }
 
         // Show success feedback on modal
         this.noteModal?.showSuccess();

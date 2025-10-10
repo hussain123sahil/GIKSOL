@@ -79,8 +79,15 @@
 }
 
 .btn-outline {
-  background: #fff;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
+  color: #4a5568;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e0;
+  }
 }
 
 .success-toast {
