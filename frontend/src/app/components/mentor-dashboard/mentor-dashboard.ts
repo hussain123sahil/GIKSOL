@@ -156,11 +156,45 @@ export class MentorDashboardComponent implements OnInit, OnDestroy {
       // Check for sessions that need to be auto-completed
       this.checkAndAutoCompleteSessions();
     }, 30000); // update every 30s
+    
+    // Listen for session updates from other components
+    this.sessionStateService.getSessionUpdates().subscribe(update => {
+      if (update) {
+        this.handleSessionUpdate(update.action, update.session);
+      }
+    });
   }
 
   ngOnDestroy(): void {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
+    }
+  }
+
+  // Handle session updates from other components
+  handleSessionUpdate(action: string, session: Session): void {
+    switch (action) {
+      case 'start':
+        // Update session status to in-progress
+        this.upcomingSessions = this.upcomingSessions.map(s =>
+          s.id === session.id ? { ...s, status: 'in-progress' } : s
+        );
+        break;
+      case 'cancel':
+        // Remove cancelled session from upcoming sessions
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== session.id);
+        // Update quick stats
+        this.quickStats.upcomingSessions = this.upcomingSessions.length;
+        break;
+      case 'note-update':
+        // Update session notes
+        const target = this.upcomingSessions.find(s => s.id === session.id) ||
+                       this.completedSessions.find(s => s.id === session.id) ||
+                       this.cancelledSessions.find(s => s.id === session.id);
+        if (target) {
+          target.notes = session.notes;
+        }
+        break;
     }
   }
 

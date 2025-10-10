@@ -211,7 +211,7 @@
 	}
 
 	&.completed {
-		border-left: 4px solid #6b7280;
+		// Remove gray border to avoid overlapping with green ::before pseudo-element
 	}
 }
 
@@ -227,7 +227,7 @@
 	width: 48px;
 	height: 48px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 	color: white;
 	display: flex;
 	align-items: center;
@@ -280,6 +280,10 @@
 
 .session-card-body {
 	padding: 0 24px 16px 24px;
+	min-height: 200px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .session-title {
@@ -307,7 +311,8 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 12px;
-	margin-bottom: 16px;
+	margin-bottom: 20px;
+	flex-grow: 1;
 }
 
 .detail-item {
@@ -379,10 +384,11 @@
 .session-card-footer {
     padding: 16px 24px 24px 24px;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
     gap: 16px;
     background: #f8fafc;
+    min-height: 80px;
 
     .start-actions {
         display: flex;
@@ -415,6 +421,47 @@
         .btn {
             min-width: 120px;
             justify-content: center;
+        }
+    }
+
+    .student-rating-display {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        
+        .rating-label {
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .rating-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            
+            .stars {
+                display: flex;
+                gap: 2px;
+            }
+            
+            .star {
+                color: #f59e0b;
+                font-size: 16px;
+            }
+            
+            .rating-text {
+                color: #4a5568;
+                font-size: 14px;
+                font-weight: 600;
+            }
+        }
+        
+        .no-rating {
+            color: #9ca3af;
+            font-size: 14px;
+            font-style: italic;
         }
     }
 }
