@@ -211,21 +211,49 @@ router.put('/profile', auth, requireRole(['mentor']), async (req, res) => {
       return res.status(404).json({ message: 'Mentor profile not found' });
     }
 
-    // Update mentor fields
+    // Separate User fields from Mentor fields
+    const userFields = {};
+    const mentorFields = {};
+    
+    // Fields that belong to User model
+    const userFieldNames = ['firstName', 'lastName', 'email', 'profilePicture'];
+    // Fields that belong to Mentor model
+    const mentorFieldNames = ['company', 'position', 'expertise', 'bio', 'linkedinUrl', 'githubUrl', 'website', 'hourlyRate'];
+
+    // Categorize the incoming data
     Object.keys(req.body).forEach(key => {
       if (req.body[key] !== undefined) {
-        mentor[key] = req.body[key];
+        if (userFieldNames.includes(key)) {
+          userFields[key] = req.body[key];
+        } else if (mentorFieldNames.includes(key)) {
+          mentorFields[key] = req.body[key];
+        }
       }
     });
 
-    await mentor.save();
+    // Update User model if there are user fields to update
+    if (Object.keys(userFields).length > 0) {
+      await User.findByIdAndUpdate(req.user._id, userFields, { 
+        new: true, 
+        runValidators: true 
+      });
+    }
 
-    const populatedMentor = await Mentor.findById(mentor._id)
+    // Update Mentor model if there are mentor fields to update
+    if (Object.keys(mentorFields).length > 0) {
+      Object.keys(mentorFields).forEach(key => {
+        mentor[key] = mentorFields[key];
+      });
+      await mentor.save();
+    }
+
+    // Get updated data with populated user information
+    const updatedMentor = await Mentor.findById(mentor._id)
       .populate('user', 'firstName lastName email profilePicture');
 
     res.json({
       message: 'Mentor profile updated successfully',
-      mentor: populatedMentor
+      mentor: updatedMentor
     });
   } catch (error) {
     console.error('Update mentor error:', error);

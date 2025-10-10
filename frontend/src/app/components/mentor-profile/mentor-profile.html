@@ -41,7 +41,7 @@
 									</div>
 								</div>
 								<div class="profile-actions">
-									<button class="btn-primary">
+									<button class="btn-primary" (click)="openEditProfileModal()">
 										<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 											<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
 											<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -303,4 +303,22 @@
     </div>
   </div>
   </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<app-edit-mentor-profile-modal
+	[isVisible]="showEditProfileModal"
+	[profileData]="editProfileData"
+	(save)="onProfileSave($event)"
+	(close)="onProfileClose()">
+</app-edit-mentor-profile-modal>
+
+<!-- Toast Notification -->
+<div class="toast-notification" [class.success]="isSuccessToast" [class.error]="!isSuccessToast" [class.show]="showToast">
+	<div class="toast-icon">
+		<span *ngIf="isSuccessToast">✅</span>
+		<span *ngIf="!isSuccessToast">❌</span>
+	</div>
+	<div class="toast-message">{{ toastMessage }}</div>
+	<button class="toast-close" (click)="hideToast()">×</button>
 </div>

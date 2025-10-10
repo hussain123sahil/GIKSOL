@@ -87,6 +87,12 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  // Update current user data
+  updateCurrentUser(user: User): void {
+    this.currentUserSubject.next(user);
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+
   // Fetch fresh user data from API
   fetchCurrentUser(): Observable<User> {
     return this.http.get<any>(`${this.apiUrl}/auth/profile`, {

@@ -1,0 +1,198 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onOverlayClick($event)">
+  <div class="modal-content edit-profile-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Edit Profile</h2>
+      <button class="close-button" (click)="onClose()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <form #profileForm="ngForm" (ngSubmit)="onSubmit()">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h3>Basic Information</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName">First Name *</label>
+              <input 
+                type="text" 
+                id="firstName" 
+                name="firstName"
+                [(ngModel)]="profileData.firstName" 
+                required
+                #firstName="ngModel"
+                [class.error]="firstName.invalid && firstName.touched"
+              >
+              <div class="error-message" *ngIf="firstName.invalid && firstName.touched">
+                First name is required
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="lastName">Last Name *</label>
+              <input 
+                type="text" 
+                id="lastName" 
+                name="lastName"
+                [(ngModel)]="profileData.lastName" 
+                required
+                #lastName="ngModel"
+                [class.error]="lastName.invalid && lastName.touched"
+              >
+              <div class="error-message" *ngIf="lastName.invalid && lastName.touched">
+                Last name is required
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email"
+              [(ngModel)]="profileData.email" 
+              required
+              email
+              #email="ngModel"
+              [class.error]="email.invalid && email.touched"
+            >
+            <div class="error-message" *ngIf="email.invalid && email.touched">
+              <span *ngIf="email.errors?.['required']">Email is required</span>
+              <span *ngIf="email.errors?.['email']">Please enter a valid email</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Professional Information -->
+        <div class="form-section">
+          <h3>Professional Information</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="company">Company *</label>
+              <input 
+                type="text" 
+                id="company" 
+                name="company"
+                [(ngModel)]="profileData.company" 
+                required
+                #company="ngModel"
+                [class.error]="company.invalid && company.touched"
+              >
+              <div class="error-message" *ngIf="company.invalid && company.touched">
+                Company is required
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="position">Position *</label>
+              <input 
+                type="text" 
+                id="position" 
+                name="position"
+                [(ngModel)]="profileData.position" 
+                required
+                #position="ngModel"
+                [class.error]="position.invalid && position.touched"
+              >
+              <div class="error-message" *ngIf="position.invalid && position.touched">
+                Position is required
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="expertise">Areas of Expertise *</label>
+            <div class="expertise-tags">
+              <div class="tag-input-container">
+                <input 
+                  type="text" 
+                  id="expertise" 
+                  placeholder="Add expertise area (press Enter to add)"
+                  (keydown.enter)="addExpertise($event)"
+                  [(ngModel)]="newExpertise"
+                  name="expertise"
+                >
+              </div>
+              <div class="tags-list">
+                <span 
+                  *ngFor="let skill of profileData.expertise; let i = index" 
+                  class="tag"
+                >
+                  {{ skill }}
+                  <button type="button" class="remove-tag" (click)="removeExpertise(i)">×</button>
+                </span>
+              </div>
+            </div>
+            <div class="error-message" *ngIf="profileData.expertise.length === 0">
+              At least one expertise area is required
+            </div>
+          </div>
+        </div>
+        
+        <!-- Additional Information -->
+        <div class="form-section">
+          <h3>Additional Information</h3>
+          
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea 
+              id="bio" 
+              name="bio"
+              [(ngModel)]="profileData.bio" 
+              rows="4"
+              placeholder="Tell us about yourself, your experience, and what you can help students with..."
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="linkedinUrl">LinkedIn URL</label>
+            <input 
+              type="url" 
+              id="linkedinUrl" 
+              name="linkedinUrl"
+              [(ngModel)]="profileData.linkedinUrl" 
+              placeholder="https://linkedin.com/in/yourprofile"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="githubUrl">GitHub URL</label>
+            <input 
+              type="url" 
+              id="githubUrl" 
+              name="githubUrl"
+              [(ngModel)]="profileData.githubUrl" 
+              placeholder="https://github.com/yourusername"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="website">Website</label>
+            <input 
+              type="url" 
+              id="website" 
+              name="website"
+              [(ngModel)]="profileData.website" 
+              placeholder="https://yourwebsite.com"
+            >
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="onClose()">Cancel</button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="onSubmit()"
+        [disabled]="!isFormValid() || isSubmitting"
+      >
+        <span *ngIf="!isSubmitting">Save Changes</span>
+        <span *ngIf="isSubmitting">Saving...</span>
+      </button>
+    </div>
+  </div>
+</div>

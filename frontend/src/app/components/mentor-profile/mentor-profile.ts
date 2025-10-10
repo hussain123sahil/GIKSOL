@@ -8,6 +8,7 @@ import { MentorService, Mentor as BackendMentor } from '../../services/mentor';
 import { MentorAvailabilityService } from '../../services/mentor-availability.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { EditMentorProfileModalComponent, MentorProfile } from '../edit-mentor-profile-modal/edit-mentor-profile-modal';
 
 interface Mentor {
   id: string;
@@ -47,7 +48,7 @@ interface Mentor {
 @Component({
   selector: 'app-mentor-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, MentorSidebarComponent, SidebarComponent],
+  imports: [CommonModule, FormsModule, MentorSidebarComponent, SidebarComponent, EditMentorProfileModalComponent],
   templateUrl: './mentor-profile.html',
   styleUrls: ['./mentor-profile.scss']
 })
@@ -57,6 +58,27 @@ export class MentorProfileComponent implements OnInit {
   isLoading = true;
   showBookingForm = false;
   isOwnProfile = false;
+  
+  // Edit Profile Modal
+  showEditProfileModal = false;
+  editProfileData: MentorProfile = {
+    id: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    company: '',
+    position: '',
+    expertise: [],
+    bio: '',
+    linkedinUrl: '',
+    githubUrl: '',
+    website: ''
+  };
+  
+  // Toast notification
+  showToast = false;
+  toastMessage = '';
+  isSuccessToast = false;
   
   // Booking form
   bookingForm = {
@@ -335,6 +357,117 @@ export class MentorProfileComponent implements OnInit {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm}`;
+  }
+
+  // Edit Profile Modal Methods
+  openEditProfileModal(): void {
+    if (this.mentor) {
+      this.editProfileData = {
+        id: this.mentor.id,
+        firstName: this.mentor.firstName,
+        lastName: this.mentor.lastName,
+        email: this.currentUser?.email || '',
+        profilePicture: this.mentor.profilePicture,
+        company: this.mentor.company,
+        position: this.mentor.position,
+        expertise: [...this.mentor.expertise],
+        bio: this.mentor.bio || '',
+        linkedinUrl: this.mentor.linkedinUrl || '',
+        githubUrl: '', // Add githubUrl field to Mentor interface if needed
+        website: '' // Add website field to Mentor interface if needed
+      };
+      this.showEditProfileModal = true;
+    }
+  }
+
+  onProfileClose(): void {
+    this.showEditProfileModal = false;
+  }
+
+  onProfileSave(profileData: MentorProfile): void {
+    // Make API call to update mentor profile
+    const apiUrl = 'http://localhost:5000/api/mentors/profile';
+    
+    this.http.put(apiUrl, profileData, {
+      headers: this.authService.getAuthHeaders()
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Profile updated successfully:', response);
+        
+        // Update local mentor data with the response
+        if (this.mentor && response.mentor) {
+          // Update user fields
+          if (response.mentor.user) {
+            this.mentor.firstName = response.mentor.user.firstName;
+            this.mentor.lastName = response.mentor.user.lastName;
+            this.mentor.profilePicture = response.mentor.user.profilePicture;
+          }
+          
+          // Update mentor fields
+          this.mentor.company = response.mentor.company;
+          this.mentor.position = response.mentor.position;
+          this.mentor.expertise = response.mentor.expertise;
+          this.mentor.bio = response.mentor.bio;
+          this.mentor.linkedinUrl = response.mentor.linkedinUrl;
+          // Add other fields as needed
+        }
+        
+        // Update current user data in localStorage and auth service
+        if (response.mentor.user && this.currentUser?.id) {
+          const updatedUser: User = {
+            id: this.currentUser.id,
+            firstName: response.mentor.user.firstName,
+            lastName: response.mentor.user.lastName,
+            email: response.mentor.user.email,
+            role: 'mentor' as 'mentor',
+            profilePicture: response.mentor.user.profilePicture
+          };
+          
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          // Update auth service current user
+          this.authService.updateCurrentUser(updatedUser);
+        }
+        
+        this.showEditProfileModal = false;
+        
+        // Show success message
+        this.showSuccessToast('Profile updated successfully!');
+      },
+      error: (error) => {
+        console.error('Error updating profile:', error);
+        
+        // Show error message
+        const errorMessage = error.error?.message || 'Failed to update profile. Please try again.';
+        this.showErrorToast(`Error: ${errorMessage}`);
+      }
+    });
+  }
+
+  // Toast notification methods
+  showSuccessToast(message: string): void {
+    this.toastMessage = message;
+    this.isSuccessToast = true;
+    this.showToast = true;
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      this.hideToast();
+    }, 3000);
+  }
+
+  showErrorToast(message: string): void {
+    this.toastMessage = message;
+    this.isSuccessToast = false;
+    this.showToast = true;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      this.hideToast();
+    }, 5000);
+  }
+
+  hideToast(): void {
+    this.showToast = false;
   }
 
 }

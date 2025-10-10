@@ -1,0 +1,91 @@
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+export interface MentorProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePicture?: string;
+  company: string;
+  position: string;
+  expertise: string[];
+  bio?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  website?: string;
+}
+
+@Component({
+  selector: 'app-edit-mentor-profile-modal',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './edit-mentor-profile-modal.html',
+  styleUrls: ['./edit-mentor-profile-modal.scss']
+})
+export class EditMentorProfileModalComponent {
+  @Input() isVisible = false;
+  @Input() profileData: MentorProfile = {
+    id: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    company: '',
+    position: '',
+    expertise: [],
+    bio: '',
+    linkedinUrl: '',
+    githubUrl: '',
+    website: ''
+  };
+  
+  @Output() close = new EventEmitter<void>();
+  @Output() save = new EventEmitter<MentorProfile>();
+  
+  newExpertise = '';
+  isSubmitting = false;
+
+  onOverlayClick(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.onClose();
+    }
+  }
+
+  onClose(): void {
+    this.close.emit();
+  }
+
+  onSubmit(): void {
+    if (this.isFormValid()) {
+      this.isSubmitting = true;
+      this.save.emit({ ...this.profileData });
+    }
+  }
+
+  isFormValid(): boolean {
+    return !!(
+      this.profileData.firstName?.trim() &&
+      this.profileData.lastName?.trim() &&
+      this.profileData.email?.trim() &&
+      this.profileData.company?.trim() &&
+      this.profileData.position?.trim() &&
+      this.profileData.expertise.length > 0
+    );
+  }
+
+  addExpertise(event: Event): void {
+    event.preventDefault();
+    const input = event.target as HTMLInputElement;
+    const value = input.value.trim();
+    
+    if (value && !this.profileData.expertise.includes(value)) {
+      this.profileData.expertise.push(value);
+      this.newExpertise = '';
+    }
+  }
+
+  removeExpertise(index: number): void {
+    this.profileData.expertise.splice(index, 1);
+  }
+}
