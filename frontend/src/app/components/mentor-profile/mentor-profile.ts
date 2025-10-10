@@ -412,6 +412,20 @@ export class MentorProfileComponent implements OnInit {
   // Edit Profile Modal Methods
   openEditProfileModal(): void {
     if (this.mentor) {
+      // If no experience entries exist, create one from current position/company
+      let experienceData = this.mentor.experience ? [...this.mentor.experience] : [];
+      
+      if (experienceData.length === 0) {
+        // Create a default experience entry from current position
+        experienceData = [{
+          company: this.mentor.company,
+          position: this.mentor.position,
+          startDate: '',
+          endDate: '',
+          description: ''
+        }];
+      }
+      
       this.editProfileData = {
         id: this.mentor.id,
         firstName: this.mentor.firstName,
@@ -425,7 +439,7 @@ export class MentorProfileComponent implements OnInit {
         linkedinUrl: this.mentor.linkedinUrl || '',
         githubUrl: '', // Add githubUrl field to Mentor interface if needed
         website: '', // Add website field to Mentor interface if needed
-        experience: this.mentor.experience ? [...this.mentor.experience] : [],
+        experience: experienceData,
         education: this.mentor.education ? [...this.mentor.education] : [],
         certifications: this.mentor.certifications ? [...this.mentor.certifications] : []
       };
