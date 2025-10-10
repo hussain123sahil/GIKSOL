@@ -24,6 +24,7 @@ interface Mentor {
   linkedinUrl?: string;
   profilePicture?: string;
   isAvailable: boolean;
+  experience?: string;
   availability: {
     monday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
     tuesday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
@@ -72,7 +73,10 @@ export class MentorProfileComponent implements OnInit {
     bio: '',
     linkedinUrl: '',
     githubUrl: '',
-    website: ''
+    website: '',
+    experience: '',
+    education: [],
+    certifications: []
   };
   
   // Toast notification
@@ -374,7 +378,10 @@ export class MentorProfileComponent implements OnInit {
         bio: this.mentor.bio || '',
         linkedinUrl: this.mentor.linkedinUrl || '',
         githubUrl: '', // Add githubUrl field to Mentor interface if needed
-        website: '' // Add website field to Mentor interface if needed
+        website: '', // Add website field to Mentor interface if needed
+        experience: '', // Add experience field to Mentor interface if needed
+        education: this.mentor.education ? [...this.mentor.education] : [],
+        certifications: this.mentor.certifications ? [...this.mentor.certifications] : []
       };
       this.showEditProfileModal = true;
     }
@@ -410,6 +417,15 @@ export class MentorProfileComponent implements OnInit {
           this.mentor.bio = response.mentor.bio;
           this.mentor.linkedinUrl = response.mentor.linkedinUrl;
           // Add other fields as needed
+          if (response.mentor.experience) {
+            this.mentor.experience = response.mentor.experience;
+          }
+          if (response.mentor.education) {
+            this.mentor.education = response.mentor.education;
+          }
+          if (response.mentor.certifications) {
+            this.mentor.certifications = response.mentor.certifications;
+          }
         }
         
         // Update current user data in localStorage and auth service

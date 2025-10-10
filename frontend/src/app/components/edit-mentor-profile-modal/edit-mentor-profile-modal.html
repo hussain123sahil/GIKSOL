@@ -131,54 +131,170 @@
           </div>
         </div>
         
-        <!-- Additional Information -->
-        <div class="form-section">
-          <h3>Additional Information</h3>
-          
-          <div class="form-group">
-            <label for="bio">Bio</label>
-            <textarea 
-              id="bio" 
-              name="bio"
-              [(ngModel)]="profileData.bio" 
-              rows="4"
-              placeholder="Tell us about yourself, your experience, and what you can help students with..."
-            ></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label for="linkedinUrl">LinkedIn URL</label>
-            <input 
-              type="url" 
-              id="linkedinUrl" 
-              name="linkedinUrl"
-              [(ngModel)]="profileData.linkedinUrl" 
-              placeholder="https://linkedin.com/in/yourprofile"
-            >
-          </div>
-          
-          <div class="form-group">
-            <label for="githubUrl">GitHub URL</label>
-            <input 
-              type="url" 
-              id="githubUrl" 
-              name="githubUrl"
-              [(ngModel)]="profileData.githubUrl" 
-              placeholder="https://github.com/yourusername"
-            >
-          </div>
-          
-          <div class="form-group">
-            <label for="website">Website</label>
-            <input 
-              type="url" 
-              id="website" 
-              name="website"
-              [(ngModel)]="profileData.website" 
-              placeholder="https://yourwebsite.com"
-            >
-          </div>
-        </div>
+            <!-- Additional Information -->
+            <div class="form-section">
+              <h3>Additional Information</h3>
+              
+              <div class="form-group">
+                <label for="bio">Bio</label>
+                <textarea 
+                  id="bio" 
+                  name="bio"
+                  [(ngModel)]="profileData.bio" 
+                  rows="4"
+                  placeholder="Tell us about yourself, your experience, and what you can help students with..."
+                ></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="experience">Experience</label>
+                <textarea 
+                  id="experience" 
+                  name="experience"
+                  [(ngModel)]="profileData.experience" 
+                  rows="3"
+                  placeholder="Describe your professional experience and background..."
+                ></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="linkedinUrl">LinkedIn URL</label>
+                <input 
+                  type="url" 
+                  id="linkedinUrl" 
+                  name="linkedinUrl"
+                  [(ngModel)]="profileData.linkedinUrl" 
+                  placeholder="https://linkedin.com/in/yourprofile"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label for="githubUrl">GitHub URL</label>
+                <input 
+                  type="url" 
+                  id="githubUrl" 
+                  name="githubUrl"
+                  [(ngModel)]="profileData.githubUrl" 
+                  placeholder="https://github.com/yourusername"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label for="website">Website</label>
+                <input 
+                  type="url" 
+                  id="website" 
+                  name="website"
+                  [(ngModel)]="profileData.website" 
+                  placeholder="https://yourwebsite.com"
+                >
+              </div>
+            </div>
+            
+            <!-- Education Section -->
+            <div class="form-section">
+              <h3>Education</h3>
+              <div class="array-field">
+                <div class="array-header">
+                  <label>Educational Background</label>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="addEducation()">
+                    + Add Education
+                  </button>
+                </div>
+                
+                <div class="array-items">
+                  <div *ngFor="let edu of profileData.education; let i = index" class="array-item">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Degree</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="edu.degree" 
+                          placeholder="e.g., Bachelor of Computer Science"
+                          name="educationDegree{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Institution</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="edu.institution" 
+                          placeholder="e.g., University of Technology"
+                          name="educationInstitution{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Year</label>
+                        <input 
+                          type="number" 
+                          [(ngModel)]="edu.year" 
+                          placeholder="2020"
+                          min="1900"
+                          [max]="getCurrentYear()"
+                          name="educationYear{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <button type="button" class="btn btn-danger btn-sm remove-btn" (click)="removeEducation(i)">
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Certifications Section -->
+            <div class="form-section">
+              <h3>Certifications</h3>
+              <div class="array-field">
+                <div class="array-header">
+                  <label>Professional Certifications</label>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="addCertification()">
+                    + Add Certification
+                  </button>
+                </div>
+                
+                <div class="array-items">
+                  <div *ngFor="let cert of profileData.certifications; let i = index" class="array-item">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Certification Name</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="cert.name" 
+                          placeholder="e.g., AWS Certified Solutions Architect"
+                          name="certificationName{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Issuer</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="cert.issuer" 
+                          placeholder="e.g., Amazon Web Services"
+                          name="certificationIssuer{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Date</label>
+                        <input 
+                          type="date" 
+                          [(ngModel)]="cert.date" 
+                          name="certificationDate{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <button type="button" class="btn btn-danger btn-sm remove-btn" (click)="removeCertification(i)">
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
       </form>
     </div>
     

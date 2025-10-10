@@ -218,7 +218,7 @@ router.put('/profile', auth, requireRole(['mentor']), async (req, res) => {
     // Fields that belong to User model
     const userFieldNames = ['firstName', 'lastName', 'email', 'profilePicture'];
     // Fields that belong to Mentor model
-    const mentorFieldNames = ['company', 'position', 'expertise', 'bio', 'linkedinUrl', 'githubUrl', 'website', 'hourlyRate'];
+    const mentorFieldNames = ['company', 'position', 'expertise', 'bio', 'linkedinUrl', 'githubUrl', 'website', 'hourlyRate', 'experience', 'education', 'certifications'];
 
     // Categorize the incoming data
     Object.keys(req.body).forEach(key => {

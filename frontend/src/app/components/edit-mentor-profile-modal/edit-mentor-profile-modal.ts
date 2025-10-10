@@ -15,6 +15,17 @@ export interface MentorProfile {
   linkedinUrl?: string;
   githubUrl?: string;
   website?: string;
+  experience?: string;
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: number;
+  }>;
+  certifications: Array<{
+    name: string;
+    issuer: string;
+    date: string;
+  }>;
 }
 
 @Component({
@@ -37,7 +48,10 @@ export class EditMentorProfileModalComponent {
     bio: '',
     linkedinUrl: '',
     githubUrl: '',
-    website: ''
+    website: '',
+    experience: '',
+    education: [],
+    certifications: []
   };
   
   @Output() close = new EventEmitter<void>();
@@ -87,5 +101,36 @@ export class EditMentorProfileModalComponent {
 
   removeExpertise(index: number): void {
     this.profileData.expertise.splice(index, 1);
+  }
+
+  // Education methods
+  addEducation(): void {
+    this.profileData.education.push({
+      degree: '',
+      institution: '',
+      year: new Date().getFullYear()
+    });
+  }
+
+  removeEducation(index: number): void {
+    this.profileData.education.splice(index, 1);
+  }
+
+  // Certification methods
+  addCertification(): void {
+    this.profileData.certifications.push({
+      name: '',
+      issuer: '',
+      date: ''
+    });
+  }
+
+  removeCertification(index: number): void {
+    this.profileData.certifications.splice(index, 1);
+  }
+
+  // Helper method to get current year
+  getCurrentYear(): number {
+    return new Date().getFullYear();
   }
 }
