@@ -51,6 +51,10 @@ export class MentorService {
     return this.http.get<Mentor>(`${this.apiUrl}/mentors/${id}`);
   }
 
+  getMentorByUserId(userId: string): Observable<Mentor> {
+    return this.http.get<Mentor>(`${this.apiUrl}/mentors/by-user/${userId}`);
+  }
+
   searchMentors(params: {
     expertise?: string;
     search?: string;

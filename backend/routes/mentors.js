@@ -173,6 +173,23 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Get mentor by user ID
+router.get('/by-user/:userId', async (req, res) => {
+  try {
+    const mentor = await Mentor.findOne({ user: req.params.userId })
+      .populate('user', 'firstName lastName email profilePicture');
+    
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    res.json(mentor);
+  } catch (error) {
+    console.error('Get mentor by user ID error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Create mentor profile
 router.post('/', auth, requireRole(['mentor']), async (req, res) => {
   try {

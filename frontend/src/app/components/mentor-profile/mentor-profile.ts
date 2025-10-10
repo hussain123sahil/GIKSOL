@@ -134,53 +134,44 @@ export class MentorProfileComponent implements OnInit {
   loadOwnProfile(): void {
     this.isLoading = true;
     
-    // Load mentor's own profile from dashboard API
-    const apiUrl = 'http://localhost:5000/api/sessions/mentor-dashboard';
-    const mentorId = this.currentUser?.id;
-
-    if (!mentorId) {
+    // Get current user's mentor ID
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser?.id) {
       this.router.navigate(['/login']);
       return;
     }
 
-    this.http.get(`${apiUrl}/${mentorId}`, {
-      headers: this.authService.getAuthHeaders()
-    }).subscribe({
-      next: (response: any) => {
-        if (response.mentor) {
-          this.mentor = {
-            id: response.mentor.id,
-            firstName: response.mentor.firstName,
-            lastName: response.mentor.lastName,
-            company: response.mentor.company,
-            position: response.mentor.position,
-            expertise: response.mentor.expertise,
-            hourlyRate: 75, // Default value, should be fetched from mentor profile
-            rating: Math.round(response.mentor.rating * 10) / 10, // Round to 1 decimal place
-            totalSessions: response.mentor.totalSessions,
-            bio: 'I am passionate about mentoring and helping others grow in their careers. I believe in hands-on learning with real-world projects.',
-            linkedinUrl: 'https://linkedin.com/in/mentor',
-            profilePicture: response.mentor.profilePicture || this.getDefaultProfilePicture(response.mentor.firstName, response.mentor.lastName),
-            isAvailable: true,
-            experience: response.mentor.experience || [],
-            availability: {
-              monday: { isAvailable: false, timeSlots: [] },
-              tuesday: { isAvailable: false, timeSlots: [] },
-              wednesday: { isAvailable: false, timeSlots: [] },
-              thursday: { isAvailable: false, timeSlots: [] },
-              friday: { isAvailable: false, timeSlots: [] },
-              saturday: { isAvailable: false, timeSlots: [] },
-              sunday: { isAvailable: false, timeSlots: [] }
-            },
-            education: [
-              { degree: 'Master of Science in Computer Science', institution: 'University', year: 2020 },
-              { degree: 'Bachelor of Science in Software Engineering', institution: 'University', year: 2018 }
-            ],
-            certifications: [
-              { name: 'Professional Certification', issuer: 'Issuing Body', date: '2023' }
-            ]
-          };
-        }
+    // Use the mentor service to get the complete mentor profile
+    this.mentorService.getMentorByUserId(currentUser.id).subscribe({
+      next: (mentor: BackendMentor) => {
+        // Transform backend mentor data to display format
+        this.mentor = {
+          id: mentor._id,
+          firstName: mentor.user.firstName,
+          lastName: mentor.user.lastName,
+          company: mentor.company,
+          position: mentor.position,
+          expertise: mentor.expertise,
+          hourlyRate: mentor.hourlyRate,
+          rating: Math.round(mentor.rating * 10) / 10, // Round to 1 decimal place
+          totalSessions: mentor.totalSessions,
+          bio: mentor.bio,
+          linkedinUrl: mentor.linkedinUrl,
+          profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName),
+          isAvailable: mentor.isAvailable,
+          experience: mentor.experience || [],
+          availability: mentor.availability || {
+            monday: { isAvailable: false, timeSlots: [] },
+            tuesday: { isAvailable: false, timeSlots: [] },
+            wednesday: { isAvailable: false, timeSlots: [] },
+            thursday: { isAvailable: false, timeSlots: [] },
+            friday: { isAvailable: false, timeSlots: [] },
+            saturday: { isAvailable: false, timeSlots: [] },
+            sunday: { isAvailable: false, timeSlots: [] }
+          },
+          education: mentor.education || [],
+          certifications: mentor.certifications || []
+        };
         this.isLoading = false;
         // Load availability after profile is loaded with a small delay
         setTimeout(() => {
