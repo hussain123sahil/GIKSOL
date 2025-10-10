@@ -147,17 +147,6 @@
               </div>
               
               <div class="form-group">
-                <label for="experience">Experience</label>
-                <textarea 
-                  id="experience" 
-                  name="experience"
-                  [(ngModel)]="profileData.experience" 
-                  rows="3"
-                  placeholder="Describe your professional experience and background..."
-                ></textarea>
-              </div>
-              
-              <div class="form-group">
                 <label for="linkedinUrl">LinkedIn URL</label>
                 <input 
                   type="url" 
@@ -188,6 +177,76 @@
                   [(ngModel)]="profileData.website" 
                   placeholder="https://yourwebsite.com"
                 >
+              </div>
+            </div>
+            
+            <!-- Experience Section -->
+            <div class="form-section">
+              <h3>Experience</h3>
+              <div class="array-field">
+                <div class="array-header">
+                  <label>Professional Experience</label>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="addExperience()">
+                    + Add Experience
+                  </button>
+                </div>
+                
+                <div class="array-items">
+                  <div *ngFor="let exp of profileData.experience; let i = index" class="array-item">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Company</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="exp.company" 
+                          placeholder="e.g., Google Inc."
+                          name="experienceCompany{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Position</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="exp.position" 
+                          placeholder="e.g., Senior Software Engineer"
+                          name="experiencePosition{{i}}"
+                        >
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Start Date</label>
+                        <input 
+                          type="date" 
+                          [(ngModel)]="exp.startDate" 
+                          name="experienceStartDate{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>End Date</label>
+                        <input 
+                          type="date" 
+                          [(ngModel)]="exp.endDate" 
+                          name="experienceEndDate{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <button type="button" class="btn btn-danger btn-sm remove-btn" (click)="removeExperience(i)">
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Description</label>
+                      <textarea 
+                        [(ngModel)]="exp.description" 
+                        rows="2"
+                        placeholder="Describe your role and achievements..."
+                        name="experienceDescription{{i}}"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             

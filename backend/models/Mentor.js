@@ -29,11 +29,34 @@ const mentorSchema = new mongoose.Schema({
     required: [true, 'Hourly rate is required'],
     min: [0, 'Hourly rate cannot be negative']
   },
-  experience: {
-    type: String,
-    trim: true,
-    maxlength: [200, 'Experience description cannot exceed 200 characters']
-  },
+  experience: [{
+    company: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: [100, 'Company name cannot exceed 100 characters']
+    },
+    position: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: [100, 'Position cannot exceed 100 characters']
+    },
+    startDate: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    endDate: {
+      type: String,
+      trim: true
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Description cannot exceed 500 characters']
+    }
+  }],
   bio: {
     type: String,
     required: [true, 'Bio is required'],

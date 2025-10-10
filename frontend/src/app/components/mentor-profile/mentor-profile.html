@@ -66,7 +66,19 @@
 							<!-- Experience Section -->
 							<div class="profile-card">
 								<h2>Experience</h2>
-								<div class="experience-item">
+								<div class="experience-list" *ngIf="mentor.experience && mentor.experience.length > 0">
+									<div class="experience-item" *ngFor="let exp of mentor.experience">
+										<div class="experience-header">
+											<h3>{{ exp.position }}</h3>
+											<p class="company">{{ exp.company }}</p>
+											<p class="duration">{{ formatDateRange(exp.startDate, exp.endDate) }}</p>
+										</div>
+										<div class="experience-description" *ngIf="exp.description">
+											<p>{{ exp.description }}</p>
+										</div>
+									</div>
+								</div>
+								<div class="experience-item" *ngIf="!mentor.experience || mentor.experience.length === 0">
 									<div class="experience-header">
 										<h3>{{ mentor.position }}</h3>
 										<p class="company">{{ mentor.company }}</p>
@@ -215,7 +227,19 @@
             <!-- Experience Section -->
             <div class="profile-card">
               <h2>Experience</h2>
-              <div class="experience-item">
+              <div class="experience-list" *ngIf="mentor.experience && mentor.experience.length > 0">
+                <div class="experience-item" *ngFor="let exp of mentor.experience">
+                  <div class="experience-header">
+                    <h3>{{ exp.position }}</h3>
+                    <p class="company">{{ exp.company }}</p>
+                    <p class="duration">{{ formatDateRange(exp.startDate, exp.endDate) }}</p>
+                  </div>
+                  <div class="experience-description" *ngIf="exp.description">
+                    <p>{{ exp.description }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="experience-item" *ngIf="!mentor.experience || mentor.experience.length === 0">
                 <div class="experience-header">
                   <h3>{{ mentor.position }}</h3>
                   <p class="company">{{ mentor.company }}</p>

@@ -24,7 +24,13 @@ interface Mentor {
   linkedinUrl?: string;
   profilePicture?: string;
   isAvailable: boolean;
-  experience?: string;
+  experience: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }>;
   availability: {
     monday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
     tuesday: { isAvailable: boolean, timeSlots: Array<{ startTime: string, endTime: string, isActive: boolean }> };
@@ -74,7 +80,7 @@ export class MentorProfileComponent implements OnInit {
     linkedinUrl: '',
     githubUrl: '',
     website: '',
-    experience: '',
+    experience: [],
     education: [],
     certifications: []
   };
@@ -156,6 +162,7 @@ export class MentorProfileComponent implements OnInit {
             linkedinUrl: 'https://linkedin.com/in/mentor',
             profilePicture: response.mentor.profilePicture || this.getDefaultProfilePicture(response.mentor.firstName, response.mentor.lastName),
             isAvailable: true,
+            experience: response.mentor.experience || [],
             availability: {
               monday: { isAvailable: false, timeSlots: [] },
               tuesday: { isAvailable: false, timeSlots: [] },
@@ -207,6 +214,7 @@ export class MentorProfileComponent implements OnInit {
           linkedinUrl: mentor.linkedinUrl,
           profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName),
           isAvailable: mentor.isAvailable,
+          experience: mentor.experience || [],
           availability: mentor.availability || {
             monday: { isAvailable: false, timeSlots: [] },
             tuesday: { isAvailable: false, timeSlots: [] },
@@ -250,6 +258,22 @@ export class MentorProfileComponent implements OnInit {
       linkedinUrl: 'https://linkedin.com/in/johnsmith',
       profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
       isAvailable: true,
+      experience: [
+        {
+          company: 'Google',
+          position: 'Senior Software Engineer',
+          startDate: '2018-01-01',
+          endDate: '2023-12-31',
+          description: 'Led development of scalable web applications using React and Node.js. Mentored junior developers and contributed to open-source projects.'
+        },
+        {
+          company: 'Microsoft',
+          position: 'Software Engineer',
+          startDate: '2015-06-01',
+          endDate: '2017-12-31',
+          description: 'Developed enterprise software solutions and collaborated with cross-functional teams to deliver high-quality products.'
+        }
+      ],
       availability: {
         monday: { isAvailable: false, timeSlots: [] },
         tuesday: { isAvailable: false, timeSlots: [] },
@@ -363,6 +387,28 @@ export class MentorProfileComponent implements OnInit {
     return `${displayHour}:${minutes} ${ampm}`;
   }
 
+  formatDateRange(startDate: string, endDate: string): string {
+    if (!startDate) return '';
+    
+    const start = new Date(startDate);
+    const startFormatted = start.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short' 
+    });
+    
+    if (!endDate || endDate === '') {
+      return `${startFormatted} - Present`;
+    }
+    
+    const end = new Date(endDate);
+    const endFormatted = end.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short' 
+    });
+    
+    return `${startFormatted} - ${endFormatted}`;
+  }
+
   // Edit Profile Modal Methods
   openEditProfileModal(): void {
     if (this.mentor) {
@@ -379,7 +425,7 @@ export class MentorProfileComponent implements OnInit {
         linkedinUrl: this.mentor.linkedinUrl || '',
         githubUrl: '', // Add githubUrl field to Mentor interface if needed
         website: '', // Add website field to Mentor interface if needed
-        experience: '', // Add experience field to Mentor interface if needed
+        experience: this.mentor.experience ? [...this.mentor.experience] : [],
         education: this.mentor.education ? [...this.mentor.education] : [],
         certifications: this.mentor.certifications ? [...this.mentor.certifications] : []
       };

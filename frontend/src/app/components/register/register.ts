@@ -47,7 +47,7 @@ export class RegisterComponent implements OnDestroy {
       // Mentor-specific fields
       company: [''],
       position: [''],
-      experience: [''],
+      experience: [[]],
       hourlyRate: [''],
       expertise: [''],
       linkedinUrl: ['', [Validators.pattern(/^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/)]],

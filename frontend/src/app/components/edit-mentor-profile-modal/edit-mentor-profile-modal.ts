@@ -15,7 +15,13 @@ export interface MentorProfile {
   linkedinUrl?: string;
   githubUrl?: string;
   website?: string;
-  experience?: string;
+  experience: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }>;
   education: Array<{
     degree: string;
     institution: string;
@@ -49,7 +55,7 @@ export class EditMentorProfileModalComponent {
     linkedinUrl: '',
     githubUrl: '',
     website: '',
-    experience: '',
+    experience: [],
     education: [],
     certifications: []
   };
@@ -114,6 +120,21 @@ export class EditMentorProfileModalComponent {
 
   removeEducation(index: number): void {
     this.profileData.education.splice(index, 1);
+  }
+
+  // Experience methods
+  addExperience(): void {
+    this.profileData.experience.push({
+      company: '',
+      position: '',
+      startDate: '',
+      endDate: '',
+      description: ''
+    });
+  }
+
+  removeExperience(index: number): void {
+    this.profileData.experience.splice(index, 1);
   }
 
   // Certification methods

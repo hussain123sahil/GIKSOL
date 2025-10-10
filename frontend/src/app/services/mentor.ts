@@ -21,6 +21,13 @@ export interface Mentor {
   totalSessions: number;
   isAvailable: boolean;
   availability?: any;
+  experience?: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }>;
   education?: any[];
   certifications?: any[];
   isVerified: boolean;
