@@ -384,17 +384,17 @@
 .session-card-footer {
     padding: 16px 24px 24px 24px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 16px;
     background: #f8fafc;
-    min-height: 80px;
 
     .start-actions {
         display: flex;
         flex-direction: column;
         gap: 8px;
         min-width: 0; // allow compact width
+        margin-left: -8px; // Move start session button slightly left
 
         // Make the Start Session button a bit smaller and more standard
         .btn.btn-primary.btn-sm {
@@ -417,6 +417,7 @@
         flex-direction: column;
         gap: 8px;
         align-items: flex-end;
+        margin-right: -8px; // Move cancel and edit note buttons slightly right
         
         .btn {
             min-width: 120px;
