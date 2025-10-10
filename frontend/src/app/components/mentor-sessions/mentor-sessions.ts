@@ -254,8 +254,7 @@ export class MentorSessionsComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+      day: 'numeric'
     });
   }
 
@@ -280,31 +279,56 @@ export class MentorSessionsComponent implements OnInit, OnDestroy {
     const sessionDateTime = this.timezoneService.toIST(session.scheduledDate || session.date);
     const nowIST = this.timezoneService.getCurrentIST();
     
-    // Can start 15 minutes before scheduled time
-    const startTime = new Date(sessionDateTime.getTime() - 15 * 60 * 1000);
+    // Can start 10 minutes before scheduled time
+    const startTime = new Date(sessionDateTime.getTime() - 10 * 60 * 1000);
     
     return nowIST >= startTime && session.status === 'upcoming';
   }
 
   // Get time until session can be started
   getTimeUntilStartable(session: Session): string {
-    const sessionDateTime = this.timezoneService.toIST(session.scheduledDate || session.date);
-    const nowIST = this.timezoneService.getCurrentIST();
-    const startTime = new Date(sessionDateTime.getTime() - 15 * 60 * 1000);
-    
-    if (nowIST >= startTime) {
-      return 'now';
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
     }
     
-    const diffMs = startTime.getTime() - nowIST.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (diffHours > 0) {
-      return `${diffHours}h ${diffMinutes}m`;
-    } else {
-      return `${diffMinutes}m`;
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      return '0 minutes';
     }
+
+    const scheduledIST = this.timezoneService.toIST(scheduled!);
+    const now = this.timezoneService.getCurrentIST();
+    const tenMinutesMs = 10 * 60 * 1000;
+    const timeUntilStartable = (scheduledIST.getTime() - tenMinutesMs) - now.getTime();
+    
+    if (timeUntilStartable <= 0) {
+      return '0 minutes';
+    }
+    
+    const totalMinutes = Math.ceil(timeUntilStartable / (1000 * 60));
+    const days = Math.floor(totalMinutes / (24 * 60));
+    const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+    const minutes = totalMinutes % 60;
+    
+    let result = '';
+    if (days > 0) {
+      result += `${days} day${days > 1 ? 's' : ''}`;
+    }
+    if (hours > 0) {
+      if (result) result += ', ';
+      result += `${hours} hour${hours > 1 ? 's' : ''}`;
+    }
+    if (minutes > 0 || result === '') {
+      if (result) result += ', ';
+      result += `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    }
+    
+    return result;
   }
 
   // Add note functionality

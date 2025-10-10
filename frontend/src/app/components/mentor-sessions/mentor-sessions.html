@@ -57,8 +57,8 @@
 									<div class="student-avatar">
 										{{ (session.student?.firstName || session.studentName || 'S').charAt(0) }}
 									</div>
-									<div class="session-status-badge">
-										<span class="status-dot upcoming"></span>
+									<div class="session-status-badge" [ngClass]="session.status">
+										<span class="status-dot" [ngClass]="session.status"></span>
 										{{ session.status | titlecase }}
 									</div>
 								</div>
@@ -224,5 +224,6 @@
 	[session]="noteModalSession"
 	[isSaving]="isSavingNote"
 	(save)="onNoteModalSave($event)"
-	(cancel)="onNoteModalCancel()">
+	(cancel)="onNoteModalCancel()"
+	(success)="onNoteModalCancel()">
 </app-add-note-modal>

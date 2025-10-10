@@ -254,6 +254,11 @@
 		color: white;
 	}
 
+	&.in-progress {
+		background: #10b981;
+		color: white;
+	}
+
 	&.completed {
 		background: #6b7280;
 		color: white;
