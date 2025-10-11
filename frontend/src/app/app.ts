@@ -29,6 +29,7 @@ export class AppComponent {
            !url.startsWith('/mentor-sessions') &&
            !url.startsWith('/mentor-profile') &&
            !url.startsWith('/mentor-availability') &&
+           !url.startsWith('/mentor-help') &&
            !url.startsWith('/mentors') && 
            !url.startsWith('/booking') &&
            !url.startsWith('/book-session') &&
