@@ -68,21 +68,27 @@
 								<h2>Experience</h2>
 								<div class="experience-list" *ngIf="mentor.experience && mentor.experience.length > 0">
 									<div class="experience-item" *ngFor="let exp of mentor.experience">
-										<div class="experience-header">
-											<h3>{{ exp.position }}</h3>
-											<p class="company">{{ exp.company }}</p>
-											<p class="duration">{{ formatDateRange(exp.startDate, exp.endDate) }}</p>
-										</div>
-										<div class="experience-description" *ngIf="exp.description">
-											<p>{{ exp.description }}</p>
+										<div class="experience-content">
+											<div class="experience-main">
+												<h3 class="company-name">{{ exp.company }}</h3>
+												<p class="position">{{ exp.position }}</p>
+												<p class="description" *ngIf="exp.description">{{ exp.description }}</p>
+											</div>
+											<div class="experience-dates">
+												<span class="duration">{{ formatDateRange(exp.startDate, exp.endDate) }}</span>
+											</div>
 										</div>
 									</div>
 								</div>
 								<div class="experience-item" *ngIf="!mentor.experience || mentor.experience.length === 0">
-									<div class="experience-header">
-										<h3>{{ mentor.position }}</h3>
-										<p class="company">{{ mentor.company }}</p>
-										<p class="duration">Current</p>
+									<div class="experience-content">
+										<div class="experience-main">
+											<h3 class="company-name">{{ mentor.company }}</h3>
+											<p class="position">{{ mentor.position }}</p>
+										</div>
+										<div class="experience-dates">
+											<span class="duration">Current</span>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -241,21 +247,27 @@
               <h2>Experience</h2>
               <div class="experience-list" *ngIf="mentor.experience && mentor.experience.length > 0">
                 <div class="experience-item" *ngFor="let exp of mentor.experience">
-                  <div class="experience-header">
-                    <h3>{{ exp.position }}</h3>
-                    <p class="company">{{ exp.company }}</p>
-                    <p class="duration">{{ formatDateRange(exp.startDate, exp.endDate) }}</p>
-                  </div>
-                  <div class="experience-description" *ngIf="exp.description">
-                    <p>{{ exp.description }}</p>
+                  <div class="experience-content">
+                    <div class="experience-main">
+                      <h3 class="company-name">{{ exp.company }}</h3>
+                      <p class="position">{{ exp.position }}</p>
+                      <p class="description" *ngIf="exp.description">{{ exp.description }}</p>
+                    </div>
+                    <div class="experience-dates">
+                      <span class="duration">{{ formatDateRange(exp.startDate, exp.endDate) }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="experience-item" *ngIf="!mentor.experience || mentor.experience.length === 0">
-                <div class="experience-header">
-                  <h3>{{ mentor.position }}</h3>
-                  <p class="company">{{ mentor.company }}</p>
-                  <p class="duration">Current</p>
+                <div class="experience-content">
+                  <div class="experience-main">
+                    <h3 class="company-name">{{ mentor.company }}</h3>
+                    <p class="position">{{ mentor.position }}</p>
+                  </div>
+                  <div class="experience-dates">
+                    <span class="duration">Current</span>
+                  </div>
                 </div>
               </div>
             </div>
