@@ -102,6 +102,27 @@
             </div>
           </div>
           
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hourlyRate">Hourly Rate ($) *</label>
+              <input 
+                type="number" 
+                id="hourlyRate" 
+                name="hourlyRate"
+                [(ngModel)]="profileData.hourlyRate" 
+                required
+                min="0"
+                step="1"
+                placeholder="e.g., 75"
+                #hourlyRate="ngModel"
+                [class.error]="hourlyRate.invalid && hourlyRate.touched"
+              >
+              <div class="error-message" *ngIf="hourlyRate.invalid && hourlyRate.touched">
+                Hourly rate is required and must be a positive number
+              </div>
+            </div>
+          </div>
+          
           <div class="form-group">
             <label for="expertise">Areas of Expertise *</label>
             <div class="expertise-tags">

@@ -76,6 +76,7 @@ export class MentorProfileComponent implements OnInit {
     company: '',
     position: '',
     expertise: [],
+    hourlyRate: 0,
     bio: '',
     linkedinUrl: '',
     githubUrl: '',
@@ -426,6 +427,7 @@ export class MentorProfileComponent implements OnInit {
         company: this.mentor.company,
         position: this.mentor.position,
         expertise: [...this.mentor.expertise],
+        hourlyRate: this.mentor.hourlyRate || 0,
         bio: this.mentor.bio || '',
         linkedinUrl: this.mentor.linkedinUrl || '',
         githubUrl: '', // Add githubUrl field to Mentor interface if needed
@@ -465,6 +467,7 @@ export class MentorProfileComponent implements OnInit {
           this.mentor.company = response.mentor.company;
           this.mentor.position = response.mentor.position;
           this.mentor.expertise = response.mentor.expertise;
+          this.mentor.hourlyRate = response.mentor.hourlyRate;
           this.mentor.bio = response.mentor.bio;
           this.mentor.linkedinUrl = response.mentor.linkedinUrl;
           // Add other fields as needed

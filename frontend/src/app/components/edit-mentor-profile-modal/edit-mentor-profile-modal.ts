@@ -11,6 +11,7 @@ export interface MentorProfile {
   company: string;
   position: string;
   expertise: string[];
+  hourlyRate: number;
   bio?: string;
   linkedinUrl?: string;
   githubUrl?: string;
@@ -51,6 +52,7 @@ export class EditMentorProfileModalComponent implements OnChanges {
     company: '',
     position: '',
     expertise: [],
+    hourlyRate: 0,
     bio: '',
     linkedinUrl: '',
     githubUrl: '',
