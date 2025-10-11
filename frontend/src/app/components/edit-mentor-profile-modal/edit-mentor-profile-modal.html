@@ -1,0 +1,444 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onOverlayClick($event)">
+  <div class="modal-content edit-profile-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Edit Profile</h2>
+      <button class="close-button" (click)="onClose()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <form #profileForm="ngForm" (ngSubmit)="onSubmit()">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h3>Basic Information</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName">First Name *</label>
+              <input 
+                type="text" 
+                id="firstName" 
+                name="firstName"
+                [(ngModel)]="profileData.firstName" 
+                required
+                #firstName="ngModel"
+                [class.error]="firstName.invalid && firstName.touched"
+              >
+              <div class="error-message" *ngIf="firstName.invalid && firstName.touched">
+                First name is required
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="lastName">Last Name *</label>
+              <input 
+                type="text" 
+                id="lastName" 
+                name="lastName"
+                [(ngModel)]="profileData.lastName" 
+                required
+                #lastName="ngModel"
+                [class.error]="lastName.invalid && lastName.touched"
+              >
+              <div class="error-message" *ngIf="lastName.invalid && lastName.touched">
+                Last name is required
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email"
+              [(ngModel)]="profileData.email" 
+              required
+              email
+              #email="ngModel"
+              [class.error]="email.invalid && email.touched"
+            >
+            <div class="error-message" *ngIf="email.invalid && email.touched">
+              <span *ngIf="email.errors?.['required']">Email is required</span>
+              <span *ngIf="email.errors?.['email']">Please enter a valid email</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Picture Section -->
+        <div class="form-section">
+          <h3>Profile Picture</h3>
+          
+          <div class="form-group">
+            <label for="profilePicture">Profile Picture</label>
+            <div class="profile-picture-upload">
+              <div class="current-picture" *ngIf="profileData.profilePicture">
+                <img [src]="profileData.profilePicture" alt="Current profile picture" class="preview-image">
+                <button type="button" class="remove-picture-btn" (click)="removeProfilePicture()">Remove</button>
+              </div>
+              <div class="upload-area" *ngIf="!profileData.profilePicture">
+                <input 
+                  type="file" 
+                  id="profilePicture" 
+                  name="profilePicture"
+                  accept="image/*"
+                  (change)="onProfilePictureChange($event)"
+                  #profilePictureInput
+                  class="file-input"
+                >
+                <div class="upload-placeholder" (click)="profilePictureInput.click()">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  <p>Click to upload profile picture</p>
+                  <small>Image only, 30-100KB</small>
+                </div>
+              </div>
+              <div class="upload-area" *ngIf="profileData.profilePicture">
+                <input 
+                  type="file" 
+                  id="profilePicture" 
+                  name="profilePicture"
+                  accept="image/*"
+                  (change)="onProfilePictureChange($event)"
+                  #profilePictureInput
+                  class="file-input"
+                >
+                <button type="button" class="change-picture-btn" (click)="profilePictureInput.click()">
+                  Change Picture
+                </button>
+              </div>
+            </div>
+            <div class="error-message" *ngIf="profilePictureError">
+              {{ profilePictureError }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Professional Information -->
+        <div class="form-section">
+          <h3>Professional Information</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="company">Company *</label>
+              <input 
+                type="text" 
+                id="company" 
+                name="company"
+                [(ngModel)]="profileData.company" 
+                required
+                #company="ngModel"
+                [class.error]="company.invalid && company.touched"
+              >
+              <div class="error-message" *ngIf="company.invalid && company.touched">
+                Company is required
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="position">Position *</label>
+              <input 
+                type="text" 
+                id="position" 
+                name="position"
+                [(ngModel)]="profileData.position" 
+                required
+                #position="ngModel"
+                [class.error]="position.invalid && position.touched"
+              >
+              <div class="error-message" *ngIf="position.invalid && position.touched">
+                Position is required
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hourlyRate">Hourly Rate (₹) *</label>
+              <input 
+                type="number" 
+                id="hourlyRate" 
+                name="hourlyRate"
+                [(ngModel)]="profileData.hourlyRate" 
+                required
+                min="0"
+                step="1"
+                placeholder="e.g., 5000"
+                #hourlyRate="ngModel"
+                [class.error]="hourlyRate.invalid && hourlyRate.touched"
+              >
+              <div class="error-message" *ngIf="hourlyRate.invalid && hourlyRate.touched">
+                Hourly rate is required and must be a positive number
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="expertise">Areas of Expertise *</label>
+            <div class="expertise-tags">
+              <div class="tag-input-container">
+                <input 
+                  type="text" 
+                  id="expertise" 
+                  placeholder="Add expertise area (press Enter to add)"
+                  (keydown.enter)="addExpertise($event)"
+                  [(ngModel)]="newExpertise"
+                  name="expertise"
+                >
+              </div>
+              <div class="tags-list">
+                <span 
+                  *ngFor="let skill of profileData.expertise; let i = index" 
+                  class="tag"
+                >
+                  {{ skill }}
+                  <button type="button" class="remove-tag" (click)="removeExpertise(i)">×</button>
+                </span>
+              </div>
+            </div>
+            <div class="error-message" *ngIf="profileData.expertise.length === 0">
+              At least one expertise area is required
+            </div>
+          </div>
+        </div>
+        
+            <!-- Additional Information -->
+            <div class="form-section">
+              <h3>Additional Information</h3>
+              
+              <div class="form-group">
+                <label for="bio">Bio</label>
+                <textarea 
+                  id="bio" 
+                  name="bio"
+                  [(ngModel)]="profileData.bio" 
+                  rows="4"
+                  placeholder="Tell us about yourself, your experience, and what you can help students with..."
+                ></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="linkedinUrl">LinkedIn URL</label>
+                <input 
+                  type="url" 
+                  id="linkedinUrl" 
+                  name="linkedinUrl"
+                  [(ngModel)]="profileData.linkedinUrl" 
+                  placeholder="https://linkedin.com/in/yourprofile"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label for="githubUrl">GitHub URL</label>
+                <input 
+                  type="url" 
+                  id="githubUrl" 
+                  name="githubUrl"
+                  [(ngModel)]="profileData.githubUrl" 
+                  placeholder="https://github.com/yourusername"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label for="website">Website</label>
+                <input 
+                  type="url" 
+                  id="website" 
+                  name="website"
+                  [(ngModel)]="profileData.website" 
+                  placeholder="https://yourwebsite.com"
+                >
+              </div>
+            </div>
+            
+            <!-- Experience Section -->
+            <div class="form-section">
+              <h3>Experience</h3>
+              <div class="array-field">
+                <div class="array-header">
+                  <label>Professional Experience</label>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="addExperience()">
+                    + Add Experience
+                  </button>
+                </div>
+                
+                <div class="array-items">
+                  <div *ngFor="let exp of profileData.experience; let i = index" class="array-item">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Company</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="exp.company" 
+                          placeholder="e.g., Google Inc."
+                          name="experienceCompany{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Position</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="exp.position" 
+                          placeholder="e.g., Senior Software Engineer"
+                          name="experiencePosition{{i}}"
+                        >
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Start Date</label>
+                        <input 
+                          type="date" 
+                          [(ngModel)]="exp.startDate" 
+                          name="experienceStartDate{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>End Date</label>
+                        <input 
+                          type="date" 
+                          [(ngModel)]="exp.endDate" 
+                          name="experienceEndDate{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <button type="button" class="btn btn-danger btn-sm remove-btn" (click)="removeExperience(i)">
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Description</label>
+                      <textarea 
+                        [(ngModel)]="exp.description" 
+                        rows="2"
+                        placeholder="Describe your role and achievements..."
+                        name="experienceDescription{{i}}"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Education Section -->
+            <div class="form-section">
+              <h3>Education</h3>
+              <div class="array-field">
+                <div class="array-header">
+                  <label>Educational Background</label>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="addEducation()">
+                    + Add Education
+                  </button>
+                </div>
+                
+                <div class="array-items">
+                  <div *ngFor="let edu of profileData.education; let i = index" class="array-item">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Degree</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="edu.degree" 
+                          placeholder="e.g., Bachelor of Computer Science"
+                          name="educationDegree{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Institution</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="edu.institution" 
+                          placeholder="e.g., University of Technology"
+                          name="educationInstitution{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Year</label>
+                        <input 
+                          type="number" 
+                          [(ngModel)]="edu.year" 
+                          placeholder="2020"
+                          min="1900"
+                          [max]="getCurrentYear()"
+                          name="educationYear{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <button type="button" class="btn btn-danger btn-sm remove-btn" (click)="removeEducation(i)">
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Certifications Section -->
+            <div class="form-section">
+              <h3>Certifications</h3>
+              <div class="array-field">
+                <div class="array-header">
+                  <label>Professional Certifications</label>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="addCertification()">
+                    + Add Certification
+                  </button>
+                </div>
+                
+                <div class="array-items">
+                  <div *ngFor="let cert of profileData.certifications; let i = index" class="array-item">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Certification Name</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="cert.name" 
+                          placeholder="e.g., AWS Certified Solutions Architect"
+                          name="certificationName{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Issuer</label>
+                        <input 
+                          type="text" 
+                          [(ngModel)]="cert.issuer" 
+                          placeholder="e.g., Amazon Web Services"
+                          name="certificationIssuer{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label>Date</label>
+                        <input 
+                          type="date" 
+                          [(ngModel)]="cert.date" 
+                          name="certificationDate{{i}}"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <button type="button" class="btn btn-danger btn-sm remove-btn" (click)="removeCertification(i)">
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="onClose()">Cancel</button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="onSubmit()"
+        [disabled]="!isFormValid() || isSubmitting"
+      >
+        <span *ngIf="!isSubmitting">Save Changes</span>
+        <span *ngIf="isSubmitting">Saving...</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,45 @@
 const express = require('express');
 const Mentor = require('../models/Mentor');
 const User = require('../models/User');
+const Session = require('../models/Session');
 const { auth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Helper function to calculate mentor session statistics
+async function calculateMentorStats(mentorId) {
+  try {
+    // Count completed sessions
+    const completedSessions = await Session.countDocuments({
+      mentor: mentorId,
+      status: 'completed'
+    });
+
+    // Calculate average rating from completed sessions with ratings
+    const sessionsWithRatings = await Session.find({
+      mentor: mentorId,
+      status: 'completed',
+      rating: { $exists: true, $ne: null }
+    }).select('rating');
+
+    let averageRating = 0;
+    if (sessionsWithRatings.length > 0) {
+      const totalRating = sessionsWithRatings.reduce((sum, session) => sum + session.rating, 0);
+      averageRating = Math.round((totalRating / sessionsWithRatings.length) * 10) / 10; // Round to 1 decimal place
+    }
+
+    return {
+      totalSessions: completedSessions,
+      rating: averageRating
+    };
+  } catch (error) {
+    console.error('Error calculating mentor stats:', error);
+    return {
+      totalSessions: 0,
+      rating: 0
+    };
+  }
+}
 
 
 // Helper function to convert time string to minutes
@@ -55,10 +91,27 @@ router.get('/', async (req, res) => {
     }
 
     const mentors = await Mentor.find(query)
-      .populate('user', 'firstName lastName email profilePicture')
-      .sort({ rating: -1, totalSessions: -1 });
+      .populate('user', 'firstName lastName email profilePicture');
 
-    res.json(mentors);
+    // Calculate stats for each mentor
+    const mentorsWithStats = await Promise.all(
+      mentors.map(async (mentor) => {
+        const stats = await calculateMentorStats(mentor.user._id);
+        return {
+          ...mentor.toObject(),
+          totalSessions: stats.totalSessions,
+          rating: stats.rating
+        };
+      })
+    );
+
+    // Sort by rating and total sessions
+    mentorsWithStats.sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      return b.totalSessions - a.totalSessions;
+    });
+
+    res.json(mentorsWithStats);
   } catch (error) {
     console.error('Get mentors error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -166,9 +219,42 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Mentor not found' });
     }
 
-    res.json(mentor);
+    // Calculate stats for this mentor
+    const stats = await calculateMentorStats(mentor.user._id);
+    const mentorWithStats = {
+      ...mentor.toObject(),
+      totalSessions: stats.totalSessions,
+      rating: stats.rating
+    };
+
+    res.json(mentorWithStats);
   } catch (error) {
     console.error('Get mentor error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get mentor by user ID
+router.get('/by-user/:userId', async (req, res) => {
+  try {
+    const mentor = await Mentor.findOne({ user: req.params.userId })
+      .populate('user', 'firstName lastName email profilePicture');
+    
+    if (!mentor) {
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    // Calculate stats for this mentor
+    const stats = await calculateMentorStats(mentor.user._id);
+    const mentorWithStats = {
+      ...mentor.toObject(),
+      totalSessions: stats.totalSessions,
+      rating: stats.rating
+    };
+
+    res.json(mentorWithStats);
+  } catch (error) {
+    console.error('Get mentor by user ID error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -211,21 +297,57 @@ router.put('/profile', auth, requireRole(['mentor']), async (req, res) => {
       return res.status(404).json({ message: 'Mentor profile not found' });
     }
 
-    // Update mentor fields
+    // Separate User fields from Mentor fields
+    const userFields = {};
+    const mentorFields = {};
+    
+    // Fields that belong to User model
+    const userFieldNames = ['firstName', 'lastName', 'email', 'profilePicture'];
+    // Fields that belong to Mentor model
+    const mentorFieldNames = ['company', 'position', 'expertise', 'bio', 'linkedinUrl', 'githubUrl', 'website', 'hourlyRate', 'experience', 'education', 'certifications'];
+
+    // Categorize the incoming data
     Object.keys(req.body).forEach(key => {
       if (req.body[key] !== undefined) {
-        mentor[key] = req.body[key];
+        if (userFieldNames.includes(key)) {
+          userFields[key] = req.body[key];
+        } else if (mentorFieldNames.includes(key)) {
+          mentorFields[key] = req.body[key];
+        }
       }
     });
 
-    await mentor.save();
+    // Update User model if there are user fields to update
+    if (Object.keys(userFields).length > 0) {
+      await User.findByIdAndUpdate(req.user._id, userFields, { 
+        new: true, 
+        runValidators: true 
+      });
+    }
 
-    const populatedMentor = await Mentor.findById(mentor._id)
+    // Update Mentor model if there are mentor fields to update
+    if (Object.keys(mentorFields).length > 0) {
+      Object.keys(mentorFields).forEach(key => {
+        mentor[key] = mentorFields[key];
+      });
+      await mentor.save();
+    }
+
+    // Get updated data with populated user information
+    const updatedMentor = await Mentor.findById(mentor._id)
       .populate('user', 'firstName lastName email profilePicture');
+
+    // Calculate stats for this mentor
+    const stats = await calculateMentorStats(updatedMentor.user._id);
+    const mentorWithStats = {
+      ...updatedMentor.toObject(),
+      totalSessions: stats.totalSessions,
+      rating: stats.rating
+    };
 
     res.json({
       message: 'Mentor profile updated successfully',
-      mentor: populatedMentor
+      mentor: mentorWithStats
     });
   } catch (error) {
     console.error('Update mentor error:', error);

@@ -17,10 +17,19 @@ export interface Mentor {
   hourlyRate: number;
   bio: string;
   linkedinUrl?: string;
+  githubUrl?: string;
+  website?: string;
   rating: number;
   totalSessions: number;
   isAvailable: boolean;
   availability?: any;
+  experience?: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }>;
   education?: any[];
   certifications?: any[];
   isVerified: boolean;
@@ -42,6 +51,10 @@ export class MentorService {
 
   getMentorById(id: string): Observable<Mentor> {
     return this.http.get<Mentor>(`${this.apiUrl}/mentors/${id}`);
+  }
+
+  getMentorByUserId(userId: string): Observable<Mentor> {
+    return this.http.get<Mentor>(`${this.apiUrl}/mentors/by-user/${userId}`);
   }
 
   searchMentors(params: {

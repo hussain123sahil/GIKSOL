@@ -174,7 +174,7 @@ router.post('/verify-otp', async (req, res) => {
         position: position || 'Not specified',
         expertise: expertise || ['General Mentoring', 'Career Guidance'],
         hourlyRate: hourlyRate || 50,
-        experience: experience || 'Experienced professional',
+        experience: experience || [],
         bio: bio || `Hi, I'm ${user.firstName} ${user.lastName}. I'm passionate about helping others grow and succeed!`,
         linkedinUrl: linkedinUrl || '',
         education: [{
