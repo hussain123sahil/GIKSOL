@@ -99,17 +99,6 @@ const mentorSchema = new mongoose.Schema({
       message: 'Please enter a valid website URL'
     }
   },
-  rating: {
-    type: Number,
-    default: 0,
-    min: [0, 'Rating cannot be negative'],
-    max: [5, 'Rating cannot exceed 5']
-  },
-  totalSessions: {
-    type: Number,
-    default: 0,
-    min: [0, 'Total sessions cannot be negative']
-  },
   isAvailable: {
     type: Boolean,
     default: true
