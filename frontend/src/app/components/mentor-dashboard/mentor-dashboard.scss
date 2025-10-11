@@ -521,6 +521,20 @@
 		transform: translateY(-6px);
 		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 	}
+
+	// green accent strip for upcoming sessions only
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 6px;
+		background: #10b981; // emerald green
+	}
+
+	// Optional: keep width visually close to reference while still responsive
+	max-width: 760px;
 }
 
 .session-card-header {
@@ -699,11 +713,23 @@
 	border: 1px solid #e5e7eb;
 	transition: all 0.3s ease;
 	overflow: hidden;
+	position: relative;
 
 	&:hover {
 		transform: translateY(-3px);
 		box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.12);
 		border-color: #d1d5db;
+	}
+
+	// green accent strip for recent sessions
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 6px;
+		background: #10b981; // emerald green
 	}
 }
 
@@ -819,6 +845,17 @@
 		transform: translateY(-4px);
 		box-shadow: 0 16px 30px -12px rgba(0, 0, 0, 0.12);
 		border-color: #d1d5db;
+	}
+
+	// green accent strip for active mentees
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 6px;
+		background: #10b981; // emerald green
 	}
 }
 

@@ -51,22 +51,21 @@
 							</div>
 						</div>
 
-						<div class="sessions-grid" *ngIf="upcomingSessions.length > 0">
-							<div class="session-card upcoming" *ngFor="let session of upcomingSessions">
+						<div class="upcoming-sessions-grid" *ngIf="upcomingSessions.length > 0">
+							<div class="session-card" *ngFor="let session of upcomingSessions">
 								<div class="session-card-header">
 									<div class="student-avatar">
-										{{ session.studentName.charAt(0) }}
+										{{ (session.student?.firstName || session.studentName || 'S').charAt(0) }}
 									</div>
-									<div class="session-status-badge upcoming">
-										<span class="status-dot"></span>
+									<div class="session-status-badge" [ngClass]="session.status">
+										<span class="status-dot" [ngClass]="session.status"></span>
 										{{ session.status | titlecase }}
 									</div>
 								</div>
 								
 								<div class="session-card-body">
-									<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
-									<p class="student-name">{{ session.studentName }}</p>
-									<p class="student-email">{{ session.studentEmail }}</p>
+									<h3 class="session-title">Session with {{ getStudentName(session) }}</h3>
+									<p class="student-name">{{ getStudentName(session) }}</p>
 									
 									<div class="session-details">
 										<div class="detail-item">
@@ -93,14 +92,25 @@
 								</div>
 								
 								<div class="session-card-footer">
-									<button class="btn btn-primary btn-sm" (click)="startSession(session.id)" *ngIf="session.meetingLink">
-										<span class="btn-icon">🎥</span>
-										Start Session
-									</button>
-									<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
-										<span class="btn-icon">❌</span>
-										Cancel
-									</button>
+									<div class="start-actions">
+										<button class="btn btn-primary btn-sm" (click)="startSession(session.id)" *ngIf="session.meetingLink" [disabled]="!canStartSession(session)" [class.btn-disabled]="!canStartSession(session)">
+											<span class="btn-icon">🎥</span>
+											Start Session
+										</button>
+										<div *ngIf="session.meetingLink && !canStartSession(session)" class="start-session-info">
+											<span class="info-text">⏰ Available in {{ getTimeUntilStartable(session) }}</span>
+										</div>
+									</div>
+									<div class="action-buttons">
+										<button class="btn btn-danger btn-sm" (click)="cancelSession(session)" [disabled]="!canCancelSession(session)">
+											<span class="btn-icon">❌</span>
+											Cancel
+										</button>
+										<button class="btn btn-outline btn-sm" (click)="addNote(session)">
+											<span class="btn-icon">📝</span>
+											{{ session.notes ? 'Edit Note' : 'Add Note' }}
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -128,7 +138,7 @@
 							<div class="session-card completed" *ngFor="let session of completedSessions">
 								<div class="session-card-header">
 									<div class="student-avatar">
-										{{ session.studentName.charAt(0) }}
+										{{ (session.studentName || 'S').charAt(0) }}
 									</div>
 									<div class="session-status-badge completed">
 										<span class="status-dot"></span>
@@ -137,9 +147,8 @@
 								</div>
 								
 								<div class="session-card-body">
-									<h3 class="session-title">{{ session.title || 'Mentoring Session' }}</h3>
-									<p class="student-name">{{ session.studentName }}</p>
-									<p class="student-email">{{ session.studentEmail }}</p>
+									<h3 class="session-title">Session with {{ getStudentName(session) }}</h3>
+									<p class="student-name">{{ getStudentName(session) }}</p>
 									
 									<div class="session-details">
 										<div class="detail-item">
@@ -159,29 +168,21 @@
 											<span class="detail-text">{{ session.sessionType }}</span>
 										</div>
 									</div>
-
-									<div class="session-rating" *ngIf="session.rating">
-										<div class="rating-label">Student Rating:</div>
-										<div class="stars">
-											<span *ngFor="let star of getStars(session.rating)" class="star">{{ star }}</span>
-										</div>
-										<span class="rating-text">{{ session.rating }}/5</span>
-									</div>
-									
-									<div class="session-notes" *ngIf="session.notes">
-										<p class="notes-text">{{ session.notes }}</p>
-									</div>
 								</div>
 								
 								<div class="session-card-footer">
-									<button class="btn btn-outline btn-sm" (click)="viewSessionDetails(session.id)">
-										<span class="btn-icon">👁️</span>
-										View Details
-									</button>
-									<button class="btn btn-outline btn-sm" (click)="addSessionNotes(session.id)">
-										<span class="btn-icon">📝</span>
-										Add Notes
-									</button>
+									<div class="student-rating-display">
+										<div class="rating-label">Student Rating:</div>
+										<div class="rating-content" *ngIf="session.rating; else noRating">
+											<div class="stars">
+												<span *ngFor="let star of getStars(session.rating)" class="star">{{ star }}</span>
+											</div>
+											<span class="rating-text">{{ session.rating }}/5</span>
+										</div>
+										<ng-template #noRating>
+											<div class="no-rating">Rating not given</div>
+										</ng-template>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -207,3 +208,13 @@
 	(cancel)="onCancelModalCancel()"
 	(success)="onCancelModalSuccess()">
 </app-cancel-session-modal>
+
+<!-- Add Note Modal -->
+<app-add-note-modal
+	*ngIf="showNoteModal"
+	[session]="noteModalSession"
+	[isSaving]="isSavingNote"
+	(save)="onNoteModalSave($event)"
+	(cancel)="onNoteModalCancel()"
+	(success)="onNoteModalCancel()">
+</app-add-note-modal>

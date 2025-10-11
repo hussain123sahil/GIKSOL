@@ -1,37 +1,29 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth';
-import { DashboardService } from '../../services/dashboard.service';
+import { DashboardService, Session as DashboardSession } from '../../services/dashboard.service';
 import { MentorSidebarComponent } from '../mentor-sidebar/mentor-sidebar';
 import { CancelSessionModalComponent } from '../cancel-session-modal/cancel-session-modal';
+import { AddNoteModalComponent } from '../add-note-modal/add-note-modal';
+import { TimezoneService } from '../../services/timezone.service';
+import { SessionStateService } from '../../services/session-state.service';
+import { interval, Subscription } from 'rxjs';
 
-interface Session {
-  id: string;
-  studentId: string;
-  studentName: string;
-  studentEmail: string;
-  date: string;
-  time: string;
-  duration: number;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  sessionType: string;
-  notes?: string;
-  rating?: number;
-  meetingLink?: string;
-  title?: string;
-}
+// Use the Session interface from dashboard service
+type Session = DashboardSession;
 
 @Component({
   selector: 'app-mentor-sessions',
   standalone: true,
-  imports: [CommonModule, MentorSidebarComponent, CancelSessionModalComponent],
+  imports: [CommonModule, MentorSidebarComponent, CancelSessionModalComponent, AddNoteModalComponent],
   templateUrl: './mentor-sessions.html',
   styleUrls: ['./mentor-sessions.scss']
 })
-export class MentorSessionsComponent implements OnInit {
+export class MentorSessionsComponent implements OnInit, OnDestroy {
   @ViewChild(CancelSessionModalComponent) cancelModal!: CancelSessionModalComponent;
+  @ViewChild(AddNoteModalComponent) noteModal!: AddNoteModalComponent;
   
   currentUser: User | null = null;
   upcomingSessions: Session[] = [];
@@ -42,12 +34,22 @@ export class MentorSessionsComponent implements OnInit {
   showCancelModal = false;
   sessionToCancel: Session | null = null;
   isCancelling = false;
+  
+  // Add Note modal state
+  showNoteModal = false;
+  noteModalSession: Session | null = null;
+  isSavingNote = false;
+  
+  // Timer for session availability
+  private timerSubscription?: Subscription;
 
   constructor(
     private authService: AuthService,
     public router: Router,
     private http: HttpClient,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private timezoneService: TimezoneService,
+    private sessionStateService: SessionStateService
   ) {}
 
   ngOnInit(): void {
@@ -59,6 +61,48 @@ export class MentorSessionsComponent implements OnInit {
     }
 
     this.loadSessions();
+    
+    // Start timer for session availability updates
+    this.timerSubscription = interval(30000).subscribe(() => {
+      // Trigger change detection for session availability
+    });
+    
+    // Listen for session updates from other components
+    this.sessionStateService.getSessionUpdates().subscribe(update => {
+      if (update) {
+        this.handleSessionUpdate(update.action, update.session);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+    }
+  }
+
+  // Handle session updates from other components
+  handleSessionUpdate(action: string, session: Session): void {
+    switch (action) {
+      case 'start':
+        // Update session status to in-progress
+        this.upcomingSessions = this.upcomingSessions.map(s =>
+          s.id === session.id ? { ...s, status: 'in-progress' } : s
+        );
+        break;
+      case 'cancel':
+        // Remove cancelled session from upcoming sessions
+        this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== session.id);
+        break;
+      case 'note-update':
+        // Update session notes
+        const target = this.upcomingSessions.find(s => s.id === session.id) ||
+                       this.completedSessions.find(s => s.id === session.id);
+        if (target) {
+          target.notes = session.notes;
+        }
+        break;
+    }
   }
 
   loadSessions(): void {
@@ -99,8 +143,37 @@ export class MentorSessionsComponent implements OnInit {
   }
 
   startSession(sessionId: string): void {
-    console.log('Starting session:', sessionId);
-    // Implement start session logic
+    const session = this.upcomingSessions.find(s => s.id === sessionId);
+    if (!session) {
+      console.error('Session not found');
+      return;
+    }
+
+    if (!session.meetingLink) {
+      alert('Meeting link not available for this session');
+      return;
+    }
+
+    // Mark session as in-progress, then open the meeting link
+    this.dashboardService.updateSessionStatus(sessionId, 'in-progress').subscribe({
+      next: () => {
+        // Optimistically update local state so UI reflects in-progress immediately
+        const updatedSession = { ...session, status: 'in-progress' as const };
+        this.upcomingSessions = this.upcomingSessions.map(s =>
+          s.id === sessionId ? updatedSession : s
+        );
+        
+        // Emit session update for synchronization
+        this.sessionStateService.updateSession('start', updatedSession);
+        
+        // Open meeting link
+        window.open(session.meetingLink as string, '_blank');
+      },
+      error: (error) => {
+        console.error('Error starting session:', error);
+        alert('Failed to start session. Please try again.');
+      }
+    });
   }
 
   canCancelSession(session: Session): boolean {
@@ -126,6 +199,13 @@ export class MentorSessionsComponent implements OnInit {
     this.dashboardService.cancelSession(event.session.id, 'mentor', event.reason).subscribe({
       next: (response) => {
         console.log('Session cancelled successfully:', response);
+        
+        // Create cancelled session object for synchronization
+        const cancelledSession = { ...event.session, status: 'cancelled' as const };
+        
+        // Emit session update for synchronization
+        this.sessionStateService.updateSession('cancel', cancelledSession);
+        
         // Remove the cancelled session from the list
         this.upcomingSessions = this.upcomingSessions.filter(s => s.id !== event.session.id);
         this.isCancelling = false;
@@ -174,8 +254,7 @@ export class MentorSessionsComponent implements OnInit {
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+      day: 'numeric'
     });
   }
 
@@ -185,5 +264,109 @@ export class MentorSessionsComponent implements OnInit {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm}`;
+  }
+
+  // Helper method to get student name
+  getStudentName(session: Session): string {
+    if (session.student?.firstName && session.student?.lastName) {
+      return `${session.student.firstName} ${session.student.lastName}`;
+    }
+    return session.studentName || 'Unknown Student';
+  }
+
+  // Check if session can be started
+  canStartSession(session: Session): boolean {
+    const sessionDateTime = this.timezoneService.toIST(session.scheduledDate || session.date);
+    const nowIST = this.timezoneService.getCurrentIST();
+    
+    // Can start 10 minutes before scheduled time
+    const startTime = new Date(sessionDateTime.getTime() - 10 * 60 * 1000);
+    
+    return nowIST >= startTime && session.status === 'upcoming';
+  }
+
+  // Get time until session can be started
+  getTimeUntilStartable(session: Session): string {
+    let scheduled: Date | null = null;
+    if (session.scheduledDate) {
+      scheduled = new Date(session.scheduledDate);
+    } else if (session.date && session.time) {
+      const dateStr = session.date;
+      const timeStr = session.time;
+      const isoString = `${dateStr}T${timeStr}:00.000Z`;
+      scheduled = new Date(isoString);
+    }
+    
+    if (!scheduled || isNaN(scheduled.getTime())) {
+      return '0 minutes';
+    }
+
+    const scheduledIST = this.timezoneService.toIST(scheduled!);
+    const now = this.timezoneService.getCurrentIST();
+    const tenMinutesMs = 10 * 60 * 1000;
+    const timeUntilStartable = (scheduledIST.getTime() - tenMinutesMs) - now.getTime();
+    
+    if (timeUntilStartable <= 0) {
+      return '0 minutes';
+    }
+    
+    const totalMinutes = Math.ceil(timeUntilStartable / (1000 * 60));
+    const days = Math.floor(totalMinutes / (24 * 60));
+    const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+    const minutes = totalMinutes % 60;
+    
+    let result = '';
+    if (days > 0) {
+      result += `${days} day${days > 1 ? 's' : ''}`;
+    }
+    if (hours > 0) {
+      if (result) result += ', ';
+      result += `${hours} hour${hours > 1 ? 's' : ''}`;
+    }
+    if (minutes > 0 || result === '') {
+      if (result) result += ', ';
+      result += `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    }
+    
+    return result;
+  }
+
+  // Add note functionality
+  addNote(session: Session): void {
+    this.noteModalSession = session;
+    this.showNoteModal = true;
+  }
+
+  onNoteModalCancel(): void {
+    this.showNoteModal = false;
+    this.noteModalSession = null;
+  }
+
+  onNoteModalSave(event: { sessionId: string; note: string }): void {
+    this.isSavingNote = true;
+    this.dashboardService.updateSessionNote(event.sessionId, event.note).subscribe({
+      next: () => {
+        // Update local model
+        const target = this.upcomingSessions.find(s => s.id === event.sessionId) ||
+                       this.completedSessions.find(s => s.id === event.sessionId);
+        if (target) {
+          target.notes = event.note;
+          
+          // Emit session update for synchronization
+          this.sessionStateService.updateSession('note-update', target);
+        }
+
+        // Show success feedback on modal
+        this.noteModal?.showSuccess();
+      },
+      error: (error) => {
+        console.error('Failed to update note:', error);
+        alert('Failed to update note. Please try again.');
+        this.isSavingNote = false;
+      },
+      complete: () => {
+        this.isSavingNote = false;
+      }
+    });
   }
 }
