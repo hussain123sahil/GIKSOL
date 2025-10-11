@@ -17,6 +17,8 @@ export interface Mentor {
   hourlyRate: number;
   bio: string;
   linkedinUrl?: string;
+  githubUrl?: string;
+  website?: string;
   rating: number;
   totalSessions: number;
   isAvailable: boolean;

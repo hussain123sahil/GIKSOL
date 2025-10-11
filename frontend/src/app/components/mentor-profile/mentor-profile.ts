@@ -22,6 +22,8 @@ interface Mentor {
   totalSessions: number;
   bio: string;
   linkedinUrl?: string;
+  githubUrl?: string;
+  website?: string;
   profilePicture?: string;
   isAvailable: boolean;
   experience: Array<{
@@ -158,6 +160,8 @@ export class MentorProfileComponent implements OnInit {
           totalSessions: mentor.totalSessions,
           bio: mentor.bio,
           linkedinUrl: mentor.linkedinUrl,
+          githubUrl: mentor.githubUrl,
+          website: mentor.website,
           profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName),
           isAvailable: mentor.isAvailable,
           experience: mentor.experience || [],
@@ -204,6 +208,8 @@ export class MentorProfileComponent implements OnInit {
           totalSessions: mentor.totalSessions,
           bio: mentor.bio,
           linkedinUrl: mentor.linkedinUrl,
+          githubUrl: mentor.githubUrl,
+          website: mentor.website,
           profilePicture: mentor.user.profilePicture || this.getDefaultProfilePicture(mentor.user.firstName, mentor.user.lastName),
           isAvailable: mentor.isAvailable,
           experience: mentor.experience || [],
@@ -430,8 +436,8 @@ export class MentorProfileComponent implements OnInit {
         hourlyRate: this.mentor.hourlyRate || 0,
         bio: this.mentor.bio || '',
         linkedinUrl: this.mentor.linkedinUrl || '',
-        githubUrl: '', // Add githubUrl field to Mentor interface if needed
-        website: '', // Add website field to Mentor interface if needed
+        githubUrl: this.mentor.githubUrl || '',
+        website: this.mentor.website || '',
         experience: experienceData,
         education: this.mentor.education ? [...this.mentor.education] : [],
         certifications: this.mentor.certifications ? [...this.mentor.certifications] : []
@@ -470,6 +476,8 @@ export class MentorProfileComponent implements OnInit {
           this.mentor.hourlyRate = response.mentor.hourlyRate;
           this.mentor.bio = response.mentor.bio;
           this.mentor.linkedinUrl = response.mentor.linkedinUrl;
+          this.mentor.githubUrl = response.mentor.githubUrl;
+          this.mentor.website = response.mentor.website;
           // Add other fields as needed
           if (response.mentor.experience) {
             this.mentor.experience = response.mentor.experience;

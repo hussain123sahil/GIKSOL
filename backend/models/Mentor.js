@@ -68,6 +68,16 @@ const mentorSchema = new mongoose.Schema({
     trim: true,
     match: [/^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/, 'Please enter a valid LinkedIn URL']
   },
+  githubUrl: {
+    type: String,
+    trim: true,
+    match: [/^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9-]+\/?$/, 'Please enter a valid GitHub URL']
+  },
+  website: {
+    type: String,
+    trim: true,
+    match: [/^https?:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/.*)?$/, 'Please enter a valid website URL']
+  },
   rating: {
     type: Number,
     default: 0,
