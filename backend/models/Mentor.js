@@ -66,17 +66,38 @@ const mentorSchema = new mongoose.Schema({
   linkedinUrl: {
     type: String,
     trim: true,
-    match: [/^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/, 'Please enter a valid LinkedIn URL']
+    validate: {
+      validator: function(v) {
+        // Allow empty string or valid LinkedIn URL
+        if (!v) return true;
+        return /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/.test(v);
+      },
+      message: 'Please enter a valid LinkedIn URL'
+    }
   },
   githubUrl: {
     type: String,
     trim: true,
-    match: [/^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9-]+\/?$/, 'Please enter a valid GitHub URL']
+    validate: {
+      validator: function(v) {
+        // Allow empty string or valid GitHub URL
+        if (!v) return true;
+        return /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9-]+\/?$/.test(v);
+      },
+      message: 'Please enter a valid GitHub URL'
+    }
   },
   website: {
     type: String,
     trim: true,
-    match: [/^https?:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/.*)?$/, 'Please enter a valid website URL']
+    validate: {
+      validator: function(v) {
+        // Allow empty string or valid website URL
+        if (!v) return true;
+        return /^https?:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(v);
+      },
+      message: 'Please enter a valid website URL'
+    }
   },
   rating: {
     type: Number,

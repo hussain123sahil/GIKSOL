@@ -63,6 +63,56 @@
             </div>
           </div>
         </div>
+
+        <!-- Profile Picture Section -->
+        <div class="form-section">
+          <h3>Profile Picture</h3>
+          
+          <div class="form-group">
+            <label for="profilePicture">Profile Picture</label>
+            <div class="profile-picture-upload">
+              <div class="current-picture" *ngIf="profileData.profilePicture">
+                <img [src]="profileData.profilePicture" alt="Current profile picture" class="preview-image">
+                <button type="button" class="remove-picture-btn" (click)="removeProfilePicture()">Remove</button>
+              </div>
+              <div class="upload-area" *ngIf="!profileData.profilePicture">
+                <input 
+                  type="file" 
+                  id="profilePicture" 
+                  name="profilePicture"
+                  accept="image/*"
+                  (change)="onProfilePictureChange($event)"
+                  #profilePictureInput
+                  class="file-input"
+                >
+                <div class="upload-placeholder" (click)="profilePictureInput.click()">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  <p>Click to upload profile picture</p>
+                  <small>Image only, 30-100KB</small>
+                </div>
+              </div>
+              <div class="upload-area" *ngIf="profileData.profilePicture">
+                <input 
+                  type="file" 
+                  id="profilePicture" 
+                  name="profilePicture"
+                  accept="image/*"
+                  (change)="onProfilePictureChange($event)"
+                  #profilePictureInput
+                  class="file-input"
+                >
+                <button type="button" class="change-picture-btn" (click)="profilePictureInput.click()">
+                  Change Picture
+                </button>
+              </div>
+            </div>
+            <div class="error-message" *ngIf="profilePictureError">
+              {{ profilePictureError }}
+            </div>
+          </div>
+        </div>
         
         <!-- Professional Information -->
         <div class="form-section">

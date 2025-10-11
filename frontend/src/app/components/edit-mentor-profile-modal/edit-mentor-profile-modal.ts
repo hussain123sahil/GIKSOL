@@ -49,6 +49,7 @@ export class EditMentorProfileModalComponent implements OnChanges {
     firstName: '',
     lastName: '',
     email: '',
+    profilePicture: '',
     company: '',
     position: '',
     expertise: [],
@@ -67,6 +68,7 @@ export class EditMentorProfileModalComponent implements OnChanges {
   
   newExpertise = '';
   isSubmitting = false;
+  profilePictureError = '';
 
   ngOnChanges(): void {
     // Reset submitting state when modal becomes visible
@@ -122,8 +124,8 @@ export class EditMentorProfileModalComponent implements OnChanges {
   // Education methods
   addEducation(): void {
     this.profileData.education.push({
-      degree: '',
-      institution: '',
+      degree: 'Degree Name',
+      institution: 'Institution Name',
       year: new Date().getFullYear()
     });
   }
@@ -135,9 +137,9 @@ export class EditMentorProfileModalComponent implements OnChanges {
   // Experience methods
   addExperience(): void {
     this.profileData.experience.push({
-      company: '',
-      position: '',
-      startDate: '',
+      company: 'Company Name',
+      position: 'Position Title',
+      startDate: '2020-01-01',
       endDate: '',
       description: ''
     });
@@ -150,9 +152,9 @@ export class EditMentorProfileModalComponent implements OnChanges {
   // Certification methods
   addCertification(): void {
     this.profileData.certifications.push({
-      name: '',
-      issuer: '',
-      date: ''
+      name: 'Certification Name',
+      issuer: 'Issuing Organization',
+      date: new Date().getFullYear().toString()
     });
   }
 
@@ -163,5 +165,46 @@ export class EditMentorProfileModalComponent implements OnChanges {
   // Helper method to get current year
   getCurrentYear(): number {
     return new Date().getFullYear();
+  }
+
+  // Profile picture methods
+  onProfilePictureChange(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Clear previous error
+    this.profilePictureError = '';
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.profilePictureError = 'Please select an image file only';
+      return;
+    }
+
+    // Validate file size (30KB - 100KB)
+    const fileSizeKB = file.size / 1024;
+    if (fileSizeKB < 30) {
+      this.profilePictureError = 'Image size must be at least 30KB';
+      return;
+    }
+    if (fileSizeKB > 100) {
+      this.profilePictureError = 'Image size must not exceed 100KB';
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.profileData.profilePicture = e.target.result;
+    };
+    reader.onerror = () => {
+      this.profilePictureError = 'Error reading the image file';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeProfilePicture(): void {
+    this.profileData.profilePicture = '';
+    this.profilePictureError = '';
   }
 }

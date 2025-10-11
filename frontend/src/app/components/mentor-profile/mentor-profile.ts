@@ -429,7 +429,7 @@ export class MentorProfileComponent implements OnInit {
         firstName: this.mentor.firstName,
         lastName: this.mentor.lastName,
         email: this.currentUser?.email || '',
-        profilePicture: this.mentor.profilePicture,
+        profilePicture: this.mentor.profilePicture || '',
         company: this.mentor.company,
         position: this.mentor.position,
         expertise: [...this.mentor.expertise],
