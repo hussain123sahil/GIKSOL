@@ -21,6 +21,7 @@ import { AdminSessionsComponent } from './components/admin-sessions/admin-sessio
 import { MentorAvailabilityComponent } from './components/mentor-availability/mentor-availability';
 import { StudentAccountComponent } from './components/student-account/student-account';
 import { StudentHelpAndSupportComponent } from './components/student-helpandsupport/student-helpandsupport';
+import { MentorHelpAndSupportComponent } from './components/mentor-helpandsupport/mentor-helpandsupport';
 
 export const routes: Routes = [
   { path: 'book-session', component: BookSessionComponent },
@@ -42,6 +43,7 @@ export const routes: Routes = [
   { path: 'mentor-dashboard', component: MentorDashboardComponent },
   { path: 'mentor-sessions', component: MentorSessionsComponent },
   { path: 'mentor-availability', component: MentorAvailabilityComponent },
+  { path: 'mentor-help', component: MentorHelpAndSupportComponent },
   { path: 'admin', component: AdminComponent },
   { path: 'admin/users', component: AdminUsersComponent },
   { path: 'admin/students', component: AdminStudentsComponent },
